@@ -8,11 +8,13 @@ re: fclean
 	make all
 
 $(NAME): setup
-	sudo rc-service docker start
-	docker-compose -f srcs/docker-compose.yml up
+	docker-compose -f srcs/docker-compose.yml up --build
 
 $(ENV_PATH):
 	./srcs/generate-env.sh
+
+mode_cmd:
+	docker exec -it nodejs /bin/bash
 
 setup: $(ENV_PATH)
 

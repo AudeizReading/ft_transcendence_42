@@ -1,0 +1,13 @@
+{
+  "name": "ft_transcendence",
+  "version": "1.0.0",
+  "description": "Node.js on Docker",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+
+  }
+}

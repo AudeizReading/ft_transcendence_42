@@ -1,0 +1,42 @@
+version: '3.1'
+
+services:
+  psql:
+    image: postgres
+    restart: on-failure
+    env_file: .env
+    networks:
+      - dream
+    environment:
+      POSTGRES_DB: ${PSQL_DATABASE}
+      POSTGRES_USER: ${PSQL_USER}
+      POSTGRES_PASSWORD: ${PSQL_PASSWORD}
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: on-failure
+    env_file: .env
+    networks:
+      - dream
+    ports:
+      - 8080:8080
+
+  nodejs:
+    build:
+      context: ./requirements/nodejs
+    container_name: nodejs
+    env_file: .env
+    networks:
+      - dream
+    ports:
+      - 8190:8190
+    restart: on-failure
+    volumes:
+      - ./requirements/nodejs:/usr/src/app/nodejs
+
+networks:
+  dream:
+    name: dream
+    driver: bridge
