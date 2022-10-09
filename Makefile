@@ -1,6 +1,6 @@
 NAME=ft_transcendence
 
-ENV_PATH=./srcs/.env
+ENV_PATH=./app/.env
 
 all: $(NAME)
 
@@ -8,13 +8,13 @@ re: fclean
 	make all
 
 $(NAME): setup
-	docker-compose -f srcs/docker-compose.yml up --build
+	docker-compose -f app/docker-compose.yml up --build
 
 $(ENV_PATH):
-	./srcs/generate-env.sh
+	./app/generate-env.sh
 
 mode_cmd:
-	docker exec -it nodejs /bin/bash
+	docker exec -it pong /bin/bash
 
 setup: $(ENV_PATH)
 
@@ -22,8 +22,7 @@ clean:
 	rm -rf $(ENV_PATH)
 
 fclean: clean
-	sudo rm -rf ~/data/mariadb
-	sudo rm -rf ~/data/wordpress
+	sudo rm -rf ~/app/data
 
 clean_docker:
 	docker rm -vf $(docker ps -aq)

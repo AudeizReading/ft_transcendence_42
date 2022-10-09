@@ -23,10 +23,10 @@ services:
     ports:
       - 8080:8080
 
-  nodejs:
+  pong:
     build:
-      context: ./requirements/nodejs
-    container_name: nodejs
+      context: ./pong
+    container_name: pong
     env_file: .env
     networks:
       - dream
@@ -34,7 +34,7 @@ services:
       - 8190:8190
     restart: on-failure
     volumes:
-      - ./requirements/nodejs:/usr/src/app/nodejs
+      - ./pong:/usr/src/app/pong
 
 networks:
   dream:

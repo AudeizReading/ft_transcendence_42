@@ -21,6 +21,6 @@ WORKDIR /usr/src/app
 
 EXPOSE 8190
 
-ADD ./conf/node-entrypoint.sh .
+ADD ./node-entrypoint.sh .
 ENTRYPOINT ["./node-entrypoint.sh"]
 CMD [ "node", "main.js" ]

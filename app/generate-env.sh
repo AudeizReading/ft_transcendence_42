@@ -20,8 +20,8 @@ N_PASS="$(openssl rand -base64 12)"
 
 #MARIADB
 PSQL_HOST=psql
-PSQL_DATABASE=transcendence
-PSQL_USER=transcendence
+PSQL_DATABASE=pong
+PSQL_USER=pong
 PSQL_PASSWORD="$(openssl rand -base64 32)"
 EOF
 fi

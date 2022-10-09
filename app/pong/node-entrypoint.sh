@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-cd nodejs
+cd pong
 
 npm install
 
