@@ -3,3 +3,4 @@
 .env
 .ssl/
 /app/data/
+node_modules/
