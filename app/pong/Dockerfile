@@ -23,4 +23,4 @@ EXPOSE 8190
 
 ADD ./node-entrypoint.sh .
 ENTRYPOINT ["./node-entrypoint.sh"]
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start:dev" ]
