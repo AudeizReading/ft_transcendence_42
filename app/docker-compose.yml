@@ -7,6 +7,8 @@ services:
     env_file: .env
     networks:
       - dream
+    ports: # for dev only: TODO: Remove for eval
+      - 5432:5432
     environment:
       POSTGRES_DB: ${PSQL_DATABASE}
       POSTGRES_USER: ${PSQL_USER}
@@ -23,18 +25,31 @@ services:
     ports:
       - 8080:8080
 
-  pong:
-    build:
-      context: ./pong
-    container_name: pong
-    env_file: .env
-    networks:
-      - dream
-    ports:
-      - 8190:8190
-    restart: on-failure
-    volumes:
-      - ./pong:/usr/src/app/pong
+  # pong:
+  #   build:
+  #     context: ./pong
+  #   container_name: pong
+  #   env_file: .env
+  #   networks:
+  #     - dream
+  #   ports:
+  #     - 8190:8190
+  #   restart: on-failure
+  #   volumes:
+  #     - ./pong:/usr/src/app/pong
+
+  # front:
+  #   build:
+  #     context: ./front
+  #   container_name: front
+  #   env_file: .env
+  #   networks:
+  #     - dream
+  #   ports:
+  #     - 3000:3000
+  #   restart: on-failure
+  #   volumes:
+  #     - ./front:/usr/src/app/front
 
 networks:
   dream:

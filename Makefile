@@ -13,6 +13,14 @@ $(NAME): setup
 $(ENV_PATH):
 	./app/generate-env.sh
 
+# dev only
+run_front:
+	cd app; ./front/node-entrypoint.sh "npm" "start"
+
+# dev only
+run_back:
+	cd app; ./pong/node-entrypoint.sh "npm" "run" "start:dev"
+
 mode_cmd:
 	docker exec -it pong /bin/bash
 
