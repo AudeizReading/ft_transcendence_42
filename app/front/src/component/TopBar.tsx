@@ -22,6 +22,7 @@ import SportsSoccer from '@mui/icons-material/SportsSoccer';
 import Person from '@mui/icons-material/Person';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
+import Stack from '@mui/material/Stack';
 
 interface Props {
   /**
@@ -58,9 +59,12 @@ function TopBar(props: Props) {
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
-      <Typography variant="h6" sx={{ my: 2 }}>
-        PONG
-      </Typography>
+      <Stack direction="row" justifyContent="center" alignItems="center" gap={0.5}>
+        <SportsSoccer sx={{ mt: "-3px" }} />
+        <Typography variant="h6" sx={{ my: 2 }}>
+          PONG
+        </Typography>
+      </Stack>
       <Divider />
       <List>
         {pages.map((item) => (

@@ -11,6 +11,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <TopBar />
+    <div style={{ backgroundColor: "red", height:"400px", overflow:"hidden" }}>
+
+    </div>
   </React.StrictMode>
 );
 
