@@ -30,7 +30,7 @@ clean:
 	rm -rf $(ENV_PATH)
 
 fclean: clean
-	sudo rm -rf ~/app/data
+	#Nothing to do
 
 clean_docker:
 	docker rm -vf $(docker ps -aq)
