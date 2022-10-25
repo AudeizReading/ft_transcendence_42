@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-// import App from './App';
-import TopBar from './component/TopBar';
+import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -10,10 +9,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <TopBar />
-    <div style={{ backgroundColor: "red", height:"400px", overflow:"hidden" }}>
-
-    </div>
+    <App />
   </React.StrictMode>
 );
 
