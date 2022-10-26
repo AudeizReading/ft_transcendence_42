@@ -1,26 +1,30 @@
 import React from 'react';
 import './App.css';
 import TopBar from './component/TopBar';
+import Home from './page/Home';
+import Score from './page/Score';
+import Profile from './page/Profile';
+import Chat from './page/Chat';
 import Box from '@mui/material/Box';
 import {
   BrowserRouter,
   Routes,
   Route,
-  Link
+  Link as RouterLink
 } from "react-router-dom";
 
 function App() {
   return (
     <Box className="App">
-        <TopBar />
         <BrowserRouter>
+          <TopBar />
           <Routes>
-            <Route index path="/" element={<Red />} />
-            <Route path="/score" element={<Green />} />
-            <Route path="/profile" element={<Orange />} />
-            <Route path="/cyan" element={<Cyan />} />
+            <Route index path="/" element={<Home />} />
+            <Route path="/score" element={<Score />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/chat" element={<Chat />} />
 
-            <Route path="*" element={<Red />} />
+            <Route path="*" element={<Error />} />
           </Routes>
         </BrowserRouter>
     </Box>
@@ -29,31 +33,10 @@ function App() {
 
 export default App;
 
-function Red() {
+function Error() {
   return (
     <div style={{ backgroundColor: "red", height:"400px", overflow:"hidden" }}>
-      <Link to="score">My Profile</Link>
-    </div>
-  );
-}
-
-function Green() {
-  return (
-    <div style={{ backgroundColor: "green", height:"400px", overflow:"hidden" }}>
-    </div>
-  );
-}
-
-function Orange() {
-  return (
-    <div style={{ backgroundColor: "orange", height:"400px", overflow:"hidden" }}>
-    </div>
-  );
-}
-
-function Cyan() {
-  return (
-    <div style={{ backgroundColor: "cyan", height:"400px", overflow:"hidden" }}>
+      <RouterLink to="/">Home</RouterLink>
     </div>
   );
 }

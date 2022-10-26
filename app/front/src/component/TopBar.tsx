@@ -23,7 +23,8 @@ import Person from '@mui/icons-material/Person';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import Stack from '@mui/material/Stack';
-import { Link } from "react-router-dom"
+import { Link as RouterLink } from "react-router-dom";
+import Link from "@mui/material/Link";
 
 interface Props {
   /**
@@ -34,7 +35,11 @@ interface Props {
 }
 
 const drawerWidth = 240;
-const pages = ['Jouer', 'Score', 'Chat'];
+const pages = [
+  {name: 'Jouer', url: '/play'},
+  {name: 'Score', url: '/score'},
+  {name: 'Chat', url: '/chat'}
+];
 
 function TopBar(props: Props) {
   const { window } = props;
@@ -63,15 +68,15 @@ function TopBar(props: Props) {
       <Stack direction="row" justifyContent="center" alignItems="center" gap={0.5}>
         <SportsSoccer sx={{ mt: "-3px" }} />
         <Typography variant="h6" sx={{ my: 2 }}>
-          PONG
+          <Link to="/" component={RouterLink} color="inherit" underline="none">PONG</Link>
         </Typography>
       </Stack>
       <Divider />
       <List>
         {pages.map((item) => (
-          <ListItem key={item} disablePadding>
-            <ListItemButton sx={{ textAlign: 'center' }}>
-              <ListItemText primary={item} />
+          <ListItem key={item.name} disablePadding>
+            <ListItemButton component={RouterLink} to={item.url} sx={{ textAlign: 'center' }}>
+              <ListItemText primary={item.name} />
             </ListItemButton>
           </ListItem>
         ))}
@@ -87,8 +92,8 @@ function TopBar(props: Props) {
           <Typography
             variant="h6"
             noWrap
-            component="a"
-            href="/"
+            component={RouterLink}
+            to="/" 
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -133,8 +138,8 @@ function TopBar(props: Props) {
           <Typography
             variant="h5"
             noWrap
-            component="a"
-            href="/"
+            component={RouterLink}
+            to="/"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -151,11 +156,13 @@ function TopBar(props: Props) {
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Button
-                key={page}
+                key={page.name}
                 onClick={handleDrawerToggle}
                 sx={{ my: 2, color: 'white', display: 'block' }}
+                component={RouterLink}
+                to={page.url}
               >
-                {page}
+                {page.name}
               </Button>
             ))}
           </Box>
@@ -201,7 +208,10 @@ function TopBar(props: Props) {
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              <MenuItem key="Profil" onClick={handleCloseUserMenu}>
+              <MenuItem key="Profil" onClick={handleCloseUserMenu}
+                component={RouterLink}
+                to="/profile"
+              >
                 <Avatar src="https://i.pravatar.cc/300?u=unique_me" /> Profil
               </MenuItem>
               <Divider />
