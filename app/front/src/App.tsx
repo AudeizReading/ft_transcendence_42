@@ -36,7 +36,8 @@ export default App;
 function Error() {
   return (
     <div style={{ backgroundColor: "red", height:"400px", overflow:"hidden" }}>
-      <RouterLink to="/">Home</RouterLink>
+      <h1>Oh non erreur 404 !</h1>
+      <RouterLink to="/">Revenir en arrière</RouterLink>
     </div>
   );
 }
