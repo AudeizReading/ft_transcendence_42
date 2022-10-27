@@ -6,13 +6,13 @@ if [ -f ".env" ]; then
   echo ".env already exist"
 else
   echo "create .env"
-  printf "Write your secret api: ";
   cat << EOF > .env
 #NODE
 HOST=localhost
 
 #API
-API_42_SECRET="$(read api;echo $api)"
+API_42_UID="$(printf "1) Write your uid api: " 1>&2;read api;echo $api)"
+API_42_SECRET="$(printf "2) Write your secret api: " 1>&2;read api;echo $api)"
 
 #USER
 N_USER=user
