@@ -4,7 +4,7 @@ services:
   psql:
     image: postgres
     restart: on-failure
-    env_file: .env
+    env_file: pong/.env
     networks:
       - dream
     ports: # for dev only: TODO: Remove for eval
@@ -19,7 +19,7 @@ services:
   adminer:
     image: adminer
     restart: on-failure
-    env_file: .env
+    env_file: pong/.env
     networks:
       - dream
     ports:
@@ -29,7 +29,7 @@ services:
   #   build:
   #     context: ./pong
   #   container_name: pong
-  #   env_file: .env
+  #   env_file: pong/.env
   #   networks:
   #     - dream
   #   ports:
@@ -42,7 +42,6 @@ services:
   #   build:
   #     context: ./front
   #   container_name: front
-  #   env_file: .env
   #   networks:
   #     - dream
   #   ports:

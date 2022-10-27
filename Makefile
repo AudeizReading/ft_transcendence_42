@@ -8,7 +8,7 @@ re: fclean
 	make all
 
 $(NAME): setup
-	docker-compose -f app/docker-compose.yml up --build
+	docker-compose -f app/docker-compose.yml --env-file=app/pong/.env up --build
 
 $(ENV_PATH):
 	./app/generate-env.sh
