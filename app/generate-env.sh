@@ -19,6 +19,9 @@ HOST=localhost
 API_42_UID="$(printf "1) Write your uid api: " 1>&2;read api;echo $api)"
 API_42_SECRET="$(printf "2) Write your secret api: " 1>&2;read api;echo $api)"
 
+#NESTJS
+JWT_SECRET="$(openssl rand -base64 32)"
+
 #USER
 N_USER=user
 N_PASS="$(openssl rand -base64 12)"

@@ -14,11 +14,11 @@ $(ENV_PATH):
 	./app/generate-env.sh
 
 # dev only
-run_front:
+run_front: setup
 	cd app; ./front/node-entrypoint.sh "npm" "start"
 
 # dev only
-run_back:
+run_back: setup
 	cd app; ./pong/node-entrypoint.sh "npm" "run" "start:dev"
 
 mode_cmd:
