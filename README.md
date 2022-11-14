@@ -1,5 +1,19 @@
 # project42_transcendence
 
+## Installation:
+
+### Back
+
+#### Apply Migration of psql
+
+Prepare Postgres (Docker with psql should be running `make`).
+
+```
+cd app/pong
+npm install
+npx prisma migrate deploy
+```
+
 ## Usage
 
 ### How to run project for dev ?
