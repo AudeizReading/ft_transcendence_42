@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -26,13 +26,13 @@ import Stack from '@mui/material/Stack';
 import { Link as RouterLink } from "react-router-dom";
 import Link from "@mui/material/Link";
 
-interface Props {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window?: () => Window;
+declare global {
+  interface Window {
+    wOpen:any;
+  }
 }
+
+const hostname = window !== undefined && window.location.hostname;
 
 const drawerWidth = 240;
 const pages = [
@@ -41,13 +41,11 @@ const pages = [
   {name: 'Chat', url: '/chat'}
 ];
 
-function TopBar(props: Props) {
-  const { window } = props;
-
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+function TopBar() {
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorElUser);
 
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -60,8 +58,80 @@ function TopBar(props: Props) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+    
+  const fetch_opt = () => ({
+    'headers': { 'Authorization': localStorage['bearer'] ? 'Bearer ' + localStorage['bearer'] : '' }
+  });
 
-  const container = window !== undefined ? () => window().document.body : undefined;
+  const [isConnected, setIsConnected] = useState(false);
+  const [user, setUser] = useState({
+    avatar: ''
+  });
+
+  const fetch_userinfo = () => {
+    fetch('http://' + hostname + ':8190/user/info', fetch_opt())
+      .then(res => res.json())
+      .then(
+        (result) => {
+          setIsConnected(result.connected == true);
+          setUser(result.user)
+        },
+        (error) => {
+          console.log(error)
+          setIsConnected(false);
+        }
+      )
+  };
+
+  const handleLogout = (async () => {
+    await fetch('http://' + hostname + ':8190/auth/logout', fetch_opt());
+    fetch_userinfo();
+    handleCloseUserMenu();
+  });
+
+  const handleOpenAuthPopup = () => {
+    const href = "http://" + hostname + ":8190/auth/";
+
+    try {
+      if (window.wOpen) { window.wOpen.close(); }
+
+      let pos = '';
+      if (window)
+      {
+        pos += ',height=' + Math.max(window.innerHeight - 200, 650);
+        pos += ',left=' + (window.screenX + 4);
+        pos += ',top=' + (window.screenY + (window.outerHeight - window.innerHeight) + 74);
+      }
+      window.wOpen = window.open(href, '', 'width=490' + pos);
+    } catch (e) {
+      window.wOpen = window.open(href, '', 'width=490,height=700');
+    }
+
+    //if (!window.wOpen.closed) { return false; }
+  }
+
+  const handleBeforeUnload = () => {
+    if (window.wOpen) { window.wOpen.close() }
+  };
+
+  const handleAuthSuccess = () => {
+    if (window.wOpen) { window.wOpen.close(); }
+    fetch_userinfo();
+  }
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('auth_success', handleAuthSuccess);
+    fetch_userinfo();
+    const interval = setInterval(() => fetch_userinfo(), 15000); // TODO: Better? Socket.io?
+
+    // cleanup this component
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('auth_success', handleAuthSuccess);
+    };
+  }, []);
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -119,7 +189,6 @@ function TopBar(props: Props) {
           </Box>
           <Box component="nav">
             <Drawer
-              container={container}
               variant="temporary"
               open={mobileOpen}
               onClose={handleDrawerToggle}
@@ -167,10 +236,11 @@ function TopBar(props: Props) {
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+
+          { (isConnected && <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Me" src="https://i.pravatar.cc/300?u=unique_me" />
+                <Avatar alt="Me" src={user.avatar} />
               </IconButton>
             </Tooltip>
             <Menu
@@ -212,7 +282,7 @@ function TopBar(props: Props) {
                 component={RouterLink}
                 to="/profile"
               >
-                <Avatar src="https://i.pravatar.cc/300?u=unique_me" /> Profil
+                <Avatar src={user.avatar} /> Profil
               </MenuItem>
               <Divider />
               <MenuItem key="Amis" onClick={handleCloseUserMenu}>
@@ -227,14 +297,20 @@ function TopBar(props: Props) {
                 </ListItemIcon>
                 Options
               </MenuItem>
-              <MenuItem key="Deconnexion" onClick={handleCloseUserMenu}>
+              <MenuItem key="Deconnexion" onClick={handleLogout}>
                 <ListItemIcon>
                   <Logout fontSize="small" />
                 </ListItemIcon>
                 Déconnexion
               </MenuItem>
             </Menu>
-          </Box>
+          </Box>) ||
+          <Button
+            color="inherit"
+            sx={{
+              fontWeight: 700
+            }}
+            onClick={handleOpenAuthPopup} >Login</Button> }
         </Toolbar>
       </Container>
     </AppBar>

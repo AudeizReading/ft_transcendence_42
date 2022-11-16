@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-42';
 import { UsersService } from '../users/users.service';
+import * as crypto from 'crypto';
 
 // doc: https://blog.logrocket.com/social-logins-nestjs/
 
@@ -11,7 +12,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     super({
       clientID: process.env.API_42_UID,
       clientSecret: process.env.API_42_SECRET,
-      callbackURL: 'http://192.168.13.128:8190/auth/callback',
+      callbackURL: 'http://127.0.0.1:8190/auth/callback',
       /* // TODO: Mettre le minimum?
       profileFields: {
         'id': function (obj) { return String(obj.id); },
@@ -29,21 +30,38 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
   }
 
   async validate(accessToken: string, _refreshToken: string, profile: Profile) {
-    console.log('TODO: Save data with prisma (= database)');
-    console.log(profile); 
     const user = await this.UsersService.user({
-      'email': profile.emails[0].value
+      'login': profile.username
     });
+    const sessionid = crypto.randomBytes(32).toString('base64');
     if (!user)
     {
+      console.log('create user');
       await this.UsersService.createUser({
         'email': profile.emails[0].value,
-        'login': profile.username
+        'login': profile.username,
+        'avatar': profile.photos[0].value,
+        'sessionid': sessionid
       });
-    } else {
-      console.log('found');
+    }
+    else
+    {
+      await this.UsersService.updateUser({
+        where: {
+          'login': profile.username
+        },
+        data: {
+          'avatar': profile.photos[0].value,
+          'sessionid': sessionid
+        }
+      })
     }
     // console.log(profile); // <<== toutes les infos ici :)
-    return profile;
+    return {
+      'id': profile.id,
+      'username': profile.username,
+      'sessionid': sessionid,
+      'api42': profile
+    }
   }
 }
