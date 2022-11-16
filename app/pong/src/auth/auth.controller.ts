@@ -22,4 +22,10 @@ export class AuthController {
   @Get()
   @UseGuards(AuthGuard('api42'))
   async login() { }
+
+  @Get('hello')
+  @UseGuards(AuthGuard('jwt'))
+  hello(): string {
+    return 'Ok';
+  }
 }
