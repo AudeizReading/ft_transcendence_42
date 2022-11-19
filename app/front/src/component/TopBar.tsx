@@ -120,6 +120,7 @@ function TopBar() {
   }
 
   useEffect(() => {
+    console.log('TopBar render');
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('auth_success', handleAuthSuccess);
     fetch_userinfo();

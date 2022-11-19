@@ -9,7 +9,6 @@ export class UsersController {
   @Get('user/info')
   @UseGuards(JwtAuthGuard)
   user_info(@Request() req) {
-    console.log(req.user)
     return {
       connected: true,
       user: {

@@ -22,19 +22,19 @@ function App() {
 
   return (
     <Box className="App">
-        <BrowserRouter>
-          {isNotAuth && <TopBar />}
-          <Routes>
-            <Route index path="/" element={<Home />} />
-            <Route path="/score" element={<Score />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/chat" element={<Chat />} />
+      <BrowserRouter>
+        {isNotAuth && <TopBar />}
+        <Routes>
+          <Route index path="/" element={<Home />} />
+          <Route path="/score" element={<Score />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/chat" element={<Chat />} />
 
-            <Route path="/auth" element={<Auth />} />
+          <Route path="/auth" element={<Auth />} />
 
-            <Route path="*" element={<Error />} />
-          </Routes>
-        </BrowserRouter>
+          <Route path="*" element={<Error />} />
+        </Routes>
+      </BrowserRouter>
     </Box>
   );
 }
