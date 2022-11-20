@@ -15,16 +15,18 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: any) {
     const user = await this.UsersService.user({
-      'login': payload.username
+      'login': payload.login
     });
     if (!user || user.sessionid != payload.sessionid) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid payload');
     }
-    // TODO: Load all user info here?
+    // You can add user data in `req.user` for the controller
     return {
-      id: payload.sub,
-      username: payload.username,
+      id: user.id,
+      login: payload.login,
+      //username: user.name,
       sessionid: payload.sessionid,
+      sub: payload.sub,
       avatar: user.avatar
     };
   }

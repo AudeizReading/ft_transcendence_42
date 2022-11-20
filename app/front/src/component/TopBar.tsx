@@ -44,6 +44,8 @@ const pages = [
 function TopBar(props: { 
     fetch_userinfo: Function,
     user: {
+      id: number,
+      name: string,
       connected: boolean,
       avatar: string
     }
@@ -95,16 +97,16 @@ function TopBar(props: {
     //if (!window.wOpen.closed) { return false; }
   }
 
-  const handleBeforeUnload = () => {
-    if (window.wOpen) { window.wOpen.close() }
-  };
-
-  const handleAuthSuccess = () => {
-    if (window.wOpen) { window.wOpen.close(); }
-    props.fetch_userinfo();
-  }
-
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (window.wOpen) { window.wOpen.close() }
+    };
+
+    const handleAuthSuccess = () => {
+      if (window.wOpen) { window.wOpen.close(); }
+      props.fetch_userinfo();
+    }
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('auth_success', handleAuthSuccess);
     setUser(props.user);
@@ -114,7 +116,7 @@ function TopBar(props: {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('auth_success', handleAuthSuccess);
     };
-  }, [props.user]);
+  }, [props]);
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -223,7 +225,7 @@ function TopBar(props: {
           { (user.connected && <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Me" src={user.avatar} />
+                <Avatar alt={user.name} src={user.avatar} />
               </IconButton>
             </Tooltip>
             <Menu
@@ -263,9 +265,9 @@ function TopBar(props: {
             >
               <MenuItem key="Profil" onClick={handleCloseUserMenu}
                 component={RouterLink}
-                to="/profile"
+                to={'/user/' + user.id}
               >
-                <Avatar src={user.avatar} /> Profil
+                <Avatar alt={user.name} src={user.avatar} /> Profil
               </MenuItem>
               <Divider />
               <MenuItem key="Amis" onClick={handleCloseUserMenu}>

@@ -21,29 +21,33 @@ function App() {
 
   const isNotAuth = (window.location.pathname !== '/auth');
 
-  const notConnected = () => ({
+  const defaultNotConnected = () => ({
+    id: 0,
+    name: '',
     connected: false,
     avatar: ''
   });
 
-  const [user, setUser] = useState(notConnected());
+  const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = () => {
-    fetch('http://' + window.location.hostname + ':8190/user/info', fetch_opt())
+    fetch('http://' + window.location.hostname + ':8190/user/me', fetch_opt())
       .then(res => res.json())
       .then(
         (result) => {
           console.log('fetch', result);
           if (!result.connected)
-            return setUser(notConnected())
+            return setUser(defaultNotConnected())
           setUser({
+            id: result.user.id,
+            name: result.user.name,
             connected: true,
             avatar: result.user.avatar
           })
         },
         (error) => {
           console.info('fetch_userinfo', error)
-          setUser(notConnected())
+          setUser(defaultNotConnected())
         }
       )
   };
@@ -56,7 +60,7 @@ function App() {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Box className="App">
@@ -66,7 +70,7 @@ function App() {
         <Routes>
           <Route index path="/" element={<Home />} />
           <Route path="/score" element={<Score />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/chat" element={<Chat />} />
 
           <Route path="/auth" element={<Auth />} />

@@ -59,7 +59,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     // console.log(profile); // <<== toutes les infos ici :)
     return {
       'id': profile.id,
-      'username': profile.username,
+      'login': profile.username,
       'sessionid': sessionid,
       'api42': profile
     }

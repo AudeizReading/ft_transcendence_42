@@ -17,3 +17,9 @@ model User {
   avatar     String?
   sessionid  String?
 }
+
+model Image {
+  id         Int     @default(autoincrement()) @id
+  name       String  @unique
+  content    Bytes
+}

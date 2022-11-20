@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { User, Prisma } from '@prisma/client';
+import { User, Image, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -51,6 +51,23 @@ export class UsersService {
   async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
     return this.prisma.user.delete({
       where,
+    });
+  }
+
+  // TODO: move???
+  async uploadImageInPsql(data: Prisma.ImageCreateInput): Promise<Image> {
+    return this.prisma.image.upsert({
+      where: { name: data.name },
+      update: data,
+      create: data,
+    });
+  }
+
+  async image(
+    imageWhereUniqueInput: Prisma.ImageWhereUniqueInput,
+  ): Promise<Image | null> {
+    return this.prisma.image.findUnique({
+      where: imageWhereUniqueInput,
     });
   }
 }

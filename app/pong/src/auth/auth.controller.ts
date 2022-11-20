@@ -29,7 +29,7 @@ export class AuthController {
     const user = req.user;
     return `<script>
       location = 'http://' + window.location.hostname + ':3000/auth'
-        + '#bearer=${this.authService.getToken(user.id, user.username, user.sessionid)}';
+        + '#bearer=${this.authService.getToken(user.id, user.login, user.sessionid)}';
     </script>`;
   }
 
@@ -44,7 +44,7 @@ export class AuthController {
   async logout(@Request() req) {
     await this.UsersService.updateUser({
       where: {
-        'login': req.user.username
+        'login': req.user.login
       },
       data: {
         'sessionid': ''
