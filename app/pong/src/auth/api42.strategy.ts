@@ -9,11 +9,10 @@ import * as crypto from 'crypto';
 @Injectable()
 export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
   constructor(private UsersService: UsersService) {
-    console.log('TODO: change constructor 127.0.0.1 in http://127.0.0.1:8190/ and ask in env like api key')
     super({
       clientID: process.env.API_42_UID,
       clientSecret: process.env.API_42_SECRET,
-      callbackURL: 'http://127.0.0.1:8190/auth/callback', // TODO: CHANGE 127.0.0.1 auto detect
+      callbackURL: 'http://' + process.env.FRONT_HOST + ':8190/auth/callback',
       /* // TODO: Mettre le minimum?
       profileFields: {
         'id': function (obj) { return String(obj.id); },

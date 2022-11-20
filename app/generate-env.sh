@@ -16,6 +16,9 @@ else
 API_42_UID="$(printf "1) Write your uid api: " 1>&2;read api;echo $api)"
 API_42_SECRET="$(printf "2) Write your secret api: " 1>&2;read api;echo $api)"
 
+#FRONT
+FRONT_HOST="$(printf "3) Write your host: " 1>&2;read host;echo $host)"
+
 #NESTJS
 JWT_SECRET="$(openssl rand -base64 32)"
 
