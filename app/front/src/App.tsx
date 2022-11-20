@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import TopBar from './component/TopBar';
 import Home from './page/Home';
@@ -13,17 +13,56 @@ import {
   Route,
   Link as RouterLink
 } from "react-router-dom";
+import { fetch_opt } from './dep/fetch.js'
 
 function App() {
-  if (window.location.hostname == 'localhost')
+  if (window.location.hostname === 'localhost')
     window.location.href = window.location.href.replace('localhost', '127.0.0.1');
 
-  const isNotAuth = (window.location.pathname != '/auth');
+  const isNotAuth = (window.location.pathname !== '/auth');
+
+  const notConnected = () => ({
+    connected: false,
+    avatar: ''
+  });
+
+  const [user, setUser] = useState(notConnected());
+
+  const fetch_userinfo = () => {
+    fetch('http://' + window.location.hostname + ':8190/user/info', fetch_opt())
+      .then(res => res.json())
+      .then(
+        (result) => {
+          console.log('fetch', result);
+          if (!result.connected)
+            return setUser(notConnected())
+          setUser({
+            connected: true,
+            avatar: result.user.avatar
+          })
+        },
+        (error) => {
+          console.info('fetch_userinfo', error)
+          setUser(notConnected())
+        }
+      )
+  };
+
+  useEffect(() => {
+    fetch_userinfo();
+    const interval = setInterval(() => fetch_userinfo(), 15000); // TODO: Better? Socket.io?
+
+    // cleanup this component
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <Box className="App">
       <BrowserRouter>
-        {isNotAuth && <TopBar />}
+        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>
+          }
         <Routes>
           <Route index path="/" element={<Home />} />
           <Route path="/score" element={<Score />} />

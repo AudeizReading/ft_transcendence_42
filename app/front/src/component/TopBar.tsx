@@ -23,16 +23,16 @@ import Person from '@mui/icons-material/Person';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import Stack from '@mui/material/Stack';
-import { Link as RouterLink } from "react-router-dom";
-import Link from "@mui/material/Link";
+import { Link as RouterLink } from 'react-router-dom';
+import Link from '@mui/material/Link';
+
+import { fetch_opt } from '../dep/fetch.js'
 
 declare global {
   interface Window {
     wOpen:any;
   }
 }
-
-const hostname = window !== undefined && window.location.hostname;
 
 const drawerWidth = 240;
 const pages = [
@@ -41,7 +41,16 @@ const pages = [
   {name: 'Chat', url: '/chat'}
 ];
 
-function TopBar() {
+function TopBar(props: { 
+    fetch_userinfo: Function,
+    user: {
+      connected: boolean,
+      avatar: string
+    }
+  }) {
+
+  const [user, setUser] = React.useState({...props.user});
+
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorElUser);
 
@@ -58,39 +67,15 @@ function TopBar() {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-    
-  const fetch_opt = () => ({
-    'headers': { 'Authorization': localStorage['bearer'] ? 'Bearer ' + localStorage['bearer'] : '' }
-  });
-
-  const [isConnected, setIsConnected] = useState(false);
-  const [user, setUser] = useState({
-    avatar: ''
-  });
-
-  const fetch_userinfo = () => {
-    fetch('http://' + hostname + ':8190/user/info', fetch_opt())
-      .then(res => res.json())
-      .then(
-        (result) => {
-          setIsConnected(result.connected == true);
-          setUser(result.user)
-        },
-        (error) => {
-          console.log(error)
-          setIsConnected(false);
-        }
-      )
-  };
 
   const handleLogout = (async () => {
-    await fetch('http://' + hostname + ':8190/auth/logout', fetch_opt());
-    fetch_userinfo();
+    await fetch('http://' + window.location.hostname + ':8190/auth/logout', fetch_opt());
+    props.fetch_userinfo();
     handleCloseUserMenu();
   });
 
   const handleOpenAuthPopup = () => {
-    const href = "http://" + hostname + ":8190/auth/";
+    const href = 'http://' + window.location.hostname + ':8190/auth/';
 
     try {
       if (window.wOpen) { window.wOpen.close(); }
@@ -116,23 +101,20 @@ function TopBar() {
 
   const handleAuthSuccess = () => {
     if (window.wOpen) { window.wOpen.close(); }
-    fetch_userinfo();
+    props.fetch_userinfo();
   }
 
   useEffect(() => {
-    console.log('TopBar render');
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('auth_success', handleAuthSuccess);
-    fetch_userinfo();
-    const interval = setInterval(() => fetch_userinfo(), 15000); // TODO: Better? Socket.io?
+    setUser(props.user);
 
     // cleanup this component
     return () => {
-      clearInterval(interval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('auth_success', handleAuthSuccess);
     };
-  }, []);
+  }, [props.user]);
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -238,7 +220,7 @@ function TopBar() {
           </Box>
 
 
-          { (isConnected && <Box sx={{ flexGrow: 0 }}>
+          { (user.connected && <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <Avatar alt="Me" src={user.avatar} />
