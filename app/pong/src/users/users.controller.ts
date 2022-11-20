@@ -57,7 +57,7 @@ export class UsersController {
   async uploadImage(@Request() req, @UploadedFile(
     new ParseFilePipeBuilder()
       .addMaxSizeValidator({
-        maxSize: 2000
+        maxSize: 300000
       })
       .build({
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
