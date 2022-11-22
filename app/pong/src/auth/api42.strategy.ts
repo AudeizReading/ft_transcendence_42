@@ -13,19 +13,12 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
       clientID: process.env.API_42_UID,
       clientSecret: process.env.API_42_SECRET,
       callbackURL: 'http://' + process.env.FRONT_HOST + ':8190/auth/callback',
-      /* // TODO: Mettre le minimum?
       profileFields: {
         'id': function (obj) { return String(obj.id); },
         'username': 'login',
-        'displayName': 'displayname',
-        'name.familyName': 'last_name',
-        'name.givenName': 'first_name',
-        'profileUrl': 'url',
-        'emails.0.value': 'email',
-        'phoneNumbers.0.value': 'phone',
-        'photos.0.value': 'image_url'
+        'email': 'email',
+        'image.link': 'avatar'
       }
-      */
     });
   }
 
@@ -36,22 +29,25 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     const sessionid = crypto.randomBytes(32).toString('base64');
     if (!user)
     {
+      console.log(profile);
       console.log('create user');
       await this.UsersService.createUser({
-        'email': profile.emails[0].value,
+        'email': profile.email,
         'login': profile.username,
-        'avatar': profile.photos[0].value,
+        'avatar': profile.avatar,
         'sessionid': sessionid
       });
     }
     else
     {
+      const refresh_av = user.avatar && user.avatar.indexOf('http') === 0;
+
       await this.UsersService.updateUser({
         where: {
           'login': profile.username
         },
         data: {
-          'avatar': profile.photos[0].value,
+          'avatar': (refresh_av) ? user.avatar : profile.avatar,
           'sessionid': sessionid
         }
       })
