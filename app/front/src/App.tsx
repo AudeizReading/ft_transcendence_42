@@ -25,7 +25,15 @@ function App() {
     id: 0,
     name: '',
     connected: false,
-    avatar: ''
+    avatar: '',
+    notifs: {
+      num: 0,
+      arr: [{
+        text: '', // TODO: C'est moche, et c'est pour forcer le bon typage
+        date: 0,
+        url: ''
+      }]
+    }
   });
 
   const [user, setUser] = useState(defaultNotConnected());
@@ -42,7 +50,23 @@ function App() {
             id: result.user.id,
             name: result.user.name,
             connected: true,
-            avatar: result.user.avatar
+            avatar: result.user.avatar,
+            notifs: {
+              num: 3,
+              arr: [{
+                text: 'Welcome! You can change your avatar! Click here to go to your profile :)',
+                date: +new Date(),
+                url: '/user/' + result.user.id
+              }, {
+                text: 'blabla2',
+                date: +new Date(),
+                url: ''
+              }, {
+                text: 'blabla3',
+                date: +new Date(),
+                url: ''
+              }]
+            }
           })
         },
         (error) => {

@@ -25,6 +25,8 @@ import Logout from '@mui/icons-material/Logout';
 import Stack from '@mui/material/Stack';
 import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link';
+import Badge from '@mui/material/Badge';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import { fetch_opt } from '../dep/fetch.js'
 
@@ -47,28 +49,49 @@ function TopBar(props: {
       id: number,
       name: string,
       connected: boolean,
-      avatar: string
+      avatar: string,
+      notifs: {
+        num: number,
+        arr: {
+          text: string,
+          date: number,
+          url: string
+        }[]
+      }
     }
   }) {
 
   const [user, setUser] = React.useState({...props.user});
 
-  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorElUser);
+  /* UserMenu */
+  const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleOpenNotifMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNotif(event.currentTarget);
+  };
+  const handleCloseNotifMenu = () => {
+    setAnchorElNotif(null);
+  };
+  /* --- */
+
+  /* UserMenu */
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
-
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+  /* --- */
+
+  /* mobileDrawer */
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  /* --- */
 
   const handleLogout = (async () => {
     await fetch('http://' + window.location.hostname + ':8190/auth/logout', fetch_opt());
@@ -223,7 +246,92 @@ function TopBar(props: {
 
 
           { (user.connected && <Box sx={{ flexGrow: 0 }}>
-            <Tooltip title="Open settings">
+            <Tooltip title="Ouvrir le menu des notifications">
+              <IconButton
+                onClick={handleOpenNotifMenu}
+                size="large"
+                aria-label="Afficher les {user.notifs.num} nouvelles notifications"
+                color="inherit"
+                sx={{ mr: 2 }}
+              >
+                <Badge badgeContent={user.notifs.num} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorElNotif}
+              id="account-menu"
+              open={Boolean(anchorElNotif)}
+              onClose={handleCloseNotifMenu}
+              onClick={handleCloseNotifMenu}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: 'visible',
+                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                  maxWidth: 350,
+                  mt: 1,
+                  '& .MuiMenu-root': {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1
+                  },
+                  '& .MuiMenu-list': {
+                    pt: 0,
+                    pb: 0.5
+                  },
+                  '& .MuiMenu-list:before': {
+                    content: '"Notifications"',
+                    textAlign: 'center',
+                    borderRadius: '4px 4px 0px 0px',
+                    fontWeight: 700,
+                    display: 'block',
+                    fontSize: '1.4em',
+                    lineHeight: 2,
+                    px: 5,
+                    mb: 1,
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                  },
+                  '&:before': {
+                    content: '""',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    right: 19,
+                    width: 10,
+                    height: 10,
+                    bgcolor: 'primary.main',
+                    transform: 'translateY(-50%) rotate(45deg)',
+                    zIndex: 0,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              {user.notifs.arr.map((notif, index) => (
+                  Boolean(index) && <Divider /> ,
+                  <MenuItem onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
+                    {...(notif.url != '' ? {
+                        component: RouterLink,
+                        to: notif.url
+                      } : {})
+                    }
+                  >
+                    <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                      {notif.text}
+                    </Box>
+                    <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
+                      {new Date(notif.date).toLocaleString()}
+                    </Box>
+                  </MenuItem>
+              ))}
+            </Menu>
+
+            <Tooltip title="Ouvrir le menu utilisateur">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                 <Avatar alt={user.name} src={user.avatar} />
               </IconButton>
@@ -231,7 +339,7 @@ function TopBar(props: {
             <Menu
               anchorEl={anchorElUser}
               id="account-menu"
-              open={open}
+              open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
               onClick={handleCloseUserMenu}
               PaperProps={{
@@ -270,13 +378,19 @@ function TopBar(props: {
                 <Avatar alt={user.name} src={user.avatar} /> Profil
               </MenuItem>
               <Divider />
-              <MenuItem key="Amis" onClick={handleCloseUserMenu}>
+              <MenuItem key="Amis" onClick={handleCloseUserMenu}
+                component={RouterLink}
+                to={'/myfriends/'}
+              >
                 <ListItemIcon>
                   <Person fontSize="small" />
                 </ListItemIcon>
                 Amis
               </MenuItem>
-              <MenuItem key="Options" onClick={handleCloseUserMenu}>
+              <MenuItem key="Options" onClick={handleCloseUserMenu}
+                component={RouterLink}
+                to={'/user/' + user.id}
+              >
                 <ListItemIcon>
                   <Settings fontSize="small" />
                 </ListItemIcon>
