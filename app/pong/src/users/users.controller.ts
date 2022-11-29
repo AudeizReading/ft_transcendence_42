@@ -2,7 +2,6 @@ import { Controller, Post, Get, Request, Response, Param, UseGuards, BadRequestE
          UploadedFile, UseInterceptors, StreamableFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from '../users/users.service';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
 import { IsNumberString, IsInt, IsString } from 'class-validator';
@@ -24,12 +23,14 @@ export class UsersController {
   @Get('user/me')
   @UseGuards(JwtAuthGuard)
   user_info(@Request() req) {
+    // console.log(req.user) // <== check avalaible data served by ../auth/jwt.strategy.ts:validate
     return {
       connected: true,
       user: {
         id: req.user.id,
         name: 'CHANGEME' + req.user.login,
-        avatar: req.user.avatar
+        avatar: req.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
+        matchmaking: req.user.mMaking !== null
       }
     };
   }
@@ -47,7 +48,7 @@ export class UsersController {
     return {
       id: user.id,
       name: 'CHANGEME' + user.login, // TODO: Add user.name in prisma (because display name != login)
-      avatar: user.avatar
+      avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
     };
   }
 
@@ -57,7 +58,7 @@ export class UsersController {
   async uploadImage(@Request() req, @UploadedFile(
     new ParseFilePipeBuilder()
       .addMaxSizeValidator({
-        maxSize: 300000
+        maxSize: 420000
       })
       .build({
         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
@@ -70,12 +71,13 @@ export class UsersController {
       name: req.user.login + ext,
       content: file.buffer
     });
+    const hash = +new Date();
     await this.UsersService.updateUser({
       where: {
         'login': req.user.login
       },
       data: {
-        'avatar': 'http://' + process.env.FRONT_HOST + ':8190/user/avatar/' + req.user.login + ext
+        'avatar': 'http://<<host>>:8190/user/avatar/' + req.user.login + ext + '?' + hash
       }
     })
     return { upload: 1 }

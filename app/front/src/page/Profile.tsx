@@ -60,12 +60,15 @@ function Profile(props: {
       .then(
         (result) => {
           if (result.error)
-            return alert('oh no error!'); // TODO: Use mui message element
+            return alert("Attention l'image n'est pas valide!"); // TODO: Use mui message element
           fetch_user(Number(userid));
           props.fetch_userinfo();
+          if (result.upload)
+            alert("Reussi!"); // TODO: Use mui message element
         },
         (error) => {
-          alert('oh no error!'); // TODO: Use mui message element
+          console.log(error)
+          alert("Attention l'image n'est pas valide! (Taille (<420ko)? Format ?)"); // TODO: Use mui message element
         }
       )
   };
@@ -89,7 +92,7 @@ function Profile(props: {
               src={user.avatar}
               sx={{ width: '100%', height: '100%' }}
             />
-            {user.id == props.user.id && <Fab className="editIcon" color="secondary" aria-label="upload avatar" component="label"
+            {user.id !== null && user.id === props.user.id && <Fab className="editIcon" color="secondary" aria-label="upload avatar" component="label"
                  sx={{ position: 'absolute', top: '190px', right: '10px' }}>
               <input hidden accept="image/*" type="file" onChange={handleCapture} />
               <EditIcon />

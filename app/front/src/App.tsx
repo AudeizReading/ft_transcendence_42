@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import TopBar from './component/TopBar';
 import Home from './page/Home';
+import Play from './page/Play';
 import Score from './page/Score';
 import Profile from './page/Profile';
 import Auth from './page/Auth';
@@ -25,6 +26,7 @@ function App() {
     id: 0,
     name: '',
     connected: false,
+    matchmaking: false,
     avatar: '',
     notifs: {
       num: 0,
@@ -50,6 +52,7 @@ function App() {
             id: result.user.id,
             name: result.user.name,
             connected: true,
+            matchmaking: false,
             avatar: result.user.avatar,
             notifs: {
               num: 3,
@@ -78,21 +81,24 @@ function App() {
 
   useEffect(() => {
     fetch_userinfo();
-    const interval = setInterval(() => fetch_userinfo(), 15000); // TODO: Better? Socket.io?
+    let timeout = setTimeout(() => {
+      fetch_userinfo()
+      setTimeout(() => fetch_userinfo(), user.matchmaking ? 5000 : 15000);
+    }, user.matchmaking ? 5000 : 15000); // TODO: Better? Socket.io?
 
     // cleanup this component
     return () => {
-      clearInterval(interval);
+      clearTimeout(timeout);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Box className="App">
       <BrowserRouter>
-        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>
-          }
+        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>}
         <Routes>
           <Route index path="/" element={<Home />} />
+          <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/score" element={<Score />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/chat" element={<Chat />} />

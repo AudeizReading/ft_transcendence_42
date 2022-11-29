@@ -27,7 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       //username: user.name,
       sessionid: payload.sessionid,
       sub: payload.sub,
-      avatar: user.avatar
+      avatar: user.avatar,
+      mMaking: (user as any).mMaking // Ca me fait légérement rire ce hack (et le ts, ce veux mieux que le js ? LOL)
     };
   }
 }

@@ -21,7 +21,7 @@ model User {
   sysMsgs    SysMessage[]
   wins       Game[]
   games      PlayerGame[]
-  mMaking    MatchMaking[]
+  mMaking    MatchMaking?
 
   //friends    Friend[]
 }
@@ -81,7 +81,8 @@ model MatchMaking {
 
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @default(now())
-  startedAt  DateTime     @default(now())
+  startedAt  DateTime?
+  matched    Boolean      @default(false)
   preference String       @default("{}")
 }
 

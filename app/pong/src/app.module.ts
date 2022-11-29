@@ -8,13 +8,15 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { SysMsgModule } from './sysmsg/sysmsg.module';
+import { GameService } from './game/game.service';
+import { GameController } from './game/game.controller';
 
 @Module({
   imports: [ConfigModule.forRoot({
     // isGlobal: true,  ????????
     envFilePath: ['.env'],
   }), AuthModule, UsersModule, SysMsgModule],
-  controllers: [AppController],
-  providers: [AppService, PrismaService, JwtService, AuthService],
+  controllers: [AppController, GameController],
+  providers: [AppService, PrismaService, JwtService, AuthService, GameService],
 })
 export class AppModule {}
