@@ -8,6 +8,8 @@ import Profile from './page/Profile';
 import Auth from './page/Auth';
 import Chat from './page/Chat';
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import {
   BrowserRouter,
   Routes,
@@ -96,7 +98,9 @@ function App() {
 
   return (
     <Box className="App">
-    {loaded &&
+      <Backdrop sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={!loaded}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <BrowserRouter>
         {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>}
         <Routes>
@@ -111,7 +115,6 @@ function App() {
           <Route path="*" element={<Error />} />
         </Routes>
       </BrowserRouter>
-    }
     </Box>
   );
 }
