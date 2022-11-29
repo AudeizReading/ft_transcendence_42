@@ -19,6 +19,10 @@ model User {
   sessionid  String?
 
   sysMsgs    SysMessage[]
+  wins       Game[]
+  games      PlayerGame[]
+  mMaking    MatchMaking[]
+
   //friends    Friend[]
 }
 
@@ -39,6 +43,47 @@ enum TypeMessage {
   MSG
 }
 
+model Game {
+  id         Int          @default(autoincrement()) @id
+
+  name       String?
+  option     String       @default("{}")
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now())
+  scoreA     Int          @default(0)
+  scoreB     Int          @default(0)
+  winner     User?        @relation(fields: [winnerId], references: [id])
+  winnerId   Int?
+  winnedAt   DateTime?
+  state      StateGame    @default(WAITING)
+
+  players    PlayerGame[]
+}
+
+model PlayerGame {
+  game       Game         @relation(fields: [gameId], references: [id])
+  gameId     Int
+  user       User         @relation(fields: [userId], references: [id])
+  userId     Int
+  @@id([gameId, userId])
+}
+
+enum StateGame {
+  WAITING
+  PLAYING
+  PAUSED
+  ENDED
+}
+
+model MatchMaking {
+  userId     Int          @unique
+  user       User         @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now())
+  startedAt  DateTime     @default(now())
+  preference String       @default("{}")
+}
 
 // model FriendRelation {
 //   id         Int          @default(autoincrement()) @id
