@@ -38,6 +38,7 @@ function App() {
     }
   });
 
+  const [loaded, setLoaded] = useState(false);
   const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = () => {
@@ -45,6 +46,7 @@ function App() {
       .then(res => res.json())
       .then(
         (result) => {
+          setLoaded(true)
           console.log('fetch', result);
           if (!result.connected)
             return setUser(defaultNotConnected())
@@ -52,7 +54,7 @@ function App() {
             id: result.user.id,
             name: result.user.name,
             connected: true,
-            matchmaking: false,
+            matchmaking: result.user.matchmaking,
             avatar: result.user.avatar,
             notifs: {
               num: 3,
@@ -94,6 +96,7 @@ function App() {
 
   return (
     <Box className="App">
+    {loaded &&
       <BrowserRouter>
         {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>}
         <Routes>
@@ -108,6 +111,7 @@ function App() {
           <Route path="*" element={<Error />} />
         </Routes>
       </BrowserRouter>
+    }
     </Box>
   );
 }

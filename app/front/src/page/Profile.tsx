@@ -21,6 +21,8 @@ function Profile(props: {
     name: '',
     avatar: ''
   });
+
+  const [loaded, setLoaded] = useState(false);
   const [user, setUser] = useState(emptyUser());
 
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ function Profile(props: {
       .then(res => res.json())
       .then(
         (result) => {
+          setLoaded(true)
           console.log('fetch', result);
           setUser({
             id: result.id,
@@ -74,7 +77,8 @@ function Profile(props: {
   };
 
   return (
-    <div>
+    <Box>
+    {loaded &&
       <Grid container>
         <Grid xs={12} item alignItems="center">
           <Box sx={{ width: 250, height: 250, my: 2, mx: 'auto', display: 'block', position: 'relative',
@@ -125,7 +129,8 @@ function Profile(props: {
           </Box>
         </Grid>
       </Grid>
-    </div>
+    }
+    </Box>
   );
 }
 export default Profile;
