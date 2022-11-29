@@ -17,6 +17,7 @@ model User {
   avatar     String?
   sessionid  String?
   sysMsg     SysMessage[]
+  //friends    Friend[]
 }
 
 model SysMessage {
@@ -33,10 +34,26 @@ enum TypeMessage {
   MSG
 }
 
-// model friend {
-// Follow: https://github.com/prisma/prisma/discussions/3960#discussioncomment-103905
-// userA
-// userB
+
+// model FriendRelation {
+//   id         Int          @default(autoincrement()) @id
+//
+//   state      StateFriend  @default(WAITING)
+//
+//   friends[]  Friend
+// }
+
+// model Friend {
+//   relation   FriendRelation  @relation(fields: [relationId], references: [id])
+//   relationId Int
+//   user       User            @relation(fields: [userId], references: [id])
+//   userId     Int
+//   @@id([relationId, userId])
+// }
+
+// enum StateFriend {
+//   WAITING
+//   FRIEND
 // }
 
 model Image {
