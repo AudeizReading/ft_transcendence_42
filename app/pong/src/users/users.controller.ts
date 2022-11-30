@@ -28,7 +28,7 @@ export class UsersController {
       connected: true,
       user: {
         id: req.user.id,
-        name: 'CHANGEME' + req.user.login,
+        name: req.user.name,
         avatar: req.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
         matchmaking: req.user.mMaking !== null
       }
@@ -47,7 +47,7 @@ export class UsersController {
 
     return {
       id: user.id,
-      name: 'CHANGEME' + user.login, // TODO: Add user.name in prisma (because display name != login)
+      name: user.name,
       avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
     };
   }
@@ -77,7 +77,7 @@ export class UsersController {
         'login': req.user.login
       },
       data: {
-        'avatar': 'http://<<host>>:8190/user/avatar/' + req.user.login + ext + '?' + hash
+        'avatar': 'http://<<host>>:8190/user/avatar/' + req.user.name + ext + '?' + hash
       }
     })
     return { upload: 1 }

@@ -34,6 +34,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
       await this.UsersService.createUser({
         'email': profile.email,
         'login': profile.username,
+        'name': profile.username,
         'avatar': profile.avatar,
         'sessionid': sessionid
       });

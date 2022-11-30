@@ -14,6 +14,7 @@ model User {
   id         Int          @default(autoincrement()) @id
   email      String       @unique
   login      String       @unique
+  name       String       @unique
 
   avatar     String?
   sessionid  String?
