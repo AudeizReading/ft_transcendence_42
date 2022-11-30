@@ -1,4 +1,4 @@
-import { Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 import { GameService } from '../game/game.service';
@@ -9,11 +9,11 @@ export class GameController {
 
   @Post('matchmaking/join')
   @UseGuards(JwtAuthGuard)
-  matchmaking_join(@Request() req) {
+  async matchmaking_join(@Request() req) {
     if (req.user.mMaking !== null)
-      return { matchmaking: true }; // TODO: update ?
+      {} // TODO: update ?
     else
-      this.GameService.createMatchMaking({
+      await this.GameService.createMatchMaking({
         user: {
           connect: {
             id: req.user.id
@@ -22,7 +22,16 @@ export class GameController {
         preference: "{}"
       });
     return {
-      matchmaking: true
+      matchmaking: true,
+      ...await this.GameService.listTenMatchMakings()
+    };
+  }
+
+  @Get('matchmaking/info')
+  async matchmaking_info() {
+    return {
+      matchmaking: true,
+      ...await this.GameService.listTenMatchMakings()
     };
   }
 

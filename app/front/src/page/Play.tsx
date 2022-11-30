@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
+import Avatar from '@mui/material/Avatar';
+import AvatarGroup from '@mui/material/AvatarGroup';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
@@ -28,10 +30,14 @@ function Play(props: {
     open: false,
     type: '',
     message: '',
+    date: +new Date()
   });
-  const showSnackbar = (type: string, message: string) => setSnackbar({ open: true, type, message });
+  const showSnackbar = (type: string, message: string) => setSnackbar({ open: true, type, message, date: +new Date() });
 
   const handleCloseSnackbar = () => snackbar.open = false
+
+  const [user, setUser] = React.useState({...props.user});
+  const [avatars, setAvatars] = useState({ count: -1, avatars: []});
 
   const handleJoinMatchMaking = () => {
     setFetching(true);
@@ -43,16 +49,39 @@ function Play(props: {
       .then(
         (result) => {
           setTimeout(() => setFetching(false), 4000);
-          props.fetch_userinfo();
-          if ('matchmaking' in result)
-            showSnackbar('info', 'Vous avez lancé le matchmaking !');
-          else
+          if (!('matchmaking' in result))
             return showSnackbar('error', 'Impossible de lancer le matchmaking.');
+          showSnackbar('info', 'Vous avez lancé le matchmaking !');
+          user.matchmaking = true;
+          if (result.count)
+            setAvatars({ count: result.count, avatars: result.avatars});
+          console.log({ count: result.count, avatars: result.avatars})
         },
         (error) => {
           setTimeout(() => setFetching(false), 4000);
           console.log(error)
           showSnackbar('error', 'Impossible de lancer le matchmaking.');
+        }
+      )
+  };
+
+  const refreshMatchMaking = () => {
+    console.log(user.matchmaking, avatars.count);
+    if (!user.matchmaking || avatars.count != -1)
+      return ;
+    fetch('http://' + window.location.hostname + ':8190/game/matchmaking/info', {
+      method: 'GET',
+      headers: fetch_opt().headers
+    })
+      .then(res => res.json())
+      .then(
+        (result) => {
+          if (result.count)
+            setAvatars({ count: result.count, avatars: result.avatars});
+          console.log({ count: result.count, avatars: result.avatars})
+        },
+        (error) => {
+          console.log(error)
         }
       )
   };
@@ -68,10 +97,10 @@ function Play(props: {
         (result) => {
           setTimeout(() => setFetching(false), 4000);
           props.fetch_userinfo();
-          if ('matchmaking' in result)
-            showSnackbar('warning', 'Vous avez quitté le matchmaking !');
-          else
+          if (!('matchmaking' in result))
             return showSnackbar('error', 'Impossible de quitter le matchmaking.');
+          showSnackbar('warning', 'Vous avez quitté le matchmaking !');
+           user.matchmaking = false;
         },
         (error) => {
           setTimeout(() => setFetching(false), 4000);
@@ -93,16 +122,15 @@ function Play(props: {
       });
     };
 
-    const logo = document.querySelector('div.card-effect') as HTMLDivElement;
-    if (!logo)
-      return ;
-
     window.addEventListener('mousemove', handleMouseMove);
+
+    setUser(props.user);
+    refreshMatchMaking();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, []);
+  }, [props]);
 
   const gradient = `
     radial-gradient(
@@ -122,9 +150,10 @@ function Play(props: {
         background: '#dcf2f6',
         height: { xs: 400 + xs_button_height_container, md: 'inherit' }
       }}>
-        <Grid item xs={12} md={8} sx={{
+        <Grid item xs={12} md={8} style={{
           '--mx': mouse.x * 100 + '%',
-          '--my': mouse.y * 100 + '%',
+          '--my': mouse.y * 100 + '%'
+          } as any} sx={{
           background: 'url(/res/pong/iceberg_field.png)',
           backgroundPosition: 'top center',
           backgroundRepeat: 'no-repeat',
@@ -165,31 +194,50 @@ function Play(props: {
           </Box>
         </Grid>
         <Grid item xs={12} md={4} sx={{
-          display: 'flex',
           height: { xs: xs_button_height_container, md: 'inherit' }
         }}>
-          { !props.user.matchmaking
-            ? <Button variant="contained"
-                onClick={handleJoinMatchMaking}
-                disabled={fetching}
-                sx={{
-                  m: 'auto'
-                }}
-              > Rejoindre le MatchMaking</Button>
-            : <Button variant="contained" color="error"
-                onClick={handleQuitMatchMaking}
-                disabled={fetching}
-                sx={{
-                  m: 'auto'
-                }}
-              ><CircularProgress size={16} color="warning" sx={{ mr: 1 }}
-              /> Quitter le MatchMaking</Button>
+          <Box sx={{ mt: { sx: 'inherit', md: 'calc(50% - 25px)' } }}>
+            { !user.matchmaking
+              ? <Button variant="contained"
+                  onClick={handleJoinMatchMaking}
+                  disabled={fetching}
+                  sx={{
+                    m: 'auto',
+                    display: 'block'
+                  }}
+                > Rejoindre le MatchMaking</Button>
+              : <Button variant="contained" color="error"
+                  onClick={handleQuitMatchMaking}
+                  disabled={fetching}
+                  sx={{
+                    m: 'auto',
+                    display: 'block'
+                  }}
+                ><CircularProgress size={16} color="warning" sx={{ mr: 1 }}
+                /> Quitter le MatchMaking</Button>
+            }
+          { avatars.count > 0 &&
+            <AvatarGroup total={avatars.count} sx={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              mt: 1,
+              '& .MuiAvatarGroup-avatar': {
+                height: 32,
+                width: 32,
+                fontSize: 13
+              }
+            }}>
+              {avatars.avatars && avatars.avatars.map((item: any) =>
+                <Avatar key={item.name} alt={item.name} src={item.avatar} />
+              )}
+            </AvatarGroup>
           }
+          </Box>
         </Grid>
       </Grid>
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={4000}
+        autoHideDuration={4000 - (+new Date() - snackbar.date)}
         onClose={handleCloseSnackbar}
       >
         <Alert onClose={handleCloseSnackbar} severity={snackbar.type !== '' ? (snackbar.type as any) : 'info'} sx={{ width: '100%' }}>

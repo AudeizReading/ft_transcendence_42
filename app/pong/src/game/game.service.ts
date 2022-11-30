@@ -20,6 +20,63 @@ export class GameService {
     });
   }
 
+  async listTenMatchMakings(): Promise<any> {
+    const rawAvatars = await this.matchMakings({
+      take: 10,
+      orderBy: {
+        updatedAt: 'asc',
+      },
+      include: {
+        user: { 
+          select: {
+            name: true,
+            avatar: true
+          }
+        }
+      }
+    });
+    const avatars = []
+    rawAvatars.map((item) => {
+      avatars.push({
+        name: item.user.name,
+        avatar: item.user.avatar
+      })
+    })
+    return {
+      count: await this.matchMakingCount(),
+      avatars: avatars
+    };
+  }
+
+  async matchMakings(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.MatchMakingWhereUniqueInput;
+    where?: Prisma.MatchMakingWhereInput;
+    orderBy?: Prisma.MatchMakingOrderByWithRelationInput;
+    select?: Prisma.MatchMakingSelect; // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#findmany
+    include?: Prisma.MatchMakingInclude; // https://www.prisma.io/docs/concepts/components/prisma-client/select-fields#include-relations-and-select-relation-fields
+  }): Promise<any> { // hack: any… because select
+    const { skip, take, cursor, where, orderBy, select, include } = params;
+    const opt: any = {}
+    if (include)
+        opt.include = include
+    else
+        opt.select = select
+    return this.prisma.matchMaking.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+      ...opt,
+    });
+  }
+
+  async matchMakingCount(): Promise<number> {
+    return this.prisma.matchMaking.count();
+  }
+
   async createMatchMaking(data: Prisma.MatchMakingCreateInput): Promise<MatchMaking> {
     return this.prisma.matchMaking.create({
       data,
