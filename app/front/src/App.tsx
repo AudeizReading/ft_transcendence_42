@@ -131,6 +131,7 @@ function App() {
         bc.postMessage('No you are not.');
       }
       if (event.data === 'No you are not.' || event.data === 'I am the first!') {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         alreadyOpen = true; // fix bug!
         setAlreadyOpen(true);
       }
