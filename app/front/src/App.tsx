@@ -94,6 +94,7 @@ function App() {
           })
         },
         (error) => {
+          setLoaded(false)
           console.info('fetch_userinfo', error)
           setUser(defaultNotConnected())
         }
@@ -123,6 +124,9 @@ function App() {
     const bc = new BroadcastChannel("one-pong-only");
 
     bc.onmessage = (event) => {
+      if (!isNotAuth)
+        return ;
+
       if (event.data === 'Am I the first?' && !alreadyOpen) {
         bc.postMessage('No you are not.');
       }
@@ -132,7 +136,7 @@ function App() {
       }
     };
 
-    bc.postMessage(`Am I the first?`);
+    isNotAuth && bc.postMessage(`Am I the first?`);
 
     /*const handleBeforeUnload = () => {
       console.info('close bc');
