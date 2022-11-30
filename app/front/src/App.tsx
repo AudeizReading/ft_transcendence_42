@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 import Home from './page/Home';
@@ -60,7 +60,7 @@ function App() {
   const [loaded, setLoaded] = useState(false);
   const [user, setUser] = useState(defaultNotConnected());
 
-  const fetch_userinfo = () => {
+  const fetch_userinfo = useCallback(() => {
     fetch('http://' + window.location.hostname + ':8190/user/me', fetch_opt())
       .then(res => res.json())
       .then(
@@ -99,7 +99,7 @@ function App() {
           setUser(defaultNotConnected())
         }
       )
-  };
+  }, []);
 
   let [alreadyOpen, setAlreadyOpen] = useState(false);
 
@@ -132,7 +132,7 @@ function App() {
       }
       if (event.data === 'No you are not.' || event.data === 'I am the first!') {
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        alreadyOpen = true; // fix bug!
+        alreadyOpen = true; // hack: fix bug!
         setAlreadyOpen(true);
       }
     };
@@ -147,7 +147,7 @@ function App() {
 
     const handleDialogClose = () => {
       bc.postMessage('I am the first!');
-      alreadyOpen = false; // fix bug!
+      alreadyOpen = false; // hack: fix bug!
       setAlreadyOpen(false);
     };
     window.addEventListener('click_iamfirst', handleDialogClose, false);
@@ -159,7 +159,7 @@ function App() {
       //window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('click_iamfirst', handleDialogClose);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [alreadyOpen, fetch_userinfo, isNotAuth, user]);
 
   return (
     <Box className="App">

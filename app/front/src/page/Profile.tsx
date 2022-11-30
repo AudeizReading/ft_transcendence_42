@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -27,7 +27,7 @@ function Profile(props: {
 
   const navigate = useNavigate();
 
-  const fetch_user = (userid: number) => {
+  const fetch_user = useCallback((userid: number) => {
     fetch('http://' + window.location.hostname + ':8190/user/' + userid.toString(), fetch_opt())
       .then(res => res.json())
       .then(
@@ -44,11 +44,11 @@ function Profile(props: {
           navigate('/not-foud');
         }
       )
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetch_user(Number(userid));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetch_user, userid]);
 
   const handleCapture = ({ target }: any) => {
     var data = new FormData()

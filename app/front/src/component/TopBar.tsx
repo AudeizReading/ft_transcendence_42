@@ -261,7 +261,7 @@ function TopBar(props: {
             </Tooltip>
             <Menu
               anchorEl={anchorElNotif}
-              id="account-menu"
+              id="notif-menu"
               open={Boolean(anchorElNotif)}
               onClose={handleCloseNotifMenu}
               onClick={handleCloseNotifMenu}
@@ -313,18 +313,18 @@ function TopBar(props: {
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
               {user.notifs.arr.map((notif, index) => (
-                  Boolean(index) && <Divider /> ,
-                  <MenuItem onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
-                    {...(notif.url != '' ? {
+                  Boolean(index) && <Divider /> , // eslint-disable-line
+                  <MenuItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
+                    {...(notif.url !== '' ? {
                         component: RouterLink,
                         to: notif.url
                       } : {})
                     }
                   >
-                    <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                    <Box id={"notifs"+index} sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
                       {notif.text}
                     </Box>
-                    <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
+                    <Box id={"notifx"+index} sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
                       {new Date(notif.date).toLocaleString()}
                     </Box>
                   </MenuItem>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
@@ -65,9 +65,9 @@ function Play(props: {
       )
   };
 
-  const refreshMatchMaking = () => {
+  const refreshMatchMaking = useCallback(() => {
     console.log(user.matchmaking, avatars.count);
-    if (!user.matchmaking || avatars.count != -1)
+    if (!user.matchmaking || avatars.count !== -1)
       return ;
     fetch('http://' + window.location.hostname + ':8190/game/matchmaking/info', {
       method: 'GET',
@@ -84,7 +84,7 @@ function Play(props: {
           console.log(error)
         }
       )
-  };
+  }, [user, avatars]);
 
   const handleQuitMatchMaking = () => {
     setFetching(true);
@@ -125,12 +125,13 @@ function Play(props: {
     window.addEventListener('mousemove', handleMouseMove);
 
     setUser(props.user);
+
     refreshMatchMaking();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [props]);
+  }, [refreshMatchMaking, props]);
 
   const gradient = `
     radial-gradient(
