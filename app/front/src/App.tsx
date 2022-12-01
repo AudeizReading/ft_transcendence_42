@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 
 import Home from './page/Home';
@@ -40,6 +40,8 @@ function App() {
     window.location.href = window.location.href.replace('localhost', '127.0.0.1');
 
   const isNotAuth = (window.location.pathname !== '/auth');
+
+  const fetched_firsttime = useRef(false);
 
   const defaultNotConnected = () => ({
     id: 0,
@@ -108,7 +110,10 @@ function App() {
   };
 
   useEffect(() => {
-    fetch_userinfo();
+    if (!fetched_firsttime.current) {
+      fetch_userinfo();
+      fetched_firsttime.current = true;
+    }
     const fct = () => {
       try {
         fetch_userinfo()
@@ -120,7 +125,7 @@ function App() {
     };
     let timeout = setTimeout(fct, user.matchmaking ? 5000 : 15000); // TODO: Better? Socket.io?
 
-    console.info('broadcast channel');
+    // console.info('broadcast channel');
     const bc = new BroadcastChannel("one-pong-only");
 
     bc.onmessage = (event) => {
@@ -154,7 +159,7 @@ function App() {
 
     return () => {
       clearTimeout(timeout);
-      console.info('close bc');
+      // console.info('close bc');
       bc.close();
       //window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('click_iamfirst', handleDialogClose);

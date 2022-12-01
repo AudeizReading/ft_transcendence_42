@@ -66,7 +66,6 @@ function Play(props: {
   };
 
   const refreshMatchMaking = useCallback(() => {
-    console.log(user.matchmaking, avatars.count);
     if (!user.matchmaking || avatars.count !== -1)
       return ;
     fetch('http://' + window.location.hostname + ':8190/game/matchmaking/info', {
@@ -78,7 +77,6 @@ function Play(props: {
         (result) => {
           if (result.count)
             setAvatars({ count: result.count, avatars: result.avatars});
-          console.log({ count: result.count, avatars: result.avatars})
         },
         (error) => {
           console.log(error)
