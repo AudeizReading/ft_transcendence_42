@@ -2,9 +2,10 @@ import { Controller, Post, Get, Request, Response, Param, UseGuards, BadRequestE
          UploadedFile, UseInterceptors, StreamableFile, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from '../users/users.service';
+import { NotifService } from '../notif/notif.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
-import { IsNumberString, IsInt, IsString } from 'class-validator';
+import { IsNumberString, IsString } from 'class-validator';
 
 export class ParamUserProfile {
   @IsNumberString()
@@ -23,7 +24,7 @@ export class UsersController {
 
   @Get('user/me')
   @UseGuards(JwtAuthGuard)
-  user_info(@Request() req) {
+  async user_info(@Request() req) {
     // console.log(req.user) // <== check avalaible data served by ../auth/jwt.strategy.ts:validate
     return {
       connected: true,
@@ -32,7 +33,8 @@ export class UsersController {
         name: req.user.name,
         avatar: req.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
         matchmaking: req.user.mMaking !== null
-      }
+      },
+      notifs: await this.notifService.objectForFront(req.user.id)
     };
   }
 

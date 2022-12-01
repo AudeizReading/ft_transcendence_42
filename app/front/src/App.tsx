@@ -77,22 +77,7 @@ function App() {
             connected: true,
             matchmaking: result.user.matchmaking,
             avatar: result.user.avatar,
-            notifs: {
-              num: 3,
-              arr: [{
-                text: 'Welcome! You can change your avatar! Click here to go to your profile :)',
-                date: +new Date(),
-                url: '/user/' + result.user.id
-              }, {
-                text: 'blabla2',
-                date: +new Date(),
-                url: ''
-              }, {
-                text: 'blabla3',
-                date: +new Date(),
-                url: ''
-              }]
-            }
+            notifs: result.notifs
           })
         },
         (error) => {

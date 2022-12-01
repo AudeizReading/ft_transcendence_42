@@ -313,22 +313,29 @@ function TopBar(props: {
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
               {user.notifs.arr.map((notif, index) => (
-                  Boolean(index) && <Divider /> , // eslint-disable-line
-                  <MenuItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
-                    {...(notif.url !== '' ? {
-                        component: RouterLink,
-                        to: notif.url
-                      } : {})
-                    }
-                  >
-                    <Box id={"notifs"+index} sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
-                      {notif.text}
-                    </Box>
-                    <Box id={"notifx"+index} sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
-                      {new Date(notif.date).toLocaleString()}
-                    </Box>
-                  </MenuItem>
+                Boolean(index) && <Divider /> , // eslint-disable-line
+                <MenuItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
+                  {...(notif.url !== '' ? {
+                      component: RouterLink,
+                      to: notif.url
+                    } : {})
+                  }
+                >
+                  <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                    {notif.text}
+                  </Box>
+                  <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
+                    {new Date(notif.date).toLocaleString()}
+                  </Box>
+                </MenuItem>
               ))}
+              { !user.notifs.num &&
+                <MenuItem key="vide" onClick={handleCloseNotifMenu} sx={{ display: 'block', p: '0 1' }}>
+                  <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                    Vous n'avez aucune nouvelle notification !
+                  </Box>
+                </MenuItem>
+              }
             </Menu>
 
             <Tooltip title="Ouvrir le menu utilisateur">
