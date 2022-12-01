@@ -1,17 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, Timeout } from '@nestjs/schedule';
+import { Cron, Interval } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
+import { NotifService } from '../notif/notif.service';
 import { Game, MatchMaking, Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+              private notifService: NotifService) {}
 
   
-  //@Cron('45 * * * * *')
-  @Timeout(500)
+  // @Cron('45 * * * * *')
+  @Interval(10000)
   async task_MatchMaking() {
     const count = await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }
@@ -31,7 +33,7 @@ export class GameService {
           orderBy: { createdAt: 'asc', },
           where: { state: 'WAITING' }
         });
-        console.log(couple[0].userId, couple[1].userId);
+        console.log('couple matched: ', couple[0].userId, couple[1].userId);
         await this.prisma.matchMaking.updateMany({
           data: {
             state: 'MATCHED'
@@ -44,7 +46,7 @@ export class GameService {
     }
 
     const old = await this.prisma.matchMaking.count({
-      where: { state: 'MATCHED' }
+      where: { state: 'MATCHED', updatedAt: { lte: new Date(+new Date() - 45000) } }
     });
     if (old > 0) {
       this.logger.verbose('Cleaning MatchMaking!');
@@ -55,22 +57,26 @@ export class GameService {
           orderBy: { createdAt: 'asc', },
           where: { state: 'MATCHED' }
         });
-        console.log(couple[0].userId);
-        /* await this.prisma.matchMaking.delete({
+        this.notifService.createNotif(couple[0].userId, {
+          text: "Vous n'avez pas confirmé à temps la partie trouvée !\n"
+            + "Vous avez été quitté du MatchMaking !"
+        });
+        await this.prisma.matchMaking.delete({
           where: {
             userId: couple[0].userId
           }
-        }); */
+        });
       }
     }
 
+    // LOG
+    if (!count && !old)
+      return;
     console.log(await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }
     }), await this.prisma.matchMaking.count({
       where: { state: 'MATCHED' }
-    }), await this.prisma.matchMaking.count({
-      where: { state: 'MATCHED', updatedAt: { lte: new Date(+new Date() - 45000) } }
-    }));
+    }), old);
   }
 
   async game(

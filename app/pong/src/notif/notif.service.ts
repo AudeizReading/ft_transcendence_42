@@ -4,7 +4,7 @@ import { Notif, Prisma } from '@prisma/client';
 
 interface NotifContent {
   text: string;
-  url: string | null;
+  url?: string | null;
 }
 
 @Injectable()
