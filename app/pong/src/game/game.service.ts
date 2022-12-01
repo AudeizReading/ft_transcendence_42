@@ -1,10 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
 import { Game, MatchMaking, Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameService {
+  private readonly logger = new Logger(GameService.name);
+
   constructor(private prisma: PrismaService) {}
+
+  @Cron('45 * * * * *')
+  async task_MatchMaking() {
+    const count = await this.prisma.matchMaking.count({
+      where: { state: "WAITING" }
+    });
+    const limit = Math.min(count - (count % 2), 10);
+
+    if (limit <= 0)
+      return
+
+    this.logger.verbose('Process MatchMaking!');
+
+    // OK après TS, voici Prisma qui nous montre ses faiblesses :(
+
+    for (let i = limit / 2 - 1; i >= 0; i--) {
+      console.log(i);
+    }
+
+    console.log(await this.prisma.matchMaking.count({
+      where: { state: "WAITING" }
+    }), await this.prisma.matchMaking.count({
+      where: { state: "MATCHED" }
+    }));
+  }
 
   async game(
     gameWhereUniqueInput: Prisma.GameWhereUniqueInput,
@@ -24,7 +52,7 @@ export class GameService {
     const rawAvatars = await this.matchMakings({
       take: 10,
       orderBy: {
-        updatedAt: 'asc',
+        createdAt: 'asc',
       },
       include: {
         user: { 

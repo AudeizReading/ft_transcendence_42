@@ -77,14 +77,20 @@ enum StateGame {
 }
 
 model MatchMaking {
-  userId     Int          @unique
-  user       User         @relation(fields: [userId], references: [id])
+  userId     Int              @unique
+  user       User             @relation(fields: [userId], references: [id])
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @default(now())
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @default(now())
   startedAt  DateTime?
-  matched    Boolean      @default(false)
-  preference String       @default("{}")
+  state      StateMatchMaking @default(WAITING)
+  preference String           @default("{}")
+}
+
+enum StateMatchMaking {
+  WAITING
+  MATCHED
+  CONFIRMED
 }
 
 // model FriendRelation {
