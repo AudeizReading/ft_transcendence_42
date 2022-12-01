@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, Timeout } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
 import { Game, MatchMaking, Prisma } from '@prisma/client';
 
@@ -9,28 +9,67 @@ export class GameService {
 
   constructor(private prisma: PrismaService) {}
 
-  @Cron('45 * * * * *')
+  
+  //@Cron('45 * * * * *')
+  @Timeout(500)
   async task_MatchMaking() {
     const count = await this.prisma.matchMaking.count({
-      where: { state: "WAITING" }
+      where: { state: 'WAITING' }
     });
-    const limit = Math.min(count - (count % 2), 10);
+    const limit = Math.min(count - (count % 2), 10); // Max 5 games each 45 seconds
 
-    if (limit <= 0)
-      return
+    if (limit > 0) {
+      this.logger.verbose('Processing MatchMaking!');
 
-    this.logger.verbose('Process MatchMaking!');
+      // OK après TS, voici Prisma qui nous montre ses faiblesses :(
+      // En SQL ça se fait en une seul requête mais je vais eviter de passer par du rawQuery
 
-    // OK après TS, voici Prisma qui nous montre ses faiblesses :(
+      for (let i = limit / 2 - 1; i >= 0; i--) {
+        const couple = await this.matchMakings({
+          skip: i * 2,
+          take: 2,
+          orderBy: { createdAt: 'asc', },
+          where: { state: 'WAITING' }
+        });
+        console.log(couple[0].userId, couple[1].userId);
+        await this.prisma.matchMaking.updateMany({
+          data: {
+            state: 'MATCHED'
+          },
+          where: {
+            userId: { in: [couple[0].userId, couple[1].userId] }
+          }
+        });
+      }
+    }
 
-    for (let i = limit / 2 - 1; i >= 0; i--) {
-      console.log(i);
+    const old = await this.prisma.matchMaking.count({
+      where: { state: 'MATCHED' }
+    });
+    if (old > 0) {
+      this.logger.verbose('Cleaning MatchMaking!');
+      for (let i = old - 1; i >= 0; i--) {
+        const couple = await this.matchMakings({
+          skip: i,
+          take: 1,
+          orderBy: { createdAt: 'asc', },
+          where: { state: 'MATCHED' }
+        });
+        console.log(couple[0].userId);
+        /* await this.prisma.matchMaking.delete({
+          where: {
+            userId: couple[0].userId
+          }
+        }); */
+      }
     }
 
     console.log(await this.prisma.matchMaking.count({
-      where: { state: "WAITING" }
+      where: { state: 'WAITING' }
     }), await this.prisma.matchMaking.count({
-      where: { state: "MATCHED" }
+      where: { state: 'MATCHED' }
+    }), await this.prisma.matchMaking.count({
+      where: { state: 'MATCHED', updatedAt: { lte: new Date(+new Date() - 45000) } }
     }));
   }
 
