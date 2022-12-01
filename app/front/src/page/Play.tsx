@@ -195,9 +195,12 @@ function Play(props: {
           </Box>
         </Grid>
         <Grid item xs={12} md={4} sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           height: { xs: xs_button_height_container, md: 'inherit' }
         }}>
-          <Box sx={{ mt: { sx: 'inherit', md: 'calc(50% - 25px)' } }}>
+          <Box>
             { !user.matchmaking
               ? <Button variant="contained"
                   onClick={handleJoinMatchMaking}
@@ -214,7 +217,7 @@ function Play(props: {
                     m: 'auto',
                     display: 'block'
                   }}
-                ><CircularProgress size={16} color="warning" sx={{ mr: 1 }}
+                ><CircularProgress size={16} color="warning" sx={{ mr: 1, verticalAlign: 'middle', mt: '-2px' }}
                 /> Quitter le MatchMaking</Button>
             }
           { avatars.count > 0 &&
