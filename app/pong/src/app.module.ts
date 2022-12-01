@@ -4,20 +4,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
+import { GameModule } from './game/game.module';
 import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
-import { GameService } from './game/game.service';
-import { GameController } from './game/game.controller';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [ConfigModule.forRoot({
     // isGlobal: true,  ????????
     envFilePath: ['.env'],
-  }), ScheduleModule.forRoot(), AuthModule, UsersModule, NotifModule],
-  controllers: [AppController, GameController],
-  providers: [AppService, PrismaService, JwtService, AuthService, GameService],
+  }), ScheduleModule.forRoot(), AuthModule, GameModule, UsersModule, NotifModule],
+  controllers: [AppController],
+  providers: [AppService, PrismaService, JwtService],
 })
 export class AppModule {}
