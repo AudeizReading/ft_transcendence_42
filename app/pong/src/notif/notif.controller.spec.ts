@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SysMsgController } from './sysmsg.controller';
+import { NotifController } from './notif.controller';
 
-describe('SysMsgController', () => {
-  let controller: SysMsgController;
+describe('NotifController', () => {
+  let controller: NotifController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [SysMsgController],
+      controllers: [NotifController],
     }).compile();
 
-    controller = module.get<SysMsgController>(SysMsgController);
+    controller = module.get<NotifController>(NotifController);
   });
 
   it('should be defined', () => {

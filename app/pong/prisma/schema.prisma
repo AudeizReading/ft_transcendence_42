@@ -19,7 +19,7 @@ model User {
   avatar     String?
   sessionid  String?
 
-  sysMsgs    SysMessage[]
+  notifs     Notif[]
   wins       Game[]
   games      PlayerGame[]
   mMaking    MatchMaking?
@@ -27,18 +27,18 @@ model User {
   //friends    Friend[]
 }
 
-model SysMessage {
+model Notif {
   id         Int          @default(autoincrement()) @id
 
   user       User         @relation(fields: [userId], references: [id])
   userId     Int
   content    String
   createdAt  DateTime     @default(now())
-  typeMsg    TypeMessage  @default(NOTIF)
+  typeMsg    TypeNotif    @default(NOTIF)
   read       Boolean      @default(false)
 }
 
-enum TypeMessage {
+enum TypeNotif {
   ACTION
   NOTIF
   MSG
