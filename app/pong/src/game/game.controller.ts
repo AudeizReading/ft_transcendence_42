@@ -5,7 +5,7 @@ import { GameService } from '../game/game.service';
 
 @Controller('game')
 export class GameController {
-  constructor(private GameService: GameService) {}
+  constructor(private gameService: GameService) {}
 
   @Post('matchmaking/join')
   @UseGuards(JwtAuthGuard)
@@ -13,7 +13,7 @@ export class GameController {
     if (req.user.mMaking !== null)
       {} // TODO: update ?
     else
-      await this.GameService.createMatchMaking({
+      await this.gameService.createMatchMaking({
         user: {
           connect: {
             id: req.user.id
@@ -23,7 +23,7 @@ export class GameController {
       });
     return {
       matchmaking: true,
-      ...await this.GameService.listTenMatchMakings()
+      ...await this.gameService.listTenMatchMakings()
     };
   }
 
@@ -31,7 +31,7 @@ export class GameController {
   async matchmaking_info() {
     return {
       matchmaking: true,
-      ...await this.GameService.listTenMatchMakings()
+      ...await this.gameService.listTenMatchMakings()
     };
   }
 
@@ -41,7 +41,7 @@ export class GameController {
     if (req.user.mMaking === null)
       return { matchmaking: false };
     else
-      this.GameService.deleteMatchMaking({
+      this.gameService.deleteMatchMaking({
         userId: req.user.id,
       });
     return {

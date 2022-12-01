@@ -19,7 +19,7 @@ export class ParamLogin {
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService,
-              private UsersService: UsersService) {}
+              private usersService: UsersService) {}
 
   /*@Get('callback')
   @HttpCode(401)
@@ -44,14 +44,14 @@ export class AuthController {
 
   @Get('fake/:login') // TODO: Not in eval?
   async fakeLogin(@Request() req, @Param() param: ParamLogin) {
-    let user = await this.UsersService.user({
+    let user = await this.usersService.user({
       'login': param.login
     });
     const sessionid = crypto.randomBytes(32).toString('base64');
     if (!user)
     {
       console.log('create user');
-      await this.UsersService.createUser({
+      await this.usersService.createUser({
         'email': param.login + '@fake348004549.fr',
         'login': param.login,
         'name': param.login,
@@ -63,7 +63,7 @@ export class AuthController {
     {
       const refresh_av = user.avatar && user.avatar.indexOf('http') === 0;
 
-      await this.UsersService.updateUser({
+      await this.usersService.updateUser({
         where: {
           'login': param.login
         },
@@ -72,7 +72,7 @@ export class AuthController {
         }
       })
     }
-    user = await this.UsersService.user({
+    user = await this.usersService.user({
       'login': param.login
     });
     console.log('You are a fake king');
@@ -91,7 +91,7 @@ export class AuthController {
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@Request() req) {
-    await this.UsersService.updateUser({
+    await this.usersService.updateUser({
       where: {
         'login': req.user.login
       },

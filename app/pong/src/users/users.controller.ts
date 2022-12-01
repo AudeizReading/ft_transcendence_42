@@ -18,7 +18,8 @@ export class ParamFileInPsql {
 
 @Controller()
 export class UsersController {
-  constructor(private UsersService: UsersService) {}
+  constructor(private usersService: UsersService,
+              private notifService: NotifService) {}
 
   @Get('user/me')
   @UseGuards(JwtAuthGuard)
@@ -38,7 +39,7 @@ export class UsersController {
   @Get('user/:userid')
   @UseGuards(JwtAuthGuard)
   async user_profile(@Request() req, @Param() param: ParamUserProfile) {
-    const user = await this.UsersService.user({
+    const user = await this.usersService.user({
       'id': Number(param.userid)
     });
     if (!user) {
@@ -67,12 +68,12 @@ export class UsersController {
     if (!file.mimetype.match(/^image\/(bmp|gif|jpeg|png|webp)$/))
       return { error: 1 }
     const ext = file.mimetype.replace(/^image\//, '.');
-    this.UsersService.uploadImageInPsql({
+    this.usersService.uploadImageInPsql({
       name: req.user.login + ext,
       content: file.buffer
     });
     const hash = +new Date();
-    await this.UsersService.updateUser({
+    await this.usersService.updateUser({
       where: {
         'login': req.user.login
       },
@@ -85,7 +86,7 @@ export class UsersController {
 
   @Get('user/avatar/:filename')
   async rootAvatar(@Request() req, @Response({ passthrough: true }) resp, @Param() param: ParamFileInPsql): Promise<StreamableFile> {
-    const file = await this.UsersService.image({
+    const file = await this.usersService.image({
       name: param.filename,
     });
     if (!file) {

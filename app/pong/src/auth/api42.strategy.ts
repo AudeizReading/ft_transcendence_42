@@ -8,7 +8,7 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
-  constructor(private UsersService: UsersService) {
+  constructor(private usersService: UsersService) {
     super({
       clientID: process.env.API_42_UID,
       clientSecret: process.env.API_42_SECRET,
@@ -23,7 +23,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
   }
 
   async validate(accessToken: string, _refreshToken: string, profile: Profile) {
-    const user = await this.UsersService.user({
+    const user = await this.usersService.user({
       'login': profile.username
     });
     const sessionid = crypto.randomBytes(32).toString('base64');
@@ -31,7 +31,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     {
       console.log(profile);
       console.log('create user');
-      await this.UsersService.createUser({
+      await this.usersService.createUser({
         'email': profile.email,
         'login': profile.username,
         'name': profile.username,
@@ -43,7 +43,7 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     {
       const refresh_av = user.avatar && user.avatar.indexOf('http') === 0;
 
-      await this.UsersService.updateUser({
+      await this.usersService.updateUser({
         where: {
           'login': profile.username
         },
