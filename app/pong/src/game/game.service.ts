@@ -6,6 +6,7 @@ import { Game, MatchMaking, Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameService {
+  private static alreadyRunning = 0;
   private readonly logger = new Logger(GameService.name);
 
   constructor(private prisma: PrismaService,
@@ -15,6 +16,9 @@ export class GameService {
   // @Cron('45 * * * * *')
   @Interval(10000)
   async task_MatchMaking() {
+    if (GameService.alreadyRunning > +new Date() - 9000)
+      return ;
+    GameService.alreadyRunning = +new Date();
     const count = await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }
     });
@@ -70,7 +74,7 @@ export class GameService {
     }
 
     // LOG
-    if (!count && !old)
+    if (!limit && !old)
       return;
     console.log(await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }

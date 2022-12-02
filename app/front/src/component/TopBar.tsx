@@ -5,6 +5,7 @@ import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import MenuIcon from '@mui/icons-material/Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Divider from '@mui/material/Divider';
@@ -17,7 +18,6 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
 import SportsSoccer from '@mui/icons-material/SportsSoccer';
 import Person from '@mui/icons-material/Person';
 import Settings from '@mui/icons-material/Settings';
@@ -261,7 +261,6 @@ function TopBar(props: {
             </Tooltip>
             <Menu
               anchorEl={anchorElNotif}
-              id="notif-menu"
               open={Boolean(anchorElNotif)}
               onClose={handleCloseNotifMenu}
               onClick={handleCloseNotifMenu}
@@ -271,6 +270,7 @@ function TopBar(props: {
                   overflow: 'visible',
                   filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
                   maxWidth: 350,
+                  maxHeight: '80%',
                   mt: 1,
                   '& .MuiMenu-root': {
                     width: 32,

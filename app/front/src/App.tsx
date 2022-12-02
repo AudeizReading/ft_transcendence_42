@@ -35,6 +35,8 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const MATCHMAKING_SECONDS = 45;
+
 function App() {
   if (window.location.hostname === 'localhost')
     window.location.href = window.location.href.replace('localhost', '127.0.0.1');
@@ -42,12 +44,22 @@ function App() {
   const isNotAuth = (window.location.pathname !== '/auth');
 
   const fetched_firsttime = useRef(false);
+  const timeout: any = useRef(0);
 
   const defaultNotConnected = () => ({
     id: 0,
     name: '',
     connected: false,
     matchmaking: false,
+    matchmaking_remaining: '',
+    matchmaking_popup: false,
+    matchmaking_users: {
+      count: 0,
+      avatars: [{
+        name: '',
+        avatar: ''
+      }]
+    },
     avatar: '',
     notifs: {
       num: 0,
@@ -63,6 +75,7 @@ function App() {
   const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = useCallback(() => {
+    // console.trace(); // Permet de vérifier quelles fonctions appellent fetch_userinfo
     fetch('http://' + window.location.hostname + ':8190/user/me', fetch_opt())
       .then(res => res.json())
       .then(
@@ -76,6 +89,9 @@ function App() {
             name: result.user.name,
             connected: true,
             matchmaking: result.user.matchmaking,
+            matchmaking_remaining: result.user.matchmaking_remaining,
+            matchmaking_popup: result.user.matchmaking_popup,
+            matchmaking_users: result.matchmaking_users,
             avatar: result.user.avatar,
             notifs: result.notifs
           })
@@ -94,24 +110,35 @@ function App() {
     window.dispatchEvent(new Event('click_iamfirst'));
   };
 
+  const handleReadyMatchMaking = () => {
+
+  };
+
+  const [progress, setProgress] = React.useState(0);
+
   useEffect(() => {
     if (!fetched_firsttime.current) {
       fetch_userinfo();
       fetched_firsttime.current = true;
     }
+    const timer = setInterval(() => {
+      setProgress((+new Date() - +new Date(user.matchmaking_remaining)) / MATCHMAKING_SECONDS / 10);
+    }, 400);
+
     const fct = () => {
       try {
         fetch_userinfo()
-      } catch (e) {
-        console.error("network issue.")
-        return setTimeout(() => fetch_userinfo(), 15000);
+      } catch (e) { // TODO: Rien ne throw au dessus… lol.
+        console.error('network issue.')
       }
-      setTimeout(fct, alreadyOpen ? 450000 : (user.matchmaking ? 5000 : 15000));
+      clearTimeout(timeout.current);
+      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking ? 5000 : 15000));
     };
-    let timeout = setTimeout(fct, user.matchmaking ? 5000 : 15000); // TODO: Better? Socket.io?
+    clearTimeout(timeout.current);
+    timeout.current = setTimeout(fct, user.matchmaking ? 5000 : 15000); // TODO: Better? Socket.io?
 
     // console.info('broadcast channel');
-    const bc = new BroadcastChannel("one-pong-only");
+    const bc = new BroadcastChannel('one-pong-only');
 
     bc.onmessage = (event) => {
       if (!isNotAuth)
@@ -143,7 +170,8 @@ function App() {
     window.addEventListener('click_iamfirst', handleDialogClose, false);
 
     return () => {
-      clearTimeout(timeout);
+      clearInterval(timer);
+      clearTimeout(timeout.current);
       // console.info('close bc');
       bc.close();
       //window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -173,6 +201,29 @@ function App() {
           <DialogActions>
             <Button onClick={handleDialogClose} color="error">
               Fermer l'autre session
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
+          open={progress <= 105 && user.matchmaking_popup}
+          TransitionComponent={Transition}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            Un opposant a été trouvé
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Un opposant d'une grande force vous a été trouvé. Cliquez sur prêt pour lancer
+              la partie.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleReadyMatchMaking}>
+              <CircularProgress size={16} sx={{ mr: 1, verticalAlign: 'middle', mt: '-1px' }}
+                variant="determinate" value={progress}
+                /> Pret ({Math.max(MATCHMAKING_SECONDS - Math.round(progress * MATCHMAKING_SECONDS / 100), 0)}sec)
             </Button>
           </DialogActions>
         </Dialog>

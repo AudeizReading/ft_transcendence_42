@@ -33,7 +33,6 @@ function Profile(props: {
       .then(
         (result) => {
           setLoaded(true)
-          console.log('fetch', result);
           setUser({
             id: result.id,
             name: result.name,

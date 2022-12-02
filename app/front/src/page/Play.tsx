@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect /*, useCallback */ } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
@@ -20,7 +20,14 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 function Play(props: { 
     fetch_userinfo: Function,
     user: {
-      matchmaking: boolean
+      matchmaking: boolean,
+      matchmaking_users: {
+        count: number,
+        avatars: {
+          name: string,
+          avatar: string
+        }[]
+      }
     }
   }) {
 
@@ -37,7 +44,7 @@ function Play(props: {
   const handleCloseSnackbar = () => snackbar.open = false
 
   const [user, setUser] = React.useState({...props.user});
-  const [avatars, setAvatars] = useState({ count: -1, avatars: []});
+  const [avatars, setAvatars] = useState({ count: -1, avatars: [{ name: '', avatar: '' }]});
 
   const handleJoinMatchMaking = () => {
     setFetching(true);
@@ -53,9 +60,9 @@ function Play(props: {
             return showSnackbar('error', 'Impossible de lancer le matchmaking.');
           showSnackbar('info', 'Vous avez lancé le matchmaking !');
           user.matchmaking = true;
+          user.matchmaking_users = { count: result.count, avatars: result.avatars};
           if (result.count)
-            setAvatars({ count: result.count, avatars: result.avatars});
-          console.log({ count: result.count, avatars: result.avatars})
+            setAvatars(user.matchmaking_users);
         },
         (error) => {
           setTimeout(() => setFetching(false), 4000);
@@ -65,7 +72,7 @@ function Play(props: {
       )
   };
 
-  const refreshMatchMaking = useCallback(() => {
+  /* const refreshMatchMaking = useCallback(() => {
     if (!user.matchmaking || avatars.count !== -1)
       return ;
     fetch('http://' + window.location.hostname + ':8190/game/matchmaking/info', {
@@ -75,14 +82,15 @@ function Play(props: {
       .then(res => res.json())
       .then(
         (result) => {
+          user.matchmaking_users = { count: result.count, avatars: result.avatars};
           if (result.count)
-            setAvatars({ count: result.count, avatars: result.avatars});
+            setAvatars(user.matchmaking_users);
         },
         (error) => {
           console.log(error)
         }
       )
-  }, [user, avatars]);
+  }, [user, avatars]); */
 
   const handleQuitMatchMaking = () => {
     setFetching(true);
@@ -98,7 +106,7 @@ function Play(props: {
           if (!('matchmaking' in result))
             return showSnackbar('error', 'Impossible de quitter le matchmaking.');
           showSnackbar('warning', 'Vous avez quitté le matchmaking !');
-           user.matchmaking = false;
+          user.matchmaking = false;
         },
         (error) => {
           setTimeout(() => setFetching(false), 4000);
@@ -123,13 +131,14 @@ function Play(props: {
     window.addEventListener('mousemove', handleMouseMove);
 
     setUser(props.user);
+    setAvatars(props.user.matchmaking_users)
 
-    refreshMatchMaking();
+    //refreshMatchMaking();
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [refreshMatchMaking, props]);
+  }, [ /* refreshMatchMaking, */ props]);
 
   const gradient = `
     radial-gradient(

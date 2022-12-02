@@ -3,6 +3,7 @@ import { Controller, Post, Get, Request, Response, Param, UseGuards, BadRequestE
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from '../users/users.service';
 import { NotifService } from '../notif/notif.service';
+import { GameService } from '../game/game.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
 import { IsNumberString, IsString } from 'class-validator';
@@ -20,7 +21,8 @@ export class ParamFileInPsql {
 @Controller()
 export class UsersController {
   constructor(private usersService: UsersService,
-              private notifService: NotifService) {}
+              private notifService: NotifService,
+              private gameService: GameService) {}
 
   @Get('user/me')
   @UseGuards(JwtAuthGuard)
@@ -32,9 +34,12 @@ export class UsersController {
         id: req.user.id,
         name: req.user.name,
         avatar: req.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
-        matchmaking: req.user.mMaking !== null
+        matchmaking: req.user.mMaking !== null,
+        matchmaking_popup: req.user.mMaking?.state === 'MATCHED',
+        matchmaking_remaining: (req.user.mMaking?.state === 'MATCHED') ? req.user.mMaking.updatedAt : ''
       },
-      notifs: await this.notifService.objectForFront(req.user.id)
+      notifs: await this.notifService.objectForFront(req.user.id),
+      matchmaking_users: await this.gameService.listTenMatchMakings() // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
     };
   }
 
