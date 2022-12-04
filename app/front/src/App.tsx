@@ -50,9 +50,8 @@ function App() {
     id: 0,
     name: '',
     connected: false,
-    matchmaking: false,
-    matchmaking_remaining: '',
-    matchmaking_popup: false,
+    matchmaking_state: '' || null,
+    matchmaking_remaining: '' || null,
     matchmaking_users: {
       count: 0,
       avatars: [{
@@ -89,9 +88,8 @@ function App() {
             id: result.user.id,
             name: result.user.name,
             connected: true,
-            matchmaking: result.user.matchmaking,
+            matchmaking_state: result.user.matchmaking_state,
             matchmaking_remaining: result.user.matchmaking_remaining,
-            matchmaking_popup: result.user.matchmaking_popup,
             matchmaking_users: result.matchmaking_users,
             avatar: result.user.avatar,
             notifs: result.notifs
@@ -111,8 +109,11 @@ function App() {
     window.dispatchEvent(new Event('click_iamfirst'));
   };
 
-  const handleReadyMatchMaking = () => {
-
+  const handleReadyMatchMaking = async () => {
+    await fetch('http://' + window.location.hostname + ':8190/game/matchmaking/confirm', fetch_opt());
+    user.matchmaking_state = null;
+    user.matchmaking_remaining = null;
+    //setUser(user);
   };
 
   const [progress, setProgress] = React.useState(0);
@@ -122,7 +123,10 @@ function App() {
       fetch_userinfo();
       fetched_firsttime.current = true;
     }
-    const timer = setInterval(() => {
+
+    const timer: any = setInterval(() => {
+      if (user.matchmaking_remaining === null)
+        return clearInterval(timer);
       setProgress((+new Date() - +new Date(user.matchmaking_remaining)) / MATCHMAKING_SECONDS / 10);
     }, 400);
 
@@ -133,10 +137,10 @@ function App() {
         console.error('network issue.')
       }
       clearTimeout(timeout.current);
-      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking ? 5000 : 15000));
+      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 5000 : 15000));
     };
     clearTimeout(timeout.current);
-    timeout.current = setTimeout(fct, user.matchmaking ? 5000 : 15000); // TODO: Better? Socket.io?
+    timeout.current = setTimeout(fct, user.matchmaking_state !== null ? 5000 : 15000); // TODO: Better? Socket.io?
 
     // console.info('broadcast channel');
     const bc = new BroadcastChannel('one-pong-only');
@@ -206,7 +210,7 @@ function App() {
           </DialogActions>
         </Dialog>
         <Dialog
-          open={progress <= 105 && user.matchmaking_popup}
+          open={user.matchmaking_state === 'MATCHED' && progress <= 105}
           TransitionComponent={Transition}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"

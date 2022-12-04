@@ -20,7 +20,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 function Play(props: { 
     fetch_userinfo: Function,
     user: {
-      matchmaking: boolean,
+      matchmaking_state: string | null,
+      matchmaking_remaining: string | null,
       matchmaking_users: {
         count: number,
         avatars: {
@@ -59,7 +60,7 @@ function Play(props: {
           if (!('matchmaking' in result))
             return showSnackbar('error', 'Impossible de lancer le matchmaking.');
           showSnackbar('info', 'Vous avez lancé le matchmaking !');
-          user.matchmaking = true;
+          user.matchmaking_state = 'WAITING';
           user.matchmaking_users = { count: result.count, avatars: result.avatars};
           if (result.count)
             setAvatars(user.matchmaking_users);
@@ -73,7 +74,7 @@ function Play(props: {
   };
 
   /* const refreshMatchMaking = useCallback(() => {
-    if (!user.matchmaking || avatars.count !== -1)
+    if (user.matchmaking_state === null || avatars.count !== -1)
       return ;
     fetch('http://' + window.location.hostname + ':8190/game/matchmaking/info', {
       method: 'GET',
@@ -106,7 +107,7 @@ function Play(props: {
           if (!('matchmaking' in result))
             return showSnackbar('error', 'Impossible de quitter le matchmaking.');
           showSnackbar('warning', 'Vous avez quitté le matchmaking !');
-          user.matchmaking = false;
+          user.matchmaking_state = null;
         },
         (error) => {
           setTimeout(() => setFetching(false), 4000);
@@ -115,6 +116,8 @@ function Play(props: {
         }
       )
   };
+
+  const [descMm, setDescMm] = useState('');
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -133,6 +136,14 @@ function Play(props: {
     setUser(props.user);
     setAvatars(props.user.matchmaking_users)
 
+    if (user.matchmaking_state == 'WAITING')
+      setDescMm("En attente d'autres joueurs.");
+    else if (user.matchmaking_state == 'MATCHED')
+      setDescMm('En attente de votre confirmation.');
+    else if (user.matchmaking_state == 'CONFIRMED')
+      setDescMm('Opposant trouvé! En attente de confirmation de sa part.');
+    else
+      setDescMm('');
     //refreshMatchMaking();
 
     return () => {
@@ -208,7 +219,7 @@ function Play(props: {
           height: { xs: xs_button_height_container, md: 'inherit' }
         }}>
           <Box>
-            { !user.matchmaking
+            { user.matchmaking_state === null
               ? <Button variant="contained"
                   onClick={handleJoinMatchMaking}
                   disabled={fetching}
@@ -217,15 +228,18 @@ function Play(props: {
                     display: 'block'
                   }}
                 > Rejoindre le MatchMaking</Button>
-              : <Button variant="contained" color="error"
-                  onClick={handleQuitMatchMaking}
-                  disabled={fetching}
-                  sx={{
-                    m: 'auto',
-                    display: 'block'
-                  }}
-                ><CircularProgress size={16} color="warning" sx={{ mr: 1, verticalAlign: 'middle', mt: '-2px' }}
-                /> Quitter le MatchMaking</Button>
+              : <React.Fragment>
+                  <Button variant="contained" color="error"
+                    onClick={handleQuitMatchMaking}
+                    disabled={fetching || user.matchmaking_state === 'CONFIRMED'}
+                    sx={{
+                      m: 'auto',
+                      display: 'block'
+                    }}
+                  ><CircularProgress size={16} color="warning" sx={{ mr: 1, verticalAlign: 'middle', mt: '-2px' }}
+                  /> Quitter le MatchMaking</Button>
+                  <Box sx={{ fontSize: '9px', }}>{descMm}</Box>
+                </React.Fragment>
             }
           { avatars.count > 0 &&
             <AvatarGroup total={avatars.count} sx={{

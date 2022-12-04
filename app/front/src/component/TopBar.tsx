@@ -67,14 +67,14 @@ function TopBar(props: {
   /* UserMenu */
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
-  const handleOpenNotifMenu = (async (event: React.MouseEvent<HTMLElement>) => {
+  const handleOpenNotifMenu = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotif(event.currentTarget);
     if (props.user.notifs.num > 0 && !props.user.notifs.arr[0].read) {
       fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + props.user.notifs.arr[0].date, fetch_opt());
       props.user.notifs.arr.forEach((notif) => notif.read = true);
       setUser(props.user);
     }
-  });
+  };
   const handleCloseNotifMenu = () => {
     setAnchorElNotif(null);
   };
@@ -99,11 +99,11 @@ function TopBar(props: {
   };
   /* --- */
 
-  const handleLogout = (async () => {
+  const handleLogout = async () => {
     await fetch('http://' + window.location.hostname + ':8190/auth/logout', fetch_opt());
     props.fetch_userinfo();
     handleCloseUserMenu();
-  });
+  };
 
   const handleOpenAuthPopup = () => {
     const href = 'http://' + window.location.hostname + ':8190/auth/';

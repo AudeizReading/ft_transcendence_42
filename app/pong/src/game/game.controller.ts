@@ -48,4 +48,22 @@ export class GameController {
       matchmaking: false
     };
   }
+
+  @Get('matchmaking/confirm')
+  @UseGuards(JwtAuthGuard)
+  async matchmaking_confirm(@Request() req): Promise<{ result: boolean }> {
+    if (req.user.mMaking?.state !== 'MATCHED')
+      return { result: false };
+    const result = this.gameService.updateMatchMaking({
+      data: {
+        state: 'CONFIRMED'
+      },
+      where: {
+        userId: req.user.id
+      }
+    })
+    return {
+      result: !!result
+    };
+  }
 }

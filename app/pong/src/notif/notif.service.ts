@@ -6,11 +6,23 @@ interface NotifContent {
   text: string;
   url?: string | null;
   read?: boolean;
+  type?: string;
 }
 
 @Injectable()
 export class NotifService {
   constructor(private prisma: PrismaService) {}
+
+  async createMsg(userId: number, content: NotifContent): Promise<Notif> {
+    return this.prisma.notif.create({
+      data: {
+        userId,
+        content: JSON.stringify(content),
+        read: false,
+        type: 'MSG'
+      },
+    });
+  }
 
   async createNotif(userId: number, content: NotifContent): Promise<Notif> {
     return this.prisma.notif.create({
@@ -83,7 +95,8 @@ export class NotifService {
         text: obj.text,
         date: notif.createdAt,
         url: obj.url || null,
-        read: notif.read
+        read: notif.read,
+        type: notif.type
       })
     })
     return {

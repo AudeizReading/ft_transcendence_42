@@ -34,7 +34,7 @@ model Notif {
   userId     Int
   content    String
   createdAt  DateTime     @default(now())
-  typeMsg    TypeNotif    @default(NOTIF)
+  type       TypeNotif    @default(NOTIF)
   read       Boolean      @default(false)
 }
 

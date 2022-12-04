@@ -150,6 +150,17 @@ export class GameService {
     });
   }
 
+  async updateMatchMaking(params: {
+    where: Prisma.MatchMakingWhereUniqueInput;
+    data: Prisma.MatchMakingUpdateInput;
+  }): Promise<MatchMaking> {
+    const { where, data } = params;
+    return this.prisma.matchMaking.update({
+      data,
+      where,
+    });
+  }
+
   async matchMakingCount(): Promise<number> {
     return this.prisma.matchMaking.count();
   }
