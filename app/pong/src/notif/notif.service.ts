@@ -5,18 +5,32 @@ import { Notif, Prisma } from '@prisma/client';
 interface NotifContent {
   text: string;
   url?: string | null;
+  read?: boolean;
 }
 
 @Injectable()
 export class NotifService {
   constructor(private prisma: PrismaService) {}
 
-  async createNotif(userId: number, content: NotifContent): Promise <Notif> {
+  async createNotif(userId: number, content: NotifContent): Promise<Notif> {
     return this.prisma.notif.create({
       data: {
         userId,
-        content: JSON.stringify(content)
+        content: JSON.stringify(content),
+        read: false
       },
+    });
+  }
+
+  async readsNotif(userId: number, date: Date): Promise<{ count: number }> {
+    return this.prisma.notif.updateMany({
+      data: {
+        read: true
+      },
+      where: {
+        userId,
+        createdAt: { lte: date }
+      }
     });
   }
 
@@ -50,7 +64,8 @@ export class NotifService {
     arr: Array<{
       text: string,
       date: string,
-      url: string | null
+      url: string | null,
+      read: boolean
     }>
   }> {
     const arr = [];
@@ -67,7 +82,8 @@ export class NotifService {
       arr.push({
         text: obj.text,
         date: notif.createdAt,
-        url: obj.url || null
+        url: obj.url || null,
+        read: notif.read
       })
     })
     return {

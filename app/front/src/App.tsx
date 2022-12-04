@@ -66,7 +66,8 @@ function App() {
       arr: [{
         text: '', // TODO: C'est moche, et c'est pour forcer le bon typage
         date: 0,
-        url: ''
+        url: '',
+        read: true
       }]
     }
   });

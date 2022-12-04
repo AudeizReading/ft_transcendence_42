@@ -55,7 +55,8 @@ function TopBar(props: {
         arr: {
           text: string,
           date: number,
-          url: string
+          url: string,
+          read: boolean
         }[]
       }
     }
@@ -66,9 +67,14 @@ function TopBar(props: {
   /* UserMenu */
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
-  const handleOpenNotifMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const handleOpenNotifMenu = (async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotif(event.currentTarget);
-  };
+    if (props.user.notifs.num > 0 && !props.user.notifs.arr[0].read) {
+      fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + props.user.notifs.arr[0].date, fetch_opt());
+      props.user.notifs.arr.forEach((notif) => notif.read = true);
+      setUser(props.user);
+    }
+  });
   const handleCloseNotifMenu = () => {
     setAnchorElNotif(null);
   };
@@ -139,7 +145,7 @@ function TopBar(props: {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('auth_success', handleAuthSuccess);
     };
-  }, [props]);
+  }, [props, user]);
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -250,11 +256,11 @@ function TopBar(props: {
               <IconButton
                 onClick={handleOpenNotifMenu}
                 size="large"
-                aria-label="Afficher les {user.notifs.num} nouvelles notifications"
+                aria-label="Afficher les notifications"
                 color="inherit"
                 sx={{ mr: 2 }}
               >
-                <Badge badgeContent={user.notifs.num} color="error">
+                <Badge badgeContent={user.notifs.num ? user.notifs.arr.filter((obj) => obj.read === false).length : 0} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
@@ -272,28 +278,14 @@ function TopBar(props: {
                   maxWidth: 350,
                   maxHeight: '80%',
                   mt: 1,
-                  '& .MuiMenu-root': {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1
-                  },
+                  '&.MuiPaper-root': { height: '100%' },
+                  '& .MuiMenuItem-root': { p: 0 },
                   '& .MuiMenu-list': {
-                    pt: 0,
-                    pb: 0.5
-                  },
-                  '& .MuiMenu-list:before': {
-                    content: '"Notifications"',
-                    textAlign: 'center',
-                    borderRadius: '4px 4px 0px 0px',
-                    fontWeight: 700,
-                    display: 'block',
-                    fontSize: '1.4em',
-                    lineHeight: 2,
-                    px: 5,
-                    mb: 1,
-                    bgcolor: 'primary.main',
-                    color: 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    overflow: 'auto',
+                    p: 0
                   },
                   '&:before': {
                     content: '""',
@@ -312,30 +304,78 @@ function TopBar(props: {
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              {user.notifs.arr.map((notif, index) => (
-                Boolean(index) && <Divider /> , // eslint-disable-line
-                <MenuItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', pt: 1, pb:0 }}
-                  {...(notif.url !== '' ? {
-                      component: RouterLink,
-                      to: notif.url
-                    } : {})
+              <MenuItem key="header" disableGutters={true} disableRipple={true}
+                sx={{
+                  pointerEvents: 'none',
+                  textAlign: 'center',
+                  borderRadius: '4px 4px 0px 0px',
+                  fontWeight: 700,
+                  display: 'block',
+                  fontSize: '1.4em',
+                  lineHeight: '45px',
+                  height: '45px',
+                  px: 5,
+                  color: 'white',
+                  bgcolor: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'primary.main',
                   }
-                >
-                  <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
-                    {notif.text}
-                  </Box>
-                  <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
-                    {new Date(notif.date).toLocaleString()}
-                  </Box>
-                </MenuItem>
-              ))}
-              { !user.notifs.num &&
-                <MenuItem key="vide" onClick={handleCloseNotifMenu} sx={{ display: 'block', p: '0 1' }}>
-                  <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
-                    Vous n'avez aucune nouvelle notification !
-                  </Box>
-                </MenuItem>
+                }}>
+                Notifications
+              </MenuItem>
+              <MenuItem key="content" disableGutters={true} disableRipple={true}
+                sx={{
+                  overflow: 'auto',
+                  '&:hover': {
+                    bgcolor: 'inherit'
+                  },
+                }}>
+              { user.notifs.num ?
+                <List sx={{ height:'100%', p: 0, overflow: 'auto' }}>
+                  {user.notifs.arr.map((notif, index) => (
+                    Boolean(index) && <Divider /> , // eslint-disable-line
+                    <ListItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', p: 0, m: 0 }}
+                      {...(notif.url !== '' ? {
+                          component: RouterLink,
+                          to: notif.url
+                        } : {})
+                      }
+                    >
+                      <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
+                        <Box sx={{ color: notif.read ? 'grey' : 'text.primary', display: 'block',
+                                   fontWeight: 'medium', whiteSpace: 'normal' }}>
+                          {notif.text}
+                        </Box>
+                        <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
+                          {new Date(notif.date).toLocaleString()}
+                        </Box>
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List> 
+              :
+                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                  Vous n'avez aucune notification !
+                </Box>
               }
+              </MenuItem>
+              {/* <MenuItem key="bottom" disableGutters={true} disableRipple={true}
+                sx={{
+                  pointerEvents: 'none',
+                  textAlign: 'center',
+                  borderRadius: '0px 0px 4px 4px',
+                  fontWeight: 700,
+                  display: 'block',
+                  fontSize: '1.4em',
+                  lineHeight: '45px',
+                  height: '45px',
+                  px: 5,
+                  color: 'white',
+                  bgcolor: 'primary.main',
+                  '&:hover': {
+                    bgcolor: 'primary.main',
+                  }
+                }}> </MenuItem> */}
             </Menu>
 
             <Tooltip title="Ouvrir le menu utilisateur">

@@ -2,11 +2,16 @@ import { Controller, Post, Get, Request, UseGuards, Param } from '@nestjs/common
 import { NotifService } from '../notif/notif.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
-import { IsNumberString } from 'class-validator';
+import { IsNumberString, IsDateString } from 'class-validator';
 
 export class ParamId {
   @IsNumberString()
   id: number;
+}
+
+export class ParamDate {
+  @IsDateString()
+  date: string;
 }
 
 @Controller('notif')
@@ -21,6 +26,14 @@ export class NotifController {
       + 'être redirigé sur votre profil.',
       url: '/user/' + Number(param.id)
     });
+  }
+
+  @Get('read_all/:date')
+  @UseGuards(JwtAuthGuard)
+  async read_all(@Request() req, @Param() param: ParamDate) {
+    return {
+      count: await this.notifService.readsNotif(req.user.id, new Date(param.date))
+    }
   }
 
   @Post('delete')
