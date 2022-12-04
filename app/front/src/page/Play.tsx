@@ -136,11 +136,11 @@ function Play(props: {
     setUser(props.user);
     setAvatars(props.user.matchmaking_users)
 
-    if (user.matchmaking_state == 'WAITING')
+    if (props.user.matchmaking_state === 'WAITING')
       setDescMm("En attente d'autres joueurs.");
-    else if (user.matchmaking_state == 'MATCHED')
+    else if (props.user.matchmaking_state === 'MATCHED')
       setDescMm('En attente de votre confirmation.');
-    else if (user.matchmaking_state == 'CONFIRMED')
+    else if (props.user.matchmaking_state === 'CONFIRMED')
       setDescMm('Opposant trouvé! En attente de confirmation de sa part.');
     else
       setDescMm('');
