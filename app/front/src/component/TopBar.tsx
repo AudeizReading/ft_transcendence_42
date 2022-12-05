@@ -27,8 +27,17 @@ import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
 import { fetch_opt } from '../dep/fetch.js'
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref,
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 declare global {
   interface Window {
@@ -43,6 +52,13 @@ const pages = [
   {name: 'Chat', url: '/chat'}
 ];
 
+interface NotifDataType {
+  text: string;
+  date: string;
+  url?: string | null;
+  read: boolean;
+}
+
 function TopBar(props: { 
     fetch_userinfo: Function,
     user: {
@@ -52,27 +68,25 @@ function TopBar(props: {
       avatar: string,
       notifs: {
         num: number,
-        arr: {
-          text: string,
-          date: number,
-          url: string,
-          read: boolean
-        }[]
+        arr: NotifDataType[]
+      },
+      msgs: {
+        num: number,
+        arr: NotifDataType[]
       }
     }
   }) {
 
-  const [user, setUser] = React.useState({...props.user});
+  const [user, setUser] = useState({...props.user});
 
   /* UserMenu */
   const [anchorElNotif, setAnchorElNotif] = useState<null | HTMLElement>(null);
 
   const handleOpenNotifMenu = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotif(event.currentTarget);
-    if (props.user.notifs.num > 0 && !props.user.notifs.arr[0].read) {
-      fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + props.user.notifs.arr[0].date, fetch_opt());
-      props.user.notifs.arr.forEach((notif) => notif.read = true);
-      setUser(props.user);
+    if (user.notifs.num > 0 && !user.notifs.arr[0].read) {
+      fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + user.notifs.arr[0].date, fetch_opt());
+      user.notifs.arr.forEach((notif) => notif.read = true);
     }
   };
   const handleCloseNotifMenu = () => {
@@ -124,6 +138,13 @@ function TopBar(props: {
     }
 
     //if (!window.wOpen.closed) { return false; }
+  }
+
+  const handleCloseSnackbar = async () => {
+    if (user.msgs.num <= 0)
+      return ;
+    await fetch('http://' + window.location.hostname + ':8190/notif/read_last_msg/' + user.msgs.arr[0]?.date, fetch_opt());
+    props.fetch_userinfo(); // Modifier `user.msgs.num` n'est pas suffisant :/
   }
 
   useEffect(() => {
@@ -459,6 +480,16 @@ function TopBar(props: {
             onClick={handleOpenAuthPopup} >Login</Button> }
         </Toolbar>
       </Container>
+      <Snackbar
+        open={user.msgs.num !== 0}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ top: '80px !important' }}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="info" sx={{ width: '100%' }}>
+          {user.msgs.arr[0]?.text}
+        </Alert>
+      </Snackbar>
     </AppBar>
   );
 }

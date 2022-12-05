@@ -28,6 +28,14 @@ export class NotifController {
     });
   }
 
+  @Get('fake/msg/:id')
+  async make_fake_message(@Param() param: ParamId) {
+    this.notifService.createMsg(Number(param.id), {
+      text: 'Fake message !',
+      url: '/user/' + Number(param.id)
+    });
+  }
+
   @Get('read_all/:date')
   @UseGuards(JwtAuthGuard)
   async read_all(@Request() req, @Param() param: ParamDate) {
@@ -36,9 +44,15 @@ export class NotifController {
     }
   }
 
-  @Post('delete')
+  @Get('read_last_msg/:date')
   @UseGuards(JwtAuthGuard)
-  async delete_notif(@Request() req) {
-
+  async delete_message(@Request() req, @Param() param: ParamDate) {
+    return {
+      count: this.notifService.deleteNotifs({
+        userId: req.user.id,
+        createdAt: param.date,
+        type: 'MSG'
+      })
+    }
   }
 }

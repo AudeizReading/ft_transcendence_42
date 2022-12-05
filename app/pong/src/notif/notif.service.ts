@@ -9,6 +9,14 @@ interface NotifContent {
   type?: string;
 }
 
+export interface NotifDataType {
+  text: string;
+  date: string;
+  url?: string | null;
+  read: boolean;
+  type: string;
+}
+
 @Injectable()
 export class NotifService {
   constructor(private prisma: PrismaService) {}
@@ -41,6 +49,7 @@ export class NotifService {
       },
       where: {
         userId,
+        type: 'NOTIF',
         createdAt: { lte: date }
       }
     });
@@ -71,17 +80,19 @@ export class NotifService {
     });
   }
 
+  async deleteNotifs(where: Prisma.NotifWhereInput): Promise<{ count: number }> {
+    return this.prisma.notif.deleteMany({
+      where,
+    });
+  }
+
   async objectForFront(userId: number): Promise<{
-    num: number,
-    arr: Array<{
-      text: string,
-      date: string,
-      url: string | null,
-      read: boolean
-    }>
+    notifs: { num: number, arr: Array<NotifDataType> },
+    msgs: { num: number, arr: Array<NotifDataType> }
   }> {
-    const arr = [];
-    const notifs = await this.notifs({
+    const notifs = [];
+    const msgs = [];
+    const data = await this.notifs({
       where: {
         userId
       },
@@ -89,19 +100,25 @@ export class NotifService {
         createdAt: 'desc'
       }
     })
-    notifs.forEach((notif) => {
-      const obj: NotifContent = JSON.parse(notif.content);
-      arr.push({
-        text: obj.text,
-        date: notif.createdAt,
-        url: obj.url || null,
-        read: notif.read,
-        type: notif.type
+    data.forEach((item) => {
+      const content: NotifContent = JSON.parse(item.content);
+      (item.type === 'NOTIF' ? notifs : msgs).push({
+        text: content.text,
+        date: item.createdAt,
+        url: content.url || null,
+        read: item.read,
+        type: item.type
       })
     })
     return {
-      num: arr.length,
-      arr
+      notifs: {
+        num: notifs.length,
+        arr: notifs
+      },
+      msgs: {
+        num: msgs.length,
+        arr: msgs
+      }
     }
   }
 }

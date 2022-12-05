@@ -54,20 +54,16 @@ function App() {
     matchmaking_remaining: '' || null,
     matchmaking_users: {
       count: 0,
-      avatars: [{
-        name: '',
-        avatar: ''
-      }]
+      avatars: [/*{ name: '', avatar: '' }*/] as any
     },
     avatar: '',
     notifs: {
       num: 0,
-      arr: [{
-        text: '', // TODO: C'est moche, et c'est pour forcer le bon typage
-        date: 0,
-        url: '',
-        read: true
-      }]
+      arr: [/*{ text: '', date: 0, url: '', read: true } as any */] as any,
+    },
+    msgs: {
+      num: 0,
+      arr: [/*{ text: '', date: 0, url: '', read: true } as any */] as any
     }
   });
 
@@ -92,7 +88,8 @@ function App() {
             matchmaking_remaining: result.user.matchmaking_remaining,
             matchmaking_users: result.matchmaking_users,
             avatar: result.user.avatar,
-            notifs: result.notifs
+            notifs: result.notifs,
+            msgs: result.msgs
           })
         },
         (error) => {
