@@ -35,7 +35,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const MATCHMAKING_SECONDS = 45;
+const MATCHMAKING_SECONDS = 25;
 
 function App() {
   if (window.location.hostname === 'localhost')
@@ -50,8 +50,8 @@ function App() {
     id: 0,
     name: '',
     connected: false,
-    matchmaking_state: '' || null,
-    matchmaking_remaining: '' || null,
+    matchmaking_state: '' as any, // or null
+    matchmaking_remaining: '' as any, // or null
     matchmaking_users: {
       count: 0,
       avatars: [/*{ name: '', avatar: '' }*/] as any
@@ -77,7 +77,7 @@ function App() {
       .then(
         (result) => {
           setLoaded(true)
-          console.log('fetch', result);
+          // console.log('fetch', result);
           if (!result.connected)
             return setUser(defaultNotConnected())
           setUser({
@@ -107,10 +107,9 @@ function App() {
   };
 
   const handleReadyMatchMaking = async () => {
+    user.matchmaking_state = 'CONFIRMED';
     await fetch('http://' + window.location.hostname + ':8190/game/matchmaking/confirm', fetch_opt());
-    user.matchmaking_state = null;
-    user.matchmaking_remaining = null;
-    //setUser(user);
+    user.matchmaking_remaining = new Date().toString();
   };
 
   const [progress, setProgress] = React.useState(0);
@@ -183,13 +182,14 @@ function App() {
 
   return (
     <Box className="App">
-      <Backdrop sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={!loaded || alreadyOpen}>
+      <Backdrop sx={{ color: '#000', zIndex: 2000 }} open={!loaded || alreadyOpen}>
         <CircularProgress color="inherit" />
         <Dialog
           open={alreadyOpen}
           TransitionComponent={Transition}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
+          sx={{ zIndex: 2100 }}
         >
           <DialogTitle id="alert-dialog-title">
             Veuillez nous excuser pour cette interruption

@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
 import { Game, MatchMaking, Prisma } from '@prisma/client';
 
+const MATCHMAKING_SECONDS = 25;
+
 @Injectable()
 export class GameService {
   private static alreadyRunning = 0;
@@ -49,38 +51,74 @@ export class GameService {
       }
     }
 
+    const where_old: Prisma.MatchMakingWhereInput = {
+      state: 'MATCHED',
+      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) }
+    };
     const old = await this.prisma.matchMaking.count({
-      where: { state: 'MATCHED', updatedAt: { lte: new Date(+new Date() - 45000) } }
+      where: where_old
     });
     if (old > 0) {
       this.logger.verbose('Cleaning MatchMaking!');
       for (let i = old - 1; i >= 0; i--) {
-        const couple = await this.matchMakings({
+        const slot = await this.matchMakings({
           skip: i,
           take: 1,
           orderBy: { createdAt: 'asc', },
-          where: { state: 'MATCHED' }
+          where: where_old
         });
-        this.notifService.createNotif(couple[0].userId, {
+        this.notifService.createNotif(slot[0].userId, {
           text: "Vous n'avez pas confirmé à temps la partie trouvée !\n"
             + "Vous avez été quitté du MatchMaking !"
         });
         await this.prisma.matchMaking.delete({
           where: {
-            userId: couple[0].userId
+            userId: slot[0].userId
+          }
+        });
+      }
+    }
+
+    const where_alone: Prisma.MatchMakingWhereInput = {
+      state: 'CONFIRMED',
+      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) }
+    };
+    const alone = await this.prisma.matchMaking.count({
+      where: where_alone
+    });
+    if (alone > 0) {
+      this.logger.verbose('Downgrade MatchMaking!');
+      for (let i = alone - 1; i >= 0; i--) {
+        const slot = await this.matchMakings({
+          skip: i,
+          take: 1,
+          orderBy: { createdAt: 'asc', },
+          where: where_alone
+        });
+        this.notifService.createMsg(slot[0].userId, {
+          text: "Votre opposant n'a pas validé à temps la partie !"
+        });
+        await this.prisma.matchMaking.update({
+          data: {
+            state: 'WAITING'
+          },
+          where: {
+            userId: slot[0].userId
           }
         });
       }
     }
 
     // LOG
-    if (!limit && !old)
+    if (!limit && !old && !alone)
       return;
     console.log(await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }
     }), await this.prisma.matchMaking.count({
       where: { state: 'MATCHED' }
-    }), old);
+    }), await this.prisma.matchMaking.count({
+      where: { state: 'CONFIRMED' }
+    }), 'old:', old, 'alone:', alone);
   }
 
   async game(
