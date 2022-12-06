@@ -6,7 +6,7 @@ import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetch_opt } from '../dep/fetch.js'
+import { fetch_opt } from '../dep/fetch'
 
 function Profile(props: { 
     fetch_userinfo: Function,

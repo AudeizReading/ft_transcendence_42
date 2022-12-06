@@ -8,7 +8,8 @@ import AvatarGroup from '@mui/material/AvatarGroup';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 
-import { fetch_opt } from '../dep/fetch.js'
+import { fetch_opt } from '../dep/fetch'
+import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -20,6 +21,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 function Play(props: { 
     fetch_userinfo: Function,
     user: {
+      connected: boolean,
       matchmaking_state: string | null,
       matchmaking_remaining: string | null,
       matchmaking_users: {
@@ -221,7 +223,7 @@ function Play(props: {
           <Box>
             { user.matchmaking_state === null
               ? <Button variant="contained"
-                  onClick={handleJoinMatchMaking}
+                  onClick={user.connected ? handleJoinMatchMaking : handleOpenAuthPopup}
                   disabled={fetching}
                   sx={{
                     m: 'auto',

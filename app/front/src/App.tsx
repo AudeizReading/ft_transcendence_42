@@ -24,7 +24,7 @@ import { TransitionProps } from '@mui/material/transitions';
 
 import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-dom";
 
-import { fetch_opt } from './dep/fetch.js'
+import { fetch_opt } from './dep/fetch'
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -50,8 +50,8 @@ function App() {
     id: 0,
     name: '',
     connected: false,
-    matchmaking_state: '' as any, // or null
-    matchmaking_remaining: '' as any, // or null
+    matchmaking_state: null as any, // or null
+    matchmaking_remaining: null as any, // or null
     matchmaking_users: {
       count: 0,
       avatars: [/*{ name: '', avatar: '' }*/] as any
@@ -133,7 +133,7 @@ function App() {
         console.error('network issue.')
       }
       clearTimeout(timeout.current);
-      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 5000 : 15000));
+      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 3000 : 8000));
     };
     clearTimeout(timeout.current);
     timeout.current = setTimeout(fct, user.matchmaking_state !== null ? 5000 : 15000); // TODO: Better? Socket.io?
