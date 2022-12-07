@@ -14,10 +14,10 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
       clientSecret: process.env.API_42_SECRET,
       callbackURL: 'http://' + process.env.FRONT_HOST + ':8190/auth/callback',
       profileFields: {
-        'id': function (obj) { return String(obj.id); },
+        'id': function (obj) { console.log(obj); return String(obj.id); },
         'username': 'login',
         'email': 'email',
-        'image.link': 'avatar'
+        'avatar': 'image.link'
       }
     });
   }
