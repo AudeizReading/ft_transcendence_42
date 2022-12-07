@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, Interval } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
-import { NotifService } from '../notif/notif.service';
+import { NotifService, ActionRedirContent } from '../notif/notif.service';
 import { Game, MatchMaking, Prisma } from '@prisma/client';
 
 const MATCHMAKING_SECONDS = 25;
@@ -18,21 +18,21 @@ export class GameService {
   // @Cron('45 * * * * *')
   @Interval(10000)
   async task_MatchMaking() {
-    if (GameService.alreadyRunning > +new Date() - 9000)
+    if (GameService.alreadyRunning > +new Date() - 9000) // TODO: Better fix? Own class to do that ?
       return ;
     GameService.alreadyRunning = +new Date();
-    const count = await this.prisma.matchMaking.count({
+
+    const waiting = await this.prisma.matchMaking.count({
       where: { state: 'WAITING' }
     });
-    const limit = Math.min(count - (count % 2), 10); // Max 5 games each 45 seconds
-
-    if (limit > 0) {
+    const waiting_even = Math.min(waiting - (waiting % 2), 10); // Max 5 games each 10 seconds
+    if (waiting_even > 0) {
       this.logger.verbose('Processing MatchMaking!');
 
       // OK après TS, voici Prisma qui nous montre ses faiblesses :(
       // En SQL ça se fait en une seul requête mais je vais eviter de passer par du rawQuery
 
-      for (let i = limit / 2 - 1; i >= 0; i--) {
+      for (let i = waiting_even / 2 - 1; i >= 0; i--) {
         const couple = await this.matchMakings({
           skip: i * 2,
           take: 2,
@@ -50,22 +50,21 @@ export class GameService {
         });
       }
     }
-
-    const where_old: Prisma.MatchMakingWhereInput = {
+    const where_didnotconfirm: Prisma.MatchMakingWhereInput = {
       state: 'MATCHED',
       updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) }
     };
-    const old = await this.prisma.matchMaking.count({
-      where: where_old
+    const didnotconfirm = await this.prisma.matchMaking.count({
+      where: where_didnotconfirm
     });
-    if (old > 0) {
+    if (didnotconfirm > 0) {
       this.logger.verbose('Cleaning MatchMaking!');
-      for (let i = old - 1; i >= 0; i--) {
+      for (let i = didnotconfirm - 1; i >= 0; i--) {
         const slot = await this.matchMakings({
           skip: i,
           take: 1,
           orderBy: { createdAt: 'asc', },
-          where: where_old
+          where: where_didnotconfirm
         });
         this.notifService.createNotif(slot[0].userId, {
           text: "Vous n'avez pas confirmé à temps la partie trouvée !\n"
@@ -79,24 +78,57 @@ export class GameService {
       }
     }
 
-    const where_alone: Prisma.MatchMakingWhereInput = {
+    const where_confirmed: Prisma.MatchMakingWhereInput = {
       state: 'CONFIRMED',
-      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) }
+      // updatedAt: { gte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000 * 2) }
     };
-    const alone = await this.prisma.matchMaking.count({
-      where: where_alone
+    const confirmed = await this.prisma.matchMaking.count({
+      where: where_confirmed
     });
-    if (alone > 0) {
+    const confirmed_even = Math.min(confirmed - (confirmed % 2), 10); // Max 5 games each 10 seconds
+    if (confirmed_even > 0) {
+      this.logger.verbose('Making game from MatchMaking!');
+      for (let i = confirmed_even / 2 - 1; i >= 0; i--) {
+        const couple = await this.matchMakings({
+          skip: i * 2,
+          take: 2,
+          orderBy: { createdAt: 'asc', },
+          where: where_confirmed
+        });
+        console.log('couple confirmed: ', couple[0].userId, couple[1].userId, 'create a game.');
+        const action: ActionRedirContent = {
+          type: "redir",
+          url: "/game/",
+        };
+        await this.notifService.createAction(couple[0].userId, action);
+        await this.notifService.createAction(couple[1].userId, action);
+        await this.prisma.matchMaking.deleteMany({
+          where: {
+            userId: { in: [couple[0].userId, couple[1].userId] }
+          }
+        });
+      }
+    }
+
+    const where_didnotfind: Prisma.MatchMakingWhereInput = {
+      state: 'CONFIRMED',
+      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000 * 2.2) }
+    };
+    const didnotfind = await this.prisma.matchMaking.count({
+      where: where_didnotfind
+    });
+    if (didnotfind > 0) {
       this.logger.verbose('Downgrade MatchMaking!');
-      for (let i = alone - 1; i >= 0; i--) {
+      for (let i = didnotfind - 1; i >= 0; i--) {
         const slot = await this.matchMakings({
           skip: i,
           take: 1,
           orderBy: { createdAt: 'asc', },
-          where: where_alone
+          where: where_didnotfind
         });
         this.notifService.createMsg(slot[0].userId, {
-          text: "Votre opposant n'a pas validé à temps la partie !"
+          text: "Votre opposant n'a pas validé à temps la partie !",
+          type: 'warning'
         });
         await this.prisma.matchMaking.update({
           data: {
@@ -110,15 +142,28 @@ export class GameService {
     }
 
     // LOG
-    if (!limit && !old && !alone)
+    if (!waiting_even && !didnotconfirm && !confirmed_even && !didnotfind)
       return;
-    console.log(await this.prisma.matchMaking.count({
-      where: { state: 'WAITING' }
-    }), await this.prisma.matchMaking.count({
-      where: { state: 'MATCHED' }
-    }), await this.prisma.matchMaking.count({
-      where: { state: 'CONFIRMED' }
-    }), 'old:', old, 'alone:', alone);
+
+    console.table({
+      before: {
+        WAITING: waiting,
+        DIDNT_CONFIRM: didnotconfirm,
+        CONFIRMED: confirmed,
+        DIDNT_FIND: didnotfind
+      },
+      after: {
+        WAITING: await this.prisma.matchMaking.count({
+          where: { state: 'WAITING' }
+        }),
+        MATCHED: await this.prisma.matchMaking.count({
+          where: { state: 'MATCHED' }
+        }),
+        CONFIRMED: await this.prisma.matchMaking.count({
+          where: { state: 'CONFIRMED' }
+        })
+      }
+    })
   }
 
   async game(

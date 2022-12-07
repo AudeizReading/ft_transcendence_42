@@ -151,7 +151,7 @@ function Play(props: {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [ /* refreshMatchMaking, */ props]);
+  }, [ /* refreshMatchMaking, */ props.user, props.user.matchmaking_users]);
 
   const gradient = `
     radial-gradient(

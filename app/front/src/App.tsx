@@ -54,20 +54,16 @@ function App() {
     matchmaking_remaining: null as any, // or null
     matchmaking_users: {
       count: 0,
-      avatars: [/*{ name: '', avatar: '' }*/] as any
+      avatars: [] as any
     },
     avatar: '',
-    notifs: {
-      num: 0,
-      arr: [/*{ text: '', date: 0, url: '', read: true } as any */] as any,
-    },
-    msgs: {
-      num: 0,
-      arr: [/*{ text: '', date: 0, url: '', read: true } as any */] as any
-    }
+    notifs: { num: 0, arr: [] as any, },
+    msgs: { num: 0, arr: [] as any },
+    actions: { num: 0, arr: [] as any }
   });
 
   const [loaded, setLoaded] = useState(false);
+  let [alreadyOpen, setAlreadyOpen] = useState(false); // 'let' because it lets doing a hack/force render refresh state
   const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = useCallback(() => {
@@ -89,8 +85,9 @@ function App() {
             matchmaking_users: result.matchmaking_users,
             avatar: result.user.avatar,
             notifs: result.notifs,
-            msgs: result.msgs
-          })
+            msgs: result.msgs,
+            actions: result.actions
+          });
         },
         (error) => {
           setLoaded(false)
@@ -99,8 +96,6 @@ function App() {
         }
       )
   }, []);
-
-  let [alreadyOpen, setAlreadyOpen] = useState(false);
 
   const handleDialogClose = () => {
     window.dispatchEvent(new Event('click_iamfirst'));
@@ -115,28 +110,22 @@ function App() {
   const [progress, setProgress] = React.useState(0);
 
   useEffect(() => {
-    if (!fetched_firsttime.current) {
-      fetch_userinfo();
-      fetched_firsttime.current = true;
-    }
+    const refresh = (bool: boolean) => {
+      if (bool) {
+        fetch_userinfo();
+        fetched_firsttime.current = true;
+      }
+      clearTimeout(timeout.current);
+      timeout.current = setTimeout(refresh, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 3000 : 8000), 1);
+      // TODO: Better? Socket.io?
+    };
+    refresh(!fetched_firsttime.current);
 
     const timer: any = setInterval(() => {
       if (user.matchmaking_remaining === null)
         return clearInterval(timer);
       setProgress((+new Date() - +new Date(user.matchmaking_remaining)) / MATCHMAKING_SECONDS / 10);
     }, 400);
-
-    const fct = () => {
-      try {
-        fetch_userinfo()
-      } catch (e) { // TODO: Rien ne throw au dessus… lol.
-        console.error('network issue.')
-      }
-      clearTimeout(timeout.current);
-      timeout.current = setTimeout(fct, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 3000 : 8000));
-    };
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(fct, user.matchmaking_state !== null ? 5000 : 15000); // TODO: Better? Socket.io?
 
     // console.info('broadcast channel');
     const bc = new BroadcastChannel('one-pong-only');
@@ -231,7 +220,7 @@ function App() {
         </Dialog>
       </Backdrop>
       <BrowserRouter>
-        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user}/>}
+        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
         <Routes>
           <Route index path="/" element={<Home />} />
           <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />

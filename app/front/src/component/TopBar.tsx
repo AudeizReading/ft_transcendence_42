@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -23,12 +23,12 @@ import Person from '@mui/icons-material/Person';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import Stack from '@mui/material/Stack';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Link from '@mui/material/Link';
 import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Snackbar from '@mui/material/Snackbar';
-import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 
 import { fetch_opt } from '../dep/fetch'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
@@ -58,23 +58,35 @@ interface NotifDataType {
   date: string;
   url?: string | null;
   read: boolean;
+  type?: AlertColor;
+}
+
+interface ActionRedirContent {
+  url: string;
+  date: string;
+  type: 'redir';
+}
+
+interface NotifContainerType {
+  num: number;
+  arr: Array<NotifDataType>
 }
 
 function TopBar(props: { 
+    loaded: boolean,
+    alreadyOpen: boolean,
     fetch_userinfo: Function,
     user: {
       id: number,
       name: string,
       connected: boolean,
       avatar: string,
-      notifs: {
-        num: number,
-        arr: NotifDataType[]
+      notifs: NotifContainerType,
+      msgs: NotifContainerType,
+      actions: {
+        num: number;
+        arr: Array<ActionRedirContent>
       },
-      msgs: {
-        num: number,
-        arr: NotifDataType[]
-      }
     }
   }) {
 
@@ -127,26 +139,41 @@ function TopBar(props: {
     props.fetch_userinfo(); // Modifier `user.msgs.num` n'est pas suffisant :/
   }
 
+  const navigate = useNavigate();
+
+  const wait_beforeaction: any = useRef(false);
+
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (window.wOpen) { window.wOpen.close() }
     };
-
     const handleAuthSuccess = () => {
       if (window.wOpen) { window.wOpen.close(); }
       props.fetch_userinfo();
     }
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('auth_success', handleAuthSuccess);
     setUser(props.user);
+
+    const doAction = async () => {
+      if (props.loaded && !props.alreadyOpen && props.user.actions.num > 0 && !wait_beforeaction.current)
+      {
+        wait_beforeaction.current = true;
+        if (props.user.actions.arr[0].type === 'redir')
+          navigate(props.user.actions.arr[0].url);
+        await fetch('http://' + window.location.hostname + ':8190/notif/done_last_action/' + props.user.actions.arr[0]?.date, fetch_opt());
+        console.log('action done!');
+        wait_beforeaction.current = false;
+      }
+    }
+    doAction();
 
     // cleanup this component
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('auth_success', handleAuthSuccess);
     };
-  }, [props, user]);
+  }, [props, user, navigate]);
 
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
@@ -277,7 +304,7 @@ function TopBar(props: {
                   overflow: 'visible',
                   filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
                   maxWidth: 350,
-                  maxHeight: '80%',
+                  maxHeight: user.notifs.num ? '80%' : '102px',
                   mt: 1,
                   '&.MuiPaper-root': { height: '100%' },
                   '& .MuiMenuItem-root': { p: 0 },
@@ -343,7 +370,7 @@ function TopBar(props: {
                       }
                     >
                       <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
-                        <Box sx={{ color: notif.read ? 'grey' : 'text.primary', display: 'block',
+                        <Box sx={{ color: notif.read && false /* TODO: readAt ??? */ ? 'grey' : 'text.primary', display: 'block',
                                    fontWeight: 'medium', whiteSpace: 'normal' }}>
                           {notif.text}
                         </Box>
@@ -355,7 +382,7 @@ function TopBar(props: {
                   ))}
                 </List> 
               :
-                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal' }}>
+                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 2 }}>
                   Vous n'avez aucune notification !
                 </Box>
               }
@@ -466,7 +493,7 @@ function TopBar(props: {
         sx={{ top: '80px !important' }}
         onClose={handleCloseSnackbar}
       >
-        <Alert onClose={handleCloseSnackbar} severity="info" sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={user.msgs.arr[0]?.type||'info'} sx={{ width: '100%' }}>
           {user.msgs.arr[0]?.text}
         </Alert>
       </Snackbar>

@@ -2,11 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Notif, Prisma } from '@prisma/client';
 
+interface MsgContent {
+  text: string;
+  type?: 'info' | 'warning';
+}
+
 interface NotifContent {
   text: string;
   url?: string | null;
-  read?: boolean;
-  type?: string;
+}
+
+export interface ActionRedirContent {
+  url: string;
+  type: 'redir';
 }
 
 export interface NotifDataType {
@@ -17,11 +25,27 @@ export interface NotifDataType {
   type: string;
 }
 
+export interface NotifContainerType {
+  num: number;
+  arr: Array<NotifDataType>
+}
+
 @Injectable()
 export class NotifService {
   constructor(private prisma: PrismaService) {}
 
-  async createMsg(userId: number, content: NotifContent): Promise<Notif> {
+  async createAction(userId: number, content: ActionRedirContent): Promise<Notif> {
+    return this.prisma.notif.create({
+      data: {
+        userId,
+        content: JSON.stringify(content),
+        read: false,
+        type: 'ACTION'
+      },
+    });
+  }
+
+  async createMsg(userId: number, content: MsgContent): Promise<Notif> {
     return this.prisma.notif.create({
       data: {
         userId,
@@ -37,7 +61,8 @@ export class NotifService {
       data: {
         userId,
         content: JSON.stringify(content),
-        read: false
+        read: false,
+        type: 'NOTIF'
       },
     });
   }
@@ -87,11 +112,13 @@ export class NotifService {
   }
 
   async objectForFront(userId: number): Promise<{
-    notifs: { num: number, arr: Array<NotifDataType> },
-    msgs: { num: number, arr: Array<NotifDataType> }
+    notifs: NotifContainerType,
+    msgs: NotifContainerType,
+    actions: NotifContainerType
   }> {
     const notifs = [];
     const msgs = [];
+    const actions = [];
     const data = await this.notifs({
       where: {
         userId
@@ -101,13 +128,23 @@ export class NotifService {
       }
     })
     data.forEach((item) => {
-      const content: NotifContent = JSON.parse(item.content);
-      (item.type === 'NOTIF' ? notifs : msgs).push({
-        text: content.text,
+      const content: MsgContent | NotifContent | ActionRedirContent = JSON.parse(item.content);
+      const container = (() => {
+        switch (item.type) {
+        case 'NOTIF':
+          return notifs;
+        case 'MSG':
+          return msgs;
+        case 'ACTION':
+          return actions;
+        }
+      })();
+      container.push({
+        text: content['text'] || null,
         date: item.createdAt,
-        url: content.url || null,
+        url: content['url'] || null,
         read: item.read,
-        type: item.type
+        type: content['type'] || null
       })
     })
     return {
@@ -118,6 +155,10 @@ export class NotifService {
       msgs: {
         num: msgs.length,
         arr: msgs
+      },
+      actions: {
+        num: actions.length,
+        arr: actions
       }
     }
   }

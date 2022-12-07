@@ -10,9 +10,15 @@ export class GameController {
   @Post('matchmaking/join')
   @UseGuards(JwtAuthGuard)
   async matchmaking_join(@Request() req) {
+    if (req.user.isPlaying)
+      return {
+        matchmaking: false,
+        ...await this.gameService.listTenMatchMakings()
+      };
+
     if (req.user.mMaking !== null)
       {} // TODO: update ?
-    else
+    else if (!req.user.isPlaying)
       await this.gameService.createMatchMaking({
         user: {
           connect: {
@@ -22,26 +28,26 @@ export class GameController {
         preference: "{}"
       });
     return {
-      matchmaking: true,
+      matchmaking: !req.user.isPlaying,
       ...await this.gameService.listTenMatchMakings()
     };
   }
 
   @Get('matchmaking/info')
-  async matchmaking_info() {
+  async matchmaking_info(@Request() req) {
     return {
-      matchmaking: true,
+      matchmaking: req.user.mMaking !== null,
       ...await this.gameService.listTenMatchMakings()
     };
   }
 
   @Post('matchmaking/quit')
   @UseGuards(JwtAuthGuard)
-  matchmaking_quit(@Request() req) {
+  async matchmaking_quit(@Request() req) {
     if (req.user.mMaking === null)
       return { matchmaking: false };
     else
-      this.gameService.deleteMatchMaking({
+      await this.gameService.deleteMatchMaking({
         userId: req.user.id,
       });
     return {
@@ -54,7 +60,7 @@ export class GameController {
   async matchmaking_confirm(@Request() req): Promise<{ result: boolean }> {
     if (req.user.mMaking?.state !== 'MATCHED')
       return { result: false };
-    const result = this.gameService.updateMatchMaking({
+    const result = await this.gameService.updateMatchMaking({
       data: {
         state: 'CONFIRMED'
       },
