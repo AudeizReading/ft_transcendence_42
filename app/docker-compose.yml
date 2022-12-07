@@ -2,6 +2,7 @@ version: '3.1'
 
 services:
   psql:
+    container_name: psql
     image: postgres
     restart: on-failure
     env_file: pong/.env
@@ -17,6 +18,7 @@ services:
       - ./data/db:/var/lib/postgresql/data
 
   adminer:
+    container_name: adminer
     image: adminer
     restart: on-failure
     env_file: pong/.env
