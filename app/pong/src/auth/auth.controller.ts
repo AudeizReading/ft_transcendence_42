@@ -55,7 +55,7 @@ export class AuthController {
         'email': param.login + '@fake348004549.fr',
         'login': param.login,
         'name': param.login,
-        'avatar': 'https://i.pinimg.com/originals/f1/20/6e/f1206eb6d699e0e76f61f91e240b100d.jpg',
+        'avatar': 'http://<<host>>:3000/res/default_avatar.jpg',
         'sessionid': sessionid
       });
     }

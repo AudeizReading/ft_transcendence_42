@@ -154,7 +154,7 @@ export class GameService {
     rawAvatars.map((item) => {
       avatars.push({
         name: item.user.name,
-        avatar: item.user.avatar
+        avatar: item.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
       })
     })
     return {
