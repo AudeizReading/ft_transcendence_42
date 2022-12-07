@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
-import { Game, MatchMaking, Prisma } from '@prisma/client';
+import { Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameService {
@@ -16,10 +16,33 @@ export class GameService {
     });
   }
 
-  async createGame(data: Prisma.GameCreateInput): Promise<Game> {
-    return this.prisma.game.create({
-      data,
+  async createGame(userId1: number, userId2: number | null): Promise<{ game: Game, players: PlayerGame[] }> {
+    const game = await this.prisma.game.create({
+      data: {
+        option: JSON.stringify({
+          // options :)
+        })
+      },
     });
+    const players = [];
+    players.push(await this.prisma.playerGame.create({
+      data: {
+        gameId: game.id,
+        userId: userId1
+      }
+    }));
+    if (userId2 !== null)
+      players.push(await this.prisma.playerGame.create({
+        data: {
+          gameId: game.id,
+          userId: userId2
+        }
+      }));
+    console.log()
+    return {
+      game,
+      players
+    };
   }
 
   async listTenMatchMakings(): Promise<any> {

@@ -14,7 +14,7 @@ export class GameMatchMaking {
   private readonly logger = new Logger(GameMatchMaking.name);
 
   constructor(private prisma: PrismaService,
-  			  private game: GameService,
+              private gameService: GameService,
               private notifService: NotifService) {}
 
   @Interval(10000)
@@ -30,7 +30,7 @@ export class GameMatchMaking {
       // En SQL ça se fait en une seul requête mais je vais eviter de passer par du rawQuery
 
       for (let i = waiting_even / 2 - 1; i >= 0; i--) {
-        const couple = await this.game.matchMakings({
+        const couple = await this.gameService.matchMakings({
           skip: i * 2,
           take: 2,
           orderBy: { createdAt: 'asc', },
@@ -57,7 +57,7 @@ export class GameMatchMaking {
     if (didnotconfirm > 0) {
       this.logger.verbose('Cleaning MatchMaking!');
       for (let i = didnotconfirm - 1; i >= 0; i--) {
-        const slot = await this.game.matchMakings({
+        const slot = await this.gameService.matchMakings({
           skip: i,
           take: 1,
           orderBy: { createdAt: 'asc', },
@@ -86,7 +86,7 @@ export class GameMatchMaking {
     if (confirmed_even > 0) {
       this.logger.verbose('Making game from MatchMaking!');
       for (let i = confirmed_even / 2 - 1; i >= 0; i--) {
-        const couple = await this.game.matchMakings({
+        const couple = await this.gameService.matchMakings({
           skip: i * 2,
           take: 2,
           orderBy: { createdAt: 'asc', },
@@ -99,6 +99,7 @@ export class GameMatchMaking {
         };
         await this.notifService.createAction(couple[0].userId, action);
         await this.notifService.createAction(couple[1].userId, action);
+        this.gameService.createGame(couple[0].userId, couple[1].userId);
         await this.prisma.matchMaking.deleteMany({
           where: {
             userId: { in: [couple[0].userId, couple[1].userId] }
@@ -117,7 +118,7 @@ export class GameMatchMaking {
     if (didnotfind > 0) {
       this.logger.verbose('Downgrade MatchMaking!');
       for (let i = didnotfind - 1; i >= 0; i--) {
-        const slot = await this.game.matchMakings({
+        const slot = await this.gameService.matchMakings({
           skip: i,
           take: 1,
           orderBy: { createdAt: 'asc', },
