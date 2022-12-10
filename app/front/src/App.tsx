@@ -59,7 +59,8 @@ function App() {
     avatar: '',
     notifs: { num: 0, arr: [] as any, },
     msgs: { num: 0, arr: [] as any },
-    actions: { num: 0, arr: [] as any }
+    actions: { num: 0, arr: [] as any },
+    is_playing: false
   });
 
   const [loaded, setLoaded] = useState(false);
@@ -86,7 +87,8 @@ function App() {
             avatar: result.user.avatar,
             notifs: result.notifs,
             msgs: result.msgs,
-            actions: result.actions
+            actions: result.actions,
+            is_playing: result.user.is_playing
           });
         },
         (error) => {

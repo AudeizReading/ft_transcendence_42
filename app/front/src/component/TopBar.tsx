@@ -87,6 +87,7 @@ function TopBar(props: {
         num: number;
         arr: Array<ActionRedirContent>
       },
+      is_playing: boolean
     }
   }) {
 
@@ -166,7 +167,14 @@ function TopBar(props: {
         wait_beforeaction.current = false;
       }
     }
-    doAction();
+    const isOnGamePage = (window.location.pathname.indexOf('/game/') === 0);
+    if (props.user.is_playing)
+      if (!isOnGamePage && props.loaded && !props.alreadyOpen) {
+        console.warn("TODO: Add popup to ask if the player want to join his game or not.") // TODO: Add popup to ask before redirect
+        navigate('/game/');
+      }
+    else
+      doAction();
 
     // cleanup this component
     return () => {

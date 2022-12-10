@@ -13,6 +13,21 @@ export class UsersService {
       where: userWhereUniqueInput,
       include: {
         mMaking: true,
+        games: {
+          include: {
+            game: true
+          },
+          orderBy: {
+            gameId: 'desc',
+          },
+          where: {
+            game: {
+              NOT: {
+                state: 'ENDED'
+              }
+            }
+          }
+        }
       },
     });
   }

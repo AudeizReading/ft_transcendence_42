@@ -35,7 +35,8 @@ export class UsersController {
         name: req.user.name,
         avatar: req.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
         matchmaking_state: req.user.mMaking?.state || null,
-        matchmaking_remaining: (req.user.mMaking?.state === 'MATCHED') ? req.user.mMaking.updatedAt : null
+        matchmaking_remaining: (req.user.mMaking?.state === 'MATCHED') ? req.user.mMaking.updatedAt : null,
+        is_playing: req.user.isPlaying
       },
       ...(await this.notifService.objectForFront(req.user.id)),
       matchmaking_users: await this.gameService.listTenMatchMakings() // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval

@@ -29,7 +29,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       sub: payload.sub,
       avatar: user.avatar,
       mMaking: (user as any).mMaking, // Ca me fait légérement rire ce hack (et le ts, se veux mieux que le js ? LOL)
-      isPlaying: false // TODO: Is playing
+      isPlaying: (user as any).games.length != 0,
+      currentgames: (user as any).games
     };
   }
 }
