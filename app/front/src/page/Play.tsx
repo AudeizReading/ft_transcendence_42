@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { fetch_opt } from '../dep/fetch'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
+import CanvasGame from '../component/CanvasGame';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -214,13 +215,13 @@ function Play(props: {
             <Box sx={{
               height: 300,
               width: 400,
-              background: 'url(/res/pong/screen.png)',
               transform: `rotateX(82deg) scale(.72)`,
               position: 'absolute', top: '18.5%', left: 0, right:0, m:'auto',
               zIndex: 70,
+              opacity: 0.42,
               mixBlendMode: 'multiply'
             }}>
-              
+              <CanvasGame />
             </Box>
           </Grid>
           <Grid item xs={12} md={4} sx={{
