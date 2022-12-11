@@ -141,6 +141,10 @@ function TopBar(props: {
 
   const navigate = useNavigate();
 
+  const handleGoToGame = () => {
+    navigate('/game/');
+  };
+
   const wait_beforeaction: any = useRef(false);
 
   useEffect(() => {
@@ -169,7 +173,6 @@ function TopBar(props: {
     const isOnGamePage = (window.location.pathname.indexOf('/game/') === 0);
     if (props.user.is_playing)
       if (!isOnGamePage && props.loaded && !props.alreadyOpen) {
-        console.warn("TODO: Add popup to ask if the player want to join his game or not.") // TODO: Add popup to ask before redirect
         //navigate('/game/');
       }
     else
@@ -494,6 +497,18 @@ function TopBar(props: {
             onClick={handleOpenAuthPopup} >Login</Button> }
         </Toolbar>
       </Container>
+    { user.is_playing ?
+      <Snackbar
+        open={(window.location.pathname.indexOf('/game/') !== 0)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ top: '80px !important' }}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert severity="warning" sx={{ width: '100%' }} action={<Button color="inherit" size="small" onClick={handleGoToGame}> Revenir en jeu</Button>}>
+         Une partie est en cours ! Veuillez la rejoindre.
+        </Alert>
+      </Snackbar>
+      :
       <Snackbar
         open={user.msgs.num !== 0}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -504,6 +519,7 @@ function TopBar(props: {
           {user.msgs.arr[0]?.text}
         </Alert>
       </Snackbar>
+    }
     </AppBar>
   );
 }
