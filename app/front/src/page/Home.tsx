@@ -1,8 +1,10 @@
+import Box from '@mui/material/Box';
+
 function Home() {
   return (
-    <div style={{ backgroundColor: "light-red", height:"400px", overflow:"hidden" }}>
+    <Box component="main" style={{ backgroundColor: "green", height:"400px", overflow:"hidden" }}>
       This is HOME &lt;3
-    </div>
+    </Box>
   );
 }
 export default Home;

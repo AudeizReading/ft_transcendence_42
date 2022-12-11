@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
 
 function Auth() {
   const [html, setHtml] = useState('');
@@ -16,9 +17,9 @@ function Auth() {
   },[]);
 
   return (
-    <div>
+    <Box component="main">
       Connexion OK. Vous pouvez fermer cette page :) {html}
-    </div>
+    </Box>
   );
 }
 export default Auth;

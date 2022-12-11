@@ -49,7 +49,7 @@ export class GameService {
     const rawAvatars = await this.matchMakings({
       take: 10,
       orderBy: {
-        createdAt: 'asc',
+        createdAt: 'asc'
       },
       include: {
         user: { 

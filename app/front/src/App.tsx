@@ -6,10 +6,8 @@ import Play from './page/Play';
 import Score from './page/Score';
 import Profile from './page/Profile';
 import Auth from './page/Auth';
-import Chat from './page/Chat';
 
 import TopBar from './component/TopBar';
-import Box from '@mui/material/Box';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -172,7 +170,7 @@ function App() {
   }, [alreadyOpen, fetch_userinfo, isNotAuth, user]);
 
   return (
-    <Box className="App">
+    <React.Fragment>
       <Backdrop sx={{ color: '#000', zIndex: 2000 }} open={!loaded || alreadyOpen}>
         <CircularProgress color="inherit" />
         <Dialog
@@ -228,14 +226,13 @@ function App() {
           <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/score" element={<Score />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/chat" element={<Chat />} />
 
           <Route path="/auth" element={<Auth />} />
 
           <Route path="*" element={<Error />} />
         </Routes>
       </BrowserRouter>
-    </Box>
+    </React.Fragment>
   );
 }
 

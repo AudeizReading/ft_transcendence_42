@@ -76,7 +76,7 @@ function Profile(props: {
   };
 
   return (
-    <Box>
+    <Box component="main">
     {loaded &&
       <Grid container>
         <Grid xs={12} item alignItems="center">

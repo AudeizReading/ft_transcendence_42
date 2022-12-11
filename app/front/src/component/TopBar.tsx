@@ -49,8 +49,7 @@ declare global {
 const drawerWidth = 240;
 const pages = [
   {name: 'Jouer', url: '/play'},
-  {name: 'Score', url: '/score'},
-  {name: 'Chat', url: '/chat'}
+  {name: 'Score', url: '/score'}
 ];
 
 interface NotifDataType {
