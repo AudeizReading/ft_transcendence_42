@@ -76,20 +76,26 @@ function Profile(props: {
   };
 
   return (
-    <Box component="main">
+    <Box component="main" sx={{ textAlign: 'center' }}>
     {loaded &&
       <Grid container>
         <Grid xs={12} item alignItems="center">
-          <Box sx={{ width: 250, height: 250, my: 2, mx: 'auto', display: 'block', position: 'relative',
-                '&:hover > .editIcon': {
-                  visibility: 'visible',
-                  opacity: 1
-                },
-                '& > .editIcon': {
-                  visibility: 'hidden',
-                  opacity: 0,
-                  transition: 'all 0.1s linear'
-                } }}>
+          <Box sx={{
+            width: 250,
+            height: 250,
+            my: 2,
+            mx: 'auto',
+            display: 'block',
+            position: 'relative',
+            '&:hover > .editIcon': {
+              visibility: 'visible',
+              opacity: 1
+            },
+            '& > .editIcon': {
+              visibility: 'hidden',
+              opacity: 0,
+              transition: 'all 0.1s linear'
+            } }}>
             <Avatar
               alt={user.name}
               src={user.avatar}
