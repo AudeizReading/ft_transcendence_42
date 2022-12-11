@@ -7,6 +7,12 @@ import { GameService } from '../game/game.service';
 export class GameController {
   constructor(private gameService: GameService) {}
 
+
+  @Get('score')
+  async score(@Request() req) {
+    return this.gameService.scoreForFront();
+  }
+
   @Post('matchmaking/join')
   @UseGuards(JwtAuthGuard)
   async matchmaking_join(@Request() req) {

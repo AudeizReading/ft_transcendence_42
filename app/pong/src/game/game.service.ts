@@ -3,10 +3,59 @@ import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
 import { Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 
+export interface scoreType {
+  id: number;
+  players: {
+    id: number,
+    name: string,
+    avatar: string,
+  }[];
+  scores: number[];
+  winnerId: number;
+  winnedAt: Date;
+}
+
 @Injectable()
 export class GameService {
   constructor(private prisma: PrismaService,
               private notifService: NotifService) {}
+
+  async scoreForFront(/*take: number, pagination: number*/): Promise<scoreType[]> {
+    const scores: scoreType[] = [];
+    const data = await this.prisma.game.findMany({
+      /*skip: take * pagination,
+      take: take,*/
+      orderBy: {
+        winnedAt: 'desc'
+      },
+      where: {
+        state: 'ENDED'
+      },
+      include: {
+        players: {
+          include: {
+            user: true
+          }
+        }
+      }
+    });
+    data.forEach((item) => {
+      const players = item.players;
+      const parsePlayer = (num) => ({
+        id: players[num].user.id,
+        name: players[num].user.name,
+        avatar: players[num].user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
+      })
+      scores.push({
+        id: item.id,
+        players: [ parsePlayer(0), parsePlayer(1) ],
+        scores: [item.scoreA, item.scoreB],
+        winnerId: item.winnerId,
+        winnedAt: item.winnedAt
+      })
+    })
+    return scores;
+  }
 
   async game(
     gameWhereUniqueInput: Prisma.GameWhereUniqueInput,

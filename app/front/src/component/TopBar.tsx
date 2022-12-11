@@ -170,7 +170,7 @@ function TopBar(props: {
     if (props.user.is_playing)
       if (!isOnGamePage && props.loaded && !props.alreadyOpen) {
         console.warn("TODO: Add popup to ask if the player want to join his game or not.") // TODO: Add popup to ask before redirect
-        navigate('/game/');
+        //navigate('/game/');
       }
     else
       doAction();
