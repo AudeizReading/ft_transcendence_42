@@ -7,6 +7,7 @@ import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { useNavigate } from 'react-router-dom';
 
 import { fetch_opt } from '../dep/fetch'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
@@ -30,7 +31,8 @@ function Play(props: {
           name: string,
           avatar: string
         }[]
-      }
+      },
+      is_playing: boolean
     }
   }) {
 
@@ -117,6 +119,12 @@ function Play(props: {
           showSnackbar('error', 'Impossible de quitter le matchmaking.');
         }
       )
+  };
+
+  const navigate = useNavigate();
+
+  const handleGoToGame = () => {
+    navigate('/game/');
   };
 
   const [descMm, setDescMm] = useState('');
@@ -223,14 +231,23 @@ function Play(props: {
           }}>
             <Box>
               { user.matchmaking_state === null
-                ? <Button variant="contained"
-                    onClick={user.connected ? handleJoinMatchMaking : handleOpenAuthPopup}
-                    disabled={fetching}
-                    sx={{
-                      m: 'auto',
-                      display: 'block'
-                    }}
-                  > Rejoindre le MatchMaking</Button>
+                ? (user.is_playing === true
+                    ? <Button variant="contained" color="warning"
+                      onClick={handleGoToGame}
+                      sx={{
+                        m: 'auto',
+                        display: 'block'
+                      }}
+                    > Revenir en jeu</Button>
+                    : <Button variant="contained"
+                      onClick={user.connected ? handleJoinMatchMaking : handleOpenAuthPopup}
+                      disabled={fetching}
+                      sx={{
+                        m: 'auto',
+                        display: 'block'
+                      }}
+                    > Rejoindre le MatchMaking</Button>
+                  )
                 : <React.Fragment>
                     <Button variant="contained" color="error"
                       onClick={handleQuitMatchMaking}
