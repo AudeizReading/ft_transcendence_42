@@ -17,6 +17,13 @@ function v_dot(vector1: point, vector2: point): number {
   );
 }
 
+function v_add(vector1: point, vector2: point): point {
+  return ({
+    x: vector1.x + vector2.x,
+    y: vector1.y + vector2.y
+  });
+}
+
 function v_sub(vector1: point, vector2: point): point {
   return ({
     x: vector1.x - vector2.x,
@@ -24,12 +31,12 @@ function v_sub(vector1: point, vector2: point): point {
   });
 }
 
-function v_add(vector1: point, vector2: point): point {
+/*function v_multiplication(vector1: point, vector2: point): point {
   return ({
-    x: vector1.x + vector2.x,
-    y: vector1.y + vector2.y
+    x: vector1.x * vector2.x,
+    y: vector1.y * vector2.y
   });
-}
+}*/
 
 function v_scale(vector1: point, factor: number): point {
   return ({
@@ -38,11 +45,28 @@ function v_scale(vector1: point, factor: number): point {
   });
 }
 
+/*function v_length(vector: point): number
+{
+  return (Math.sqrt(vector.x * vector.x
+      + vector.y * vector.y
+    ));
+}
+
+function v_norm(vector: point): point
+{
+  const length = v_length(vector);
+  if (length > 0.0) {
+    const ratio = 1.0 / length;
+    vector.x *= ratio;
+    vector.y *= ratio;
+  }
+  return (vector);
+}*/
+
 function pl_intersect(origin: point, dest: point, pl: { n: point, pos: point }): number {
   const ray: point = v_sub(dest, origin);
   const denominator = v_dot(pl.n, ray);
-  if (Math.abs(denominator) > 0.0)
-  {
+  if (Math.abs(denominator) > 0.0) {
     const pl_cam = v_sub(pl.pos, origin);
     const t = v_dot(pl_cam, pl.n) / denominator;
     if (t >= 0.000001)
@@ -55,10 +79,6 @@ function  pl_time_to_vector(origin: point, dest: point, time: number): point
 {
   const ray: point = v_sub(dest, origin);
   return (v_add(origin, v_scale(ray, time)));
-}
-
-function num_sign(num: number): number {
-  return (num < 0 ? -1 : 1);
 }
 
 function draw(context: CanvasRenderingContext2D, tick: number) {
@@ -138,17 +158,15 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
   context.lineWidth = 2;
 
   const planes: plane[] = [bt, bb, bl, br];
-  let i = 0, a: point, b: point, ray: point, time: number, point: point, max: number = 0;
+  let i = -1, j, a: point, b: point, ray: point, time: number, point: point, max: number = 0;
   a = {...start};
   ray = {...dir};
   do {
     b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
     time = -1;
-    for (i = 0; i < 2; i++)
-    {
-      if ((time = pl_intersect(a, b, planes[i])) > -1)
+    for (j = i, i = 0; i < 2; i++)
+      if (j !== i && (time = pl_intersect(a, b, planes[i])) > -1)
         break ;
-    }
     point = pl_time_to_vector(a, b, time);
 
     if (time > -1) {
@@ -159,9 +177,8 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
       context.lineTo(point.x, point.y);
       context.stroke();
       context.fillRect(point.x - 3, point.y - 3, 6, 6);
+      ray = v_sub(ray, v_scale(planes[i].n, 2.0 * v_dot(planes[i].n, ray)));
       a = {...point};
-      // ray.x = ray.x;
-      ray.y = Math.abs(ray.y) * num_sign(planes[i].n.y);
     } else {
       context.strokeStyle = 'white';
       context.beginPath();
