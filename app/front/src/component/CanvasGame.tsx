@@ -8,6 +8,7 @@ interface point {
 interface plane {
   n: point;
   pos: point;
+  size?: number;
 }
 
 
@@ -108,18 +109,28 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
   context.fillText('0', 400 - 80, 40);
 
   // Joueurs
-  let y = 164;
+  const pl: plane = {
+    n: { x: 1, y: 0 },
+    pos: { x: 20, y: 164 },
+    size: 20
+  };
+
+  const pr: plane = {
+    n: { x: -1, y: 0 },
+    pos: { x: 400 - 20, y: 210 },
+    size: 20
+  };
+
   context.lineWidth = 5;
   context.setLineDash([]);
-  context.beginPath();
-  context.moveTo(20, y);
-  context.lineTo(20, y + 20);
-  context.stroke();
-  y = 210;
-  context.beginPath();
-  context.moveTo(400 - 20, y);
-  context.lineTo(400 - 20, y + 20);
-  context.stroke();
+
+  const players: plane[] = [pl, pr];
+  for (let i = 0; i < players.length; i++) {
+    context.beginPath();
+    context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y);
+    context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0));
+    context.stroke();
+  }
 
   // Balle
   context.fillRect(320, 240, 6, 6);
@@ -128,6 +139,11 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
     x: Math.cos(Math.PI/4 * (+new Date()/10)*0.004),
     y: Math.sin(Math.PI/4 * (+new Date()/10)*0.004)
   };
+
+  /*const dir: point = {
+    x: .66,
+    y: .34
+  };*/
 
   const bt: plane = {
     n: { x: 0, y: 1 },
@@ -157,19 +173,22 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
   context.strokeStyle = 'white';
   context.lineWidth = 2;
 
-  const planes: plane[] = [bt, bb, bl, br];
-  let i = -1, j, a: point, b: point, ray: point, time: number, point: point, max: number = 0;
+  let planes: plane[] = [pl, pr, bt, bb];
+  let i = -1, a: point, b: point, ray: point, time: number, point: point | null = null, max: number = 0;
   a = {...start};
   ray = {...dir};
   do {
     b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
     time = -1;
-    for (j = i, i = 0; i < 2; i++)
-      if (j !== i && (time = pl_intersect(a, b, planes[i])) > -1)
+    for (i = 0; i < planes.length; i++)
+      if ((time = pl_intersect(a, b, planes[i])) > -1) {
+        point = pl_time_to_vector(a, b, time);
+        if (planes[i].size && !(planes[i].pos.y <= point.y && point.y <= planes[i].pos.y + (planes[i].size || 0)))
+          continue ;
         break ;
-    point = pl_time_to_vector(a, b, time);
+      }
 
-    if (time > -1) {
+    if (time > -1 && point) {
       context.fillStyle = 'orange';
       context.strokeStyle = 'orange';
       context.beginPath();
@@ -186,15 +205,27 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
       context.lineTo(b.x, b.y);
       context.stroke();
     }
-  } while(time > -1 && 0 <= point.x && point.x <= 400 && ++max < 100)
+  } while(time > -1 && point && 0 <= point.x && point.x <= 400 && ++max < 100)
 
+  planes = [pl, pr, bl, br];
   a = {...start};
   ray = {...dir};
   b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
   time = -1;
-  for (i = 2; i < 4; i++)
-    if ((time = pl_intersect(a, b, planes[i])) > -1)
+  for (i = 0; i < planes.length; i++)
+    if ((time = pl_intersect(a, b, planes[i])) > -1) {
+      point = pl_time_to_vector(a, b, time);
+      if (!(0 <= point.y && point.y <= 300)) {
+        point.y = Math.abs(point.y);
+        const pair = Math.floor(point.y / 300) % 2;
+        point.y = point.y % 300;
+        if (pair) 
+          point.y = 300 - point.y;
+      }
+      if (planes[i].size && !(planes[i].pos.y <= point.y && point.y <= planes[i].pos.y + (planes[i].size || 0)))
+        continue ;
       break ;
+    }
   point = pl_time_to_vector(a, b, time);
 
   if (time > -1) {
