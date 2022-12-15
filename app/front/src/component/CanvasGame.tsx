@@ -1,7 +1,8 @@
-import { useRef, useEffect } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, point, plane } from '../dep/minirt_functions'
+import LogicGame, { dataCanvas, getPlayerPosition } from './LogicGame';
 
-function draw(context: CanvasRenderingContext2D, tick: number) {
+function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   context.fillStyle = 'black';
   context.beginPath();
@@ -30,15 +31,26 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
   // Joueurs
   const pl: plane = {
     n: { x: 1, y: 0 },
-    pos: { x: 20, y: 164 },
+    pos: { x: 20, y: 140 },
     size: 20
   };
 
   const pr: plane = {
     n: { x: -1, y: 0 },
-    pos: { x: 400 - 20, y: 210 },
+    pos: { x: 400 - 20, y: 140 },
     size: 20
   };
+
+  if (data.players) {
+    if (data.players.length >= 1) {
+      pl.pos.y = getPlayerPosition(data.players[0]);
+      pl.size = data.players[0].size;
+    }
+    if (data.players.length >= 2) {
+      pr.pos.y = getPlayerPosition(data.players[1]);
+      pl.size = data.players[1].size;
+    }
+  }
 
   context.lineWidth = 5;
   context.setLineDash([]);
@@ -161,9 +173,11 @@ function draw(context: CanvasRenderingContext2D, tick: number) {
 }
 
 function CanvasGame(props: {
+   playable?: boolean,
    border?: string
   }) {
   const canvasEl: { current: HTMLElement | null } = useRef(null);
+  const [data/*, setData*/] = useState({} as dataCanvas);
 
   useEffect(() => {
     if (!canvasEl.current)
@@ -176,7 +190,7 @@ function CanvasGame(props: {
 
     const render = () => {
       tick++;
-      draw(context, tick);
+      draw(context, tick, data);
       animationFrameId = window.requestAnimationFrame(render);
     }
     render();
@@ -187,11 +201,13 @@ function CanvasGame(props: {
   });
 
   return (
-    <canvas id="canvas-game" width="400" height="300" style={{
-      border: props.border,
-      margin: 20
-    }}></canvas>
-
+    <React.Fragment>
+      <canvas id="canvas-game" width="400" height="300" style={{
+        border: props.border,
+        margin: 20
+      }}></canvas>
+      <LogicGame data={data} playable={props.playable?true:false} />
+    </React.Fragment>
   );
 }
 
