@@ -29,7 +29,6 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
     const sessionid = crypto.randomBytes(32).toString('base64');
     if (!user)
     {
-      console.log(profile);
       console.log('create user');
       await this.usersService.createUser({
         'email': profile.email,
