@@ -9,13 +9,14 @@ import { GameModule } from './game/game.module';
 import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SocketModule } from './socket/socket.module';
 import { GameMatchMaking } from './game/game.matchmaking';
 
 @Module({
   imports: [ConfigModule.forRoot({
     // isGlobal: true,  ????????
     envFilePath: ['.env'],
-  }), ScheduleModule.forRoot(), GameMatchMaking, AuthModule, GameModule, UsersModule, NotifModule],
+  }), ScheduleModule.forRoot(), GameMatchMaking, AuthModule, GameModule, UsersModule, NotifModule, SocketModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],
 })

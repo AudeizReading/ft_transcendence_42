@@ -1,4 +1,7 @@
 import React, { useRef, useEffect } from 'react'
+import socketIOClient from "socket.io-client";
+
+const ENDPOINT = "ws://" + window.location.hostname + ":8190";
 
 export interface dataPlayer {
   dir: number;
@@ -47,6 +50,10 @@ function LogicGame(props: {
   }
 
   useEffect(() => {
+    const socket = socketIOClient(ENDPOINT);
+    socket.on('message', data => {
+      console.log(data);
+    });
 
     const handleKeyEvent = (event: KeyboardEvent) => {
       if (event.repeat)
@@ -112,6 +119,10 @@ function LogicGame(props: {
 
   return (
     <React.Fragment>
+      <script src="http://:8190/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+</script>
     </React.Fragment>
   );
 }
