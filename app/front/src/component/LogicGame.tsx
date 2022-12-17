@@ -1,7 +1,9 @@
 import React, { useRef, useEffect } from 'react'
-import socketIOClient from "socket.io-client";
+import socketIOClient, { Socket } from "socket.io-client";
 
-const ENDPOINT = "ws://" + window.location.hostname + ":8190";
+import { fetch_opt } from '../dep/fetch'
+
+const ENDPOINT = "ws://" + window.location.hostname + ":8192";
 
 export interface dataPlayer {
   dir: number;
@@ -33,6 +35,7 @@ function LogicGame(props: {
    data: dataCanvas,
   }) {
   const loaded = useRef(false);
+  const ws_loaded = useRef(false);
   const keydowns = useRef({
     '87': false,
     '90': false,
@@ -50,10 +53,19 @@ function LogicGame(props: {
   }
 
   useEffect(() => {
-    const socket = socketIOClient(ENDPOINT);
-    socket.on('message', data => {
-      console.log(data);
-    });
+    let socket: Socket;
+    if (!ws_loaded.current) {
+      socket = socketIOClient(ENDPOINT, {
+        extraHeaders: fetch_opt().headers
+      });
+      socket.emit('login', {}, (data: any) => {
+        console.log(data);
+      })
+      socket.on('message', (data) => {
+        console.log(data);
+      });
+      ws_loaded.current = true;
+    }
 
     const handleKeyEvent = (event: KeyboardEvent) => {
       if (event.repeat)
@@ -109,6 +121,11 @@ function LogicGame(props: {
     }
 
     return () => {
+      if (ws_loaded.current) {
+        socket.close();
+        ws_loaded.current = false;
+      }
+
       if (props.playable) {
         window.removeEventListener('keydown', handleKeyEvent);
         window.removeEventListener('keyup', handleKeyEvent);
@@ -119,10 +136,6 @@ function LogicGame(props: {
 
   return (
     <React.Fragment>
-      <script src="http://:8190/socket.io/socket.io.js"></script>
-<script>
-  var socket = io();
-</script>
     </React.Fragment>
   );
 }

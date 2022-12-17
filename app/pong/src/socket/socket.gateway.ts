@@ -6,6 +6,8 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  MessageBody,
+  ConnectedSocket
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 
@@ -18,7 +20,7 @@ type UserInfo = {
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
 
-@WebSocketGateway({
+@WebSocketGateway(8192, {
   cors: {
     origin: '*',
     maxAge: 600
@@ -30,6 +32,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private roomMap: Map<string, UserInfo[]> = new Map();
 
+  @UseGuards(JwtAuthGuard)
   handleConnection(client: Socket) {
     console.log('connection', client.id);
   }
@@ -65,18 +68,17 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
   }*/
 
-  //@UseGuards(JwtAuthGuard)
-  @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-    console.log('Hello world!');
-    return 'Hello world!';
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('login')
+  handleLogin(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+    return { success: true };
   }
 
-  @SubscribeMessage('login')
+  /*@SubscribeMessage('login')
   handlerLogin(
     client: Socket,
     payload: any,
-  )/*: { success: boolean; isPublisher?: boolean }*/ {
+  )/*: { success: boolean; isPublisher?: boolean }* / {
     console.log('??')
     /*const [userName, roomName] = payload;
     try {
@@ -109,8 +111,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       console.error(e);
       return { success: false };
-    }*/
-  }
+    }* /
+  }*/
 
   /*@SubscribeMessage('chat')
   handlerChat(client: Socket, msg: string) {
