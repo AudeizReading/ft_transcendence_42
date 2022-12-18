@@ -6,13 +6,13 @@ import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { useParams, useNavigate } from 'react-router-dom';
+
 import { fetch_opt } from '../dep/fetch'
+import { User } from '../interface/User'
 
 function Profile(props: { 
     fetch_userinfo: Function,
-    user: {
-      id: number
-    }
+    user: User
   }) {
   const { userid } = useParams();
 

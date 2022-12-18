@@ -10,6 +10,7 @@ import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { useNavigate } from 'react-router-dom';
 
 import { fetch_opt } from '../dep/fetch'
+import { User } from '../interface/User'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
 import CanvasGame from '../component/CanvasGame';
 
@@ -22,19 +23,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
 
 function Play(props: { 
     fetch_userinfo: Function,
-    user: {
-      connected: boolean,
-      matchmaking_state: string | null,
-      matchmaking_remaining: string | null,
-      matchmaking_users: {
-        count: number,
-        avatars: {
-          name: string,
-          avatar: string
-        }[]
-      },
-      is_playing: boolean
-    }
+    user: User
   }) {
 
   const [fetching, setFetching] = useState(false);

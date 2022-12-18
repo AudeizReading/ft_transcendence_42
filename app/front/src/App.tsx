@@ -24,6 +24,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-dom";
 
 import { fetch_opt } from './dep/fetch'
+import { User } from './interface/User'
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -49,18 +50,15 @@ function App() {
     id: 0,
     name: '',
     connected: false,
-    matchmaking_state: null as any, // or null
-    matchmaking_remaining: null as any, // or null
-    matchmaking_users: {
-      count: 0,
-      avatars: [] as any
-    },
+    matchmaking_state: null,
+    matchmaking_remaining: null,
+    matchmaking_users: { count: 0, avatars: [] },
     avatar: '',
-    notifs: { num: 0, arr: [] as any, },
-    msgs: { num: 0, arr: [] as any },
-    actions: { num: 0, arr: [] as any },
+    notifs: { num: 0, arr: [] },
+    msgs: { num: 0, arr: [] },
+    actions: { num: 0, arr: [] },
     is_playing: false
-  });
+  } as User);
 
   const [loaded, setLoaded] = useState(false);
   let [alreadyOpen, setAlreadyOpen] = useState(false); // 'let' because it lets doing a hack/force render refresh state

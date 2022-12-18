@@ -31,6 +31,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 
 import { fetch_opt } from '../dep/fetch'
+import { User } from '../interface/User'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -52,42 +53,11 @@ const pages = [
   {name: 'Score', url: '/score'}
 ];
 
-interface NotifDataType {
-  text: string;
-  date: string;
-  url?: string | null;
-  read: boolean;
-  type?: AlertColor;
-}
-
-interface ActionRedirContent {
-  url: string;
-  date: string;
-  type: 'redir';
-}
-
-interface NotifContainerType {
-  num: number;
-  arr: Array<NotifDataType>
-}
-
 function TopBar(props: { 
     loaded: boolean,
     alreadyOpen: boolean,
     fetch_userinfo: Function,
-    user: {
-      id: number,
-      name: string,
-      connected: boolean,
-      avatar: string,
-      notifs: NotifContainerType,
-      msgs: NotifContainerType,
-      actions: {
-        num: number;
-        arr: Array<ActionRedirContent>
-      },
-      is_playing: boolean
-    }
+    user: User
   }) {
 
   const [user, setUser] = useState({...props.user});
@@ -164,7 +134,7 @@ function TopBar(props: {
       {
         wait_beforeaction.current = true;
         if (props.user.actions.arr[0].type === 'redir')
-          navigate(props.user.actions.arr[0].url);
+          navigate(String(props.user.actions.arr[0].url));
         await fetch('http://' + window.location.hostname + ':8190/notif/done_last_action/' + props.user.actions.arr[0]?.date, fetch_opt());
         console.log('action done!');
         wait_beforeaction.current = false;
@@ -515,7 +485,7 @@ function TopBar(props: {
         sx={{ top: '80px !important' }}
         onClose={handleCloseSnackbar}
       >
-        <Alert onClose={handleCloseSnackbar} severity={user.msgs.arr[0]?.type||'info'} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={(user.msgs.arr[0]?.type||'info') as AlertColor} sx={{ width: '100%' }}>
           {user.msgs.arr[0]?.text}
         </Alert>
       </Snackbar>
