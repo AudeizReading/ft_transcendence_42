@@ -4,10 +4,10 @@ import LogicGame, { dataCanvas, getPlayerPosition } from './LogicGame';
 
 function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-  context.fillStyle = 'black';
+  /*context.fillStyle = 'black';
   context.beginPath();
   context.arc(50, 100, 20*Math.sin(+new Date()*0.003)**2, 0, 3*Math.PI);
-  context.fill();
+  context.fill();*/
 
   // Centre de terrain
   context.strokeStyle = 'rgba(0,0,0,0.6)';
@@ -17,6 +17,17 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
   context.moveTo(200, -3);
   context.lineTo(200, 300);
   context.stroke();
+
+  context.fillStyle = 'brown';
+  context.font = 'small-caps bold 48px/1 sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText('En attente', 200, 150);
+
+  context.font = 'small-caps bold 12px/1 sans-serif';
+  context.textAlign = 'right';
+  context.textBaseline = 'bottom';
+  context.fillText(String(data.gameId), 400, 300);
 
   context.fillStyle = 'black';
   context.strokeStyle = 'black';
@@ -174,10 +185,13 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
 
 function CanvasGame(props: {
    playable?: boolean,
-   border?: string
+   border?: string,
+   gameId: string | number,
   }) {
   const canvasEl: { current: HTMLElement | null } = useRef(null);
-  const [data/*, setData*/] = useState({} as dataCanvas);
+  const [data/*, setData*/] = useState({
+    gameId: props.gameId
+  } as dataCanvas);
 
   useEffect(() => {
     if (!canvasEl.current)

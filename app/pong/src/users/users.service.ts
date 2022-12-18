@@ -15,7 +15,11 @@ export class UsersService {
         mMaking: true,
         games: {
           include: {
-            game: true
+            game: {
+              include: {
+                players: true
+              }
+            }
           },
           orderBy: {
             gameId: 'desc',

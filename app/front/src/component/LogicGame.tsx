@@ -3,8 +3,6 @@ import socketIOClient, { Socket } from "socket.io-client";
 
 import { fetch_opt } from '../dep/fetch'
 
-const ENDPOINT = "ws://" + window.location.hostname + ":8192";
-
 export interface dataPlayer {
   dir: number;
   pos: number;
@@ -15,6 +13,7 @@ export interface dataPlayer {
 
 export interface dataCanvas {
   players: dataPlayer[];
+  gameId: string | number;
 }
 
 export function getPlayerPosition(player: dataPlayer) {
@@ -55,15 +54,15 @@ function LogicGame(props: {
   useEffect(() => {
     let socket: Socket;
     if (!ws_loaded.current) {
-      socket = socketIOClient(ENDPOINT, {
+      socket = socketIOClient('ws://' + window.location.hostname + ':8192/?page=game&gameid=' + String(props.data.gameId), {
         extraHeaders: fetch_opt().headers
       });
       socket.emit('login', {}, (data: any) => {
         console.log(data);
       })
-      socket.on('message', (data) => {
+      /*socket.on('message', (data) => {
         console.log(data);
-      });
+      });*/
       ws_loaded.current = true;
     }
 

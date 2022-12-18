@@ -7,7 +7,7 @@ import { PassportStrategy } from '@nestjs/passport';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private usersService: UsersService) {
     super({
-      jwtFromRequest: customExtractorFromAuthHeaderAsBearerToken,
+      jwtFromRequest: fromAuthHeaderOAsBearerToken,
       // jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // also: fromUrlQueryParameter http://www.passportjs.org/packages/passport-jwt/
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
@@ -27,11 +27,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       login: payload.login,
       name: user.name,
       sessionid: payload.sessionid,
-      sub: payload.sub,
       avatar: user.avatar,
       mMaking: (user as any).mMaking, // Ca me fait légérement rire ce hack (et le ts, se veux mieux que le js ? LOL)
       isPlaying: (user as any).games.length != 0,
-      currentgames: (user as any).games
+      playingAt: ((user as any).games || [])[0]
     };
   }
 }
@@ -45,7 +44,7 @@ function parseAuthHeader(hdrValue) { // src: 'passport-jwt/lib/auth_header.js'
 }
 
 // Inspired by: https://github.com/mikenicholson/passport-jwt/blob/96a6e5565ba5a6f3301d91959a0f646e54446388/lib/extract_jwt.js#L55
-function customExtractorFromAuthHeaderAsBearerToken(request: any) { // any => HTTP or websocket
+export function fromAuthHeaderOAsBearerToken(request: any) { // any => HTTP or websocket
   let token = null;
   const bool = (request.headers && request.headers['authorization']);
   if (bool || (request.handshake && request.handshake?.headers['authorization'])) {

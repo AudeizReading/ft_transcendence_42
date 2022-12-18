@@ -210,7 +210,7 @@ function Play(props: {
               opacity: 0.42,
               mixBlendMode: 'multiply'
             }}>
-              <CanvasGame />
+              <CanvasGame gameId="demo" />
             </Box>
           </Grid>
           <Grid item xs={12} md={4} sx={{

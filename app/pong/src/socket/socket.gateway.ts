@@ -9,12 +9,18 @@ import {
   MessageBody,
   ConnectedSocket
 } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
+import { JwtStrategy } from '../auth/jwt.strategy';
 import { Socket, Server } from 'socket.io';
+import { fromAuthHeaderOAsBearerToken } from '../auth/jwt.strategy';
 
-type UserInfo = {
-  sessionId: string;
-  userName: string;
-  roomName: string;
+interface Client {
+  userId: number;
+  socketId: string;
+};
+
+type SocketUserAuth = Socket & {
+  user: Object;
 };
 
 // https://docs.nestjs.com/websockets/gateways
@@ -27,21 +33,57 @@ type UserInfo = {
   }
 })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(private jwtService: JwtService,
+              private jwtStrategy: JwtStrategy) {}
+
   @WebSocketServer()
   private server: Server;
 
-  private roomMap: Map<string, UserInfo[]> = new Map();
+  private clients: Map<string, Client> = new Map();
 
-  @UseGuards(JwtAuthGuard)
-  handleConnection(client: Socket) {
-    console.log('connection', client.id);
+  // @UseGuards(JwtAuthGuard) <== Not supported for handleConnection
+  async handleConnection(socket: SocketUserAuth) {
+    const token = fromAuthHeaderOAsBearerToken(socket);
+    const user = await (async () => {
+      try {
+        return this.jwtStrategy.validate(await this.jwtService.verify(token, { secret: process.env.JWT_SECRET }));
+      } catch (e) {
+        if (e.name !== 'JsonWebTokenError')
+          console.error(e); // show other error
+        return (null);
+      }
+    })();
+    console.log('connection', socket.id);
+    if (!user) {// && demo) ??? ---> pouvoir laisser voir la demo aux hors-lignes
+      socket.disconnect();
+      return { success: false, gameid: -1 };
+    }
+
+    const client: Client = {
+      userId: user.id,
+      socketId: socket.id
+    };
+    this.clients.set(client.socketId, client);
+
+    console.log('👇️ total:', this.clients.size);
+    this.clients.forEach((client, id) => {
+      console.log(id, client);
+    });
+
+    if (socket.handshake?.query?.gameid == 'mygame' && user.playingAt) {
+      return {
+        success: true,
+        gameid: user.playingAt.gameid
+      }
+    }
   }
 
-  handleDisconnect(client: Socket) {
-    console.log('disconnection', client.id);
+  handleDisconnect(socket: Socket) {
+    console.log('disconnection', socket.id);
+    this.clients.delete(socket.id);
     /*this.roomMap.forEach((room, key) => {
       room.forEach((user, i) => {
-        if (user.sessionId === client.id) {
+        if (user.sessionId === socket.id) {
           const users = this.roomMap.get(key);
           this.roomMap.set(key, users.splice(i, 1));
           console.log(this.roomMap);
@@ -70,20 +112,21 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('login')
-  handleLogin(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+  handleLogin(@MessageBody() data: string, @ConnectedSocket() socket: SocketUserAuth) {
+    //console.log(socket.user);
     return { success: true };
   }
 
   /*@SubscribeMessage('login')
   handlerLogin(
-    client: Socket,
+    socket: Socket,
     payload: any,
   )/*: { success: boolean; isPublisher?: boolean }* / {
     console.log('??')
     /*const [userName, roomName] = payload;
     try {
-      client.join(roomName);
-      const sessionId = client.id;
+      socket.join(roomName);
+      const sessionId = socket.id;
       const userRoom = this.roomMap.get(roomName);
       let isListener = true;
 
@@ -115,11 +158,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }*/
 
   /*@SubscribeMessage('chat')
-  handlerChat(client: Socket, msg: string) {
-    const { sender, roomName } = this.getUserInfoBySId(client.id);
+  handlerChat(socket: Socket, msg: string) {
+    const { sender, roomName } = this.getUserInfoBySId(socket.id);
 
     if (!sender) return;
-    client.to(roomName).emit('chat', msg);
+    socket.to(roomName).emit('chat', msg);
     return msg;
   }*/
 }

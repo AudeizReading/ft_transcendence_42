@@ -223,7 +223,8 @@ function App() {
         <Routes>
           <Route index path="/" element={<Home />} />
           <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/game" element={<Game />} />
+          <Route path="/game/:gameid" element={<Game user={user} />} />
+          <Route path="/game/" element={<Game user={user} />} />
           <Route path="/score" element={<Score />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
 
