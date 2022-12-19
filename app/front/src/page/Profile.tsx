@@ -19,7 +19,9 @@ function Profile(props: {
   const emptyUser = () => ({
     id: 0,
     name: '',
-    avatar: ''
+    avatar: '',
+    wins: 0,
+    loses: 0
   });
 
   const [loaded, setLoaded] = useState(false);
@@ -36,7 +38,9 @@ function Profile(props: {
           setUser({
             id: result.id,
             name: result.name,
-            avatar: result.avatar
+            avatar: result.avatar,
+            wins: result.wins,
+            loses: result.loses
           })
         },
         (error) => {
@@ -125,11 +129,11 @@ function Profile(props: {
           >
             <Paper variant="outlined">
               <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Victoires</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>6941</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.wins}</p>
             </Paper>
             <Paper variant="outlined">
               <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>12</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
             </Paper>
           </Box>
         </Grid>

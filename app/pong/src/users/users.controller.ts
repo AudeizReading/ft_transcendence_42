@@ -56,7 +56,8 @@ export class UsersController {
     return {
       id: user.id,
       name: user.name,
-      avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
+      avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
+      ...(await this.usersService.getScore(user.id))
     };
   }
 

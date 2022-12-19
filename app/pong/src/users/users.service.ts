@@ -36,6 +36,29 @@ export class UsersService {
     });
   }
 
+  async getScore(userId: number): Promise<{
+    wins: number;
+    loses: number;
+  }> {
+    const wins = await this.prisma.game.count({
+      where: {
+        winnerId: userId
+      }
+    });
+    const total = await this.prisma.playerGame.count({
+      where: {
+        userId,
+        game: {
+          state: 'ENDED'
+        }
+      }
+    });
+    return {
+      wins: wins,
+      loses: total - wins,
+    };
+  }
+
   async users(params: {
     skip?: number;
     take?: number;
