@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { Socket, Server } from 'socket.io';
 import { fromAuthHeaderOAsBearerToken } from '../auth/jwt.strategy';
+import { User } from '@prisma/client';
 
 interface Client {
   userId: number;
@@ -20,13 +21,14 @@ interface Client {
 };
 
 type SocketUserAuth = Socket & {
-  user: Object;
+  user: User;
 };
 
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
 
 @WebSocketGateway(8192, {
+  namespace: 'game',
   cors: {
     origin: '*',
     maxAge: 600
@@ -41,8 +43,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private clients: Map<string, Client> = new Map();
 
+  private games: Map<number, number[]> = new Map();
+
   // @UseGuards(JwtAuthGuard) <== Not supported for handleConnection
-  async handleConnection(socket: SocketUserAuth) {
+  async handleConnection(socket: Socket) {
     const token = fromAuthHeaderOAsBearerToken(socket);
     const user = await (async () => {
       try {
@@ -65,31 +69,63 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
     this.clients.set(client.socketId, client);
 
-    console.log('👇️ total:', this.clients.size);
+    /*console.log('👇️ total:', this.clients.size);
     this.clients.forEach((client, id) => {
       console.log(id, client);
-    });
+    });*/
+
+    let gameId = -1;
 
     if (socket.handshake?.query?.gameid == 'mygame' && user.playingAt) {
-      return {
-        success: true,
-        gameid: user.playingAt.gameid
+      console.log('Est-ce que la game peut commencer ?');
+      const oppId = (() => {
+        const players = user.playingAt.game.players.filter((a) => a.userId !== user.id);
+        if (players[0])
+          return players[0].userId
+        else
+          return -1;
+      })();
+      const users = [...this.clients]
+        .filter(([key, val]) => val.userId === oppId);
+      if (users.length <= 0) {
+        console.log("Il vous manque encore un opposant !", oppId);
+      } else {
+        console.log("oui")
       }
+      gameId = user.playingAt.gameId;
+    }
+
+    if (gameId > 0) {
+      const game = this.games.get(gameId)
+      if (game) {
+        game.push(user.id);
+      } else {
+        this.games.set(gameId, [user.id])
+      }
+      return { // not send ??
+        success: true,
+        gameid: gameId
+      };
     }
   }
 
-  handleDisconnect(socket: Socket) {
-    console.log('disconnection', socket.id);
+  @UseGuards(JwtAuthGuard)
+  handleDisconnect(@ConnectedSocket() socket: SocketUserAuth) {
     this.clients.delete(socket.id);
-    /*this.roomMap.forEach((room, key) => {
-      room.forEach((user, i) => {
-        if (user.sessionId === socket.id) {
-          const users = this.roomMap.get(key);
-          this.roomMap.set(key, users.splice(i, 1));
-          console.log(this.roomMap);
-        }
+    if (socket.user) {
+      this.games.forEach((game, gameId) => {
+        game.forEach((userId) => {
+          if (userId === socket.user.id) {
+            console.log('disconnected of game ', gameId);
+            const users = this.games.get(gameId);
+            this.games.set(gameId, users.filter((a) => a != userId));
+          }
+        });
       });
-    });*/
+      console.log(socket.user.name + ' disconnects', socket.id);
+    } else {
+      console.log('disconnection', socket.id);
+    }
   }
 
   /*private getUserInfoBySId(sessionId: string) {

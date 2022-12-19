@@ -54,7 +54,7 @@ function LogicGame(props: {
   useEffect(() => {
     let socket: Socket;
     if (!ws_loaded.current) {
-      socket = socketIOClient('ws://' + window.location.hostname + ':8192/?page=game&gameid=' + String(props.data.gameId), {
+      socket = socketIOClient('ws://' + window.location.hostname + ':8192/game?page=game&gameid=' + String(props.data.gameId), {
         extraHeaders: fetch_opt().headers
       });
       socket.emit('login', {}, (data: any) => {
