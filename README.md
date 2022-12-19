@@ -2,6 +2,8 @@
 
 ## Installation:
 
+ - Prerequis version node: v16.17.0
+
 ### Back
 
 #### Apply Migration of psql
