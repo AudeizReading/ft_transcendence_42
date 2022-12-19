@@ -3,6 +3,7 @@
 ## Installation:
 
  - Prerequis version node: v16.17.0
+ - timeout command `brew install coreutils
 
 ### Back
 
