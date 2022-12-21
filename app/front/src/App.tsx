@@ -235,7 +235,7 @@ function App() {
         </Routes>
       </BrowserRouter>
       <Footer />
-      </React.Fragment>
+    </React.Fragment>
   );
 }
 
