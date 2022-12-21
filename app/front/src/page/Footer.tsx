@@ -2,8 +2,15 @@ import Box from '@mui/material/Box';
 
 function Footer()
 {
+	const sx_footer = {
+		position: "fixed",
+		height: '40px',
+		textAlign: "center",
+		mx: '50%'
+	};
+
 	return (
-		<Box component="footer" sx={{position: "absolute", maxHeight: 100, bottom: 10, textAlign: "center", marginRight: '50%'}}>
+		<Box component="footer" sx={sx_footer}>
 		Powered by someone.
 		</Box>);
 }

@@ -7,7 +7,7 @@ import Game from './page/Game';
 import Score from './page/Score';
 import Profile from './page/Profile';
 import Auth from './page/Auth';
-import Footer from './page/Footer';
+
 
 import TopBar from './component/TopBar';
 import Backdrop from '@mui/material/Backdrop';
@@ -234,7 +234,6 @@ function App() {
           <Route path="*" element={<Error />} />
         </Routes>
       </BrowserRouter>
-      <Footer />
     </React.Fragment>
   );
 }
