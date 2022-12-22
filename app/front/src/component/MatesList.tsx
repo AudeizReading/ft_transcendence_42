@@ -10,7 +10,7 @@ function MatesList(props: any)
 			<Box component='span'>Powered By </Box>
 			{
 				mates.map(
-					(mate: any) => (<Mate key={mate.login} login={mate.login} avatar={mate.avatar}/>)
+					(mate: any) => (<Mate key={mate.login} login={mate.login}/>)
 				)
 			}
 		</Box>

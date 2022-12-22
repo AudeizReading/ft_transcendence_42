@@ -1,10 +1,9 @@
 import React from 'react'
 import Box from '@mui/material/Box';
-import AvatarMate from '../component/AvatarMate'
 
 function Mate(props: any)
 {
-	const {login, avatar} = props;
+	const {login} = props;
 	const sx_main = {
 		display: 'flex',
 		flexFlow: 'column',
@@ -15,7 +14,6 @@ function Mate(props: any)
 
 	return (
 		<Box component="div" sx={sx_main}>
-			<AvatarMate avatar={avatar} />
 			<Box component="div">
 				{login}
 			</Box>

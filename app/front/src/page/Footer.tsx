@@ -2,23 +2,19 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import MatesList from '../component/MatesList';
 
-// pour prop avatar, il faudra fetch l'url de nos pp, donc appel a l'api 42, j'ai pas encore compris comment je vais chopper ca
+
 const mates = [
 	{
-		login: 'gphilipp',
-		avatar: ''
+		login: 'gphilipp'
 	},
 	{
-		login: 'alellouc',
-		avatar: ''
+		login: 'alellouc'
 	},
 	{
-		login: 'achansel',
-		avatar: ''
+		login: 'achansel'
 	},
 	{
-		login: 'pbremond',
-		avatar: ''
+		login: 'pbremond'
 	},
 ];
 
