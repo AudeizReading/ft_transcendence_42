@@ -1,5 +1,27 @@
-import React from 'react'
+import React from 'react';
 import Box from '@mui/material/Box';
+import MatesList from '../component/MatesList';
+
+// pour prop avatar, il faudra fetch l'url de nos pp, donc appel a l'api 42, j'ai pas encore compris comment je vais chopper ca
+const mates = [
+	{
+		login: 'gphilipp',
+		avatar: ''
+	},
+	{
+		login: 'alellouc',
+		avatar: ''
+	},
+	{
+		login: 'achansel',
+		avatar: ''
+	},
+	{
+		login: 'pbremond',
+		avatar: ''
+	},
+];
+
 
 function Footer(props: any)
 {
@@ -13,18 +35,14 @@ function Footer(props: any)
 		m: 'auto',
 		p: 'auto',
 		display: 'flex',
-		flexFlow: 'row wrap',
 		justifyContent: 'center',
-		alignItems: 'stretch'
 	};
 
-console.log('On commence a jouer avec l\'api');
-
-//fetch();
 	return (
 		<Box component="footer" sx={sx_footer}>
-			Powered by {props.mate1}, {props.mate2}, {props.mate3}, {props.mate4}.
+			<MatesList mates={mates} />
 		</Box>
 	);
 }
+
 export default Footer;
