@@ -6,7 +6,7 @@ function Home() {
   return (
     <Box component="main" style={{ backgroundColor: "green", height:"400px", overflow:"hidden" }}>
       This is HOME &lt;3
-      <Footer />`
+      <Footer mate1="gphilipp" mate2="alellouc" mate3="achansel" mate4="pbremond"/>`
     </Box>
   );
 }
