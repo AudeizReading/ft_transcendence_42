@@ -34,7 +34,7 @@ function Footer(props: any)
 		textAlign: "center",
 		m: 'auto',
 		p: 'auto',
-		display: 'flex',
+		display: {xs: 'none', sm: 'none', md: 'flex', lg: 'flex', xl: 'flex'},
 		justifyContent: 'center',
 	};
 
