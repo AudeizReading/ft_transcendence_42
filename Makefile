@@ -1,6 +1,6 @@
 NAME=ft_transcendence
 
-ENV_PATH=./app/.env
+ENV_PATH=./app/pong/.env
 
 all: $(NAME)
 
@@ -26,6 +26,7 @@ mode_cmd:
 
 setup: $(ENV_PATH)
 
+#TODO: Make clean delete docker-compose stuff correctly and also make clean delete db storage, maybe use a real docker volume instead of bind mount??
 clean:
 	rm -rf $(ENV_PATH)
 
