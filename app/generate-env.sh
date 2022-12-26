@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 
 function urlencode() {
-  echo $(python -c "import sys, urllib as ul; print ul.quote_plus('$1')")
+	echo $(python3 -c "import sys, urllib.parse as up; print(up.quote_plus('$1'))")
 }
 
 if [ -f "pong/.env" ]; then
