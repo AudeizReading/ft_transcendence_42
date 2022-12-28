@@ -222,7 +222,7 @@ function App() {
       <BrowserRouter>
         {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
         <Routes>
-          <Route index path="/" element={<Home />} />
+          <Route index path="/" element={<Home user={user}/>} />
           <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/game/:gameid" element={<Game user={user} />} />
           <Route path="/game/" element={<Game user={user} />} />
