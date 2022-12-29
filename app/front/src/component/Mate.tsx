@@ -8,7 +8,7 @@ function Mate(props: any)
 		display: 'flex',
 		flexFlow: 'column',
 		justifyContent: 'center',
-		alignItems: 'center'
+		alignItems: 'center',
 	};
 	
 
