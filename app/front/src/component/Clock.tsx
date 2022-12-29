@@ -3,6 +3,7 @@ import {useState, useEffect, useRef} from 'react'
 import useInterval from '../hooks/useInterval';
 import formattingNumber from '../dep/formattingNumber';
 import Timer from '../component/Timer';
+import DigitalClock from '../component/DigitalClock'
 
 function Clock()
 {
@@ -33,7 +34,7 @@ function Clock()
   // update des heures
   useEffect(() => {
     if (minutes === 0 && secondes === 0)
-      setHours(new Date().getMonth());
+      setHours(new Date().getHours());
   }, [minutes]);
 
   // update des jours
@@ -70,6 +71,7 @@ function Clock()
         <Box component="span">:{formattingNumber(minutes)}</Box>
         <Box component="span">:{formattingNumber(secondes)}</Box>
       </Box>
+      <DigitalClock hrs={hours} min={minutes} sec={secondes} stress={true}/>
       <Box component="div"><Timer/>you are here.</Box>
     </Box>);
 }
