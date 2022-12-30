@@ -21,21 +21,12 @@ function Clock()
   const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
   // update des secondes a chaque seconde
-  useInterval(() => {
-    setSecondes(new Date().getSeconds());
-  }, 1000);
+  useInterval(() => setSecondes(new Date().getSeconds()), 1000);
 
   // update des minutes
-  useEffect(() => {
-    if (secondes === 0)
-      setMinutes(new Date().getMinutes());
-  }, [secondes]);
-
+  useEffect(() => {secondes === 0 && setMinutes(new Date().getMinutes())}, [secondes]);
   // update des heures
-  useEffect(() => {
-    if (minutes === 0 && secondes === 0)
-      setHours(new Date().getHours());
-  }, [minutes]);
+  useEffect(() => {minutes === 0 && secondes === 0 && setHours(new Date().getHours())}, [minutes]);
 
   // update des jours
   useEffect(() => {
@@ -47,32 +38,27 @@ function Clock()
   }, [hours]);
 
   // update du mois
-  useEffect(() => {
-    if (day === 1 && hours === 0 && minutes === 0 && secondes === 0)
-      setMonth(new Date().getMonth() + 1);
-  }, [day]);
+  useEffect(() => {day === 1 && hours === 0 && minutes === 0 && secondes === 0 && setMonth(new Date().getMonth() + 1)}
+    , [day]);
 
   // update de l'annee
-  useEffect(() => {
-    if (month === 1 && day === 1 && hours === 0 && minutes === 0 && secondes === 0)
-      setYear(new Date().getFullYear())
-  }, [month]);
+  useEffect(() => {month === 1 && day === 1 && hours === 0 && minutes === 0 && secondes === 0 && setYear(new Date().getFullYear())}
+    , [month]);
 
   return (
-    <Box component="div">
-      <Box component="div">
+    <Box component="div" sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center', alignItems: 'center'}}>
+      <Box component="h2">
         <Box component="span">{days[numDay]}</Box>
         <Box component="span"> {formattingNumber(day)}</Box>
         <Box component="span">/{formattingNumber(month)}</Box>
         <Box component="span">/{year}</Box>   
       </Box>
-      <Box component="div">
+      <Box component="h3">
         <Box component="span">{formattingNumber(hours)}</Box> 
         <Box component="span">:{formattingNumber(minutes)}</Box>
         <Box component="span">:{formattingNumber(secondes)}</Box>
       </Box>
       <DigitalClock hrs={hours} min={minutes} sec={secondes} stress={true}/>
-      <Box component="div"><Timer/>you are here.</Box>
     </Box>);
 }
 
