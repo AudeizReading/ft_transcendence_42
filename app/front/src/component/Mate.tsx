@@ -11,7 +11,6 @@ function Mate(props: any)
 		alignItems: 'center',
 	};
 	
-
 	return (
 		<Box component="div" sx={sx_main}>
 			<Box component="div">

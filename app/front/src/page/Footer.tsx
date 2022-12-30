@@ -22,10 +22,10 @@ const mates = [
 function Footer(props: any)
 {
 	const sx_footer = {
+		position: 'relative',
+		bottom: 0,
 		color: 'primary.main',
 		backgroundColor: 'white',
-		position: "fixed",
-		height: 'auto',
 		width: '100%',
 		textAlign: "center",
 		m: 'auto',
