@@ -1,11 +1,17 @@
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useContext} from 'react'
 import Box from '@mui/material/Box'
+
+import {TimeContext} from '../contexts/TimeContext';
+
 
 function DigitalClock(props: any)
 {
-  const [seconds, setSeconds] = useState(props.sec);
-  const [minutes, setMinutes] = useState(props.min);
-  const [hours, setHours] = useState(props.hrs);
+  const timeData = useContext(TimeContext);
+
+  const [seconds, setSeconds] = useState(timeData.seconds);
+  const [minutes, setMinutes] = useState(timeData.minutes);
+  const [hours, setHours] = useState(timeData.hours);
+
   const [pressure, setPressure] = useState(props.stress);
 
   const styleNeutral = {
@@ -22,8 +28,11 @@ function DigitalClock(props: any)
     position: 'relative',
     borderRadius: '50%',
     backgroundColor: '#fff',
-    border: '5px solid white',
-    boxShadow: 'inset 2px 3px 8px 0 rgba(0, 0, 0, 0.1)',
+    borderBottom: '5px solid #def',
+    borderLeft: '5px solid #eee',
+    borderTop: '5px solid #eee',
+    borderRight: '5px solid #dee',
+    boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
     width: {xs: 50, sm: 100, md: 200},
     height: {xs: 50, sm: 100, md: 200},
     display: {xs: 'none', sm: 'block'},
@@ -41,8 +50,8 @@ function DigitalClock(props: any)
     right: 0,
     transformOrigin: 'bottom center',
     transform: 'rotate(0deg)',
-    boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
-    backgroundColor: 'black'
+    boxShadow: '-3px -3px 12px 0px rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'black',
   });
 
   const [styleNeedleMinute, setStyleNeedleMinute] = useState({
@@ -52,7 +61,7 @@ function DigitalClock(props: any)
     width: '1.2%',
     top: '-38%',
     left: 0,
-    boxShadow: '0 0 10px 0 rgba(0, 0, 0, 0.4)',
+    bboxShadow: '-3px -3px 15px 1px rgba(0, 0, 0, 0.4)',
     transform: 'rotate(90deg)'
   });
 
@@ -68,6 +77,7 @@ function DigitalClock(props: any)
     borderRadius: '1.4%',
     backgroundColor: '#ff4b3e',
     transformOrigin: 'bottom center',
+    boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.2)',
     transform: 'rotate(180deg)'
   });
 
@@ -86,27 +96,18 @@ function DigitalClock(props: any)
   };
 
   // update des secondes
-  useEffect(() => {seconds !== props.sec && setSeconds(props.sec)}, [props.sec]);
-
+  useEffect(() => {seconds !== timeData.seconds && setSeconds(timeData.seconds)}, [timeData.seconds]);
   // update des minutes
-  useEffect(() => {minutes !== props.min && setMinutes(props.min)}, [props.min]);
-
+  useEffect(() => {minutes !== timeData.minutes && setMinutes(timeData.minutes)}, [timeData.minutes]);
   // update des heures
-  useEffect(() => {hours !== props.hrs && setHours(props.hrs)}, [props.hrs]);
+  useEffect(() => {hours !== timeData.hours && setHours(timeData.hours)}, [timeData.hours]);
 
   // update de l'aiguille des secondes
-  useEffect(() => setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${seconds * 6}deg)`})
-  , [seconds]);
-
+  useEffect(() => setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${seconds * 6}deg)`}), [seconds]);
   // update de l'aiguille des minutes
-  useEffect(() => {
-    setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${minutes * 6}deg)`});
-  }, [minutes]);
-
+  useEffect(() => setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${minutes * 6}deg)`}), [minutes]);
   // update de l'aiguille des heures
-  useEffect(() => {
-    setStyleNeedles({...styleNeedles, transform: `rotate(${hours * 30}deg)`});
-  }, [hours]);
+  useEffect(() => setStyleNeedles({...styleNeedles, transform: `rotate(${hours * 30}deg)`}), [hours]);
 
   const [styleTic, setStyleTic] = useState({
     display: {xs: 'none', sm: 'block'},
@@ -127,20 +128,10 @@ function DigitalClock(props: any)
     m: '10%'
   });
 
-// On peut choisir de mettre la pression au visiteur, dans ce cas un TIC TAC apparait a cote de l'horloge
-  useEffect(() => {
-    props.stress === true && setPressure(true);
-  }, [props.stress]);
-
-  useEffect(() => {
-    if (pressure === false)
-      setStyleTic({...styleTic, display: {xs: 'none', sm: 'none'}});
-  }, [pressure]);
-
-  useEffect(() => {
-    if (pressure === false)
-      setStyleTac({...styleTac, display: {xs: 'none', sm: 'none'}});
-  }, [pressure]);
+  // On peut choisir de mettre la pression au visiteur, dans ce cas un TIC TAC apparait a cote de l'horloge
+  useEffect(() => {props.stress === true && setPressure(true)}, [props.stress]);
+  useEffect(() => {pressure === false && setStyleTic({...styleTic, display: {xs: 'none', sm: 'none'}})}, [pressure]);
+  useEffect(() => {pressure === false && setStyleTac({...styleTac, display: {xs: 'none', sm: 'none'}})}, [pressure]);
 
 
   return (
