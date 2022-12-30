@@ -3,12 +3,15 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Footer from './Footer';
 import { User } from '../interface/User';
-import {useState, useEffect, useRef} from 'react'
+import {useState, useEffect, useRef, createContext, useContext} from 'react'
 import Clock from '../component/Clock';
+import Timer from '../component/Timer';
+
+import TimeProvider from '../providers/TimeProvider';
+import DigitalClock from '../component/DigitalClock';
+import {TimeContext} from '../contexts/TimeContext';
 
 function Home(props: {user: User}) {
-
-  console.log(props.user);
 
   const [user, setUser] = useState(props.user);
   const [isLogged, setIsLogged] = useState(user.connected);
@@ -19,13 +22,20 @@ function Home(props: {user: User}) {
       setIsLogged(!isLogged);
   }, [user]);
 
-  return (
-    <Box component="main" style={{ backgroundColor: "green", height:"400px", overflow:"hidden" }}>
-      <Grid container >
-        <Grid item xs={6} sm={12} md={6} lg={3} xl={3}>Premier item de grille</Grid>
-        <Grid item xs={12} sm={12} md={6} lg={7} xl={7}>Deuxieme item de grille: {isLogged === false ? <Clock/> : "You are logged ans your dashboard should be displayed"}</Grid>
-        <Grid item xs={6} sm={12} md={12} lg={2} xl={2}>Troisieme item de grille</Grid>
+  const gridNotLogged = (
+      <Grid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}}>
+        <Grid item xs={12} md={6}>Premier item de grille
+          <DigitalClock stress={true}/>
+        </Grid>
+        <Grid item xs={12} md={6}>{<Clock/>}</Grid>
+        <Grid item xs={12} md={12}>{<Timer/>}</Grid>
       </Grid>
+  );
+
+  return (
+    <Box component="main" style={{ backgroundColor: "green", height:"400px" }}>
+    <TimeProvider>{!isLogged && gridNotLogged}</TimeProvider>
+      
       This is HOME &lt;3
       <Footer />`
     </Box>
