@@ -3,7 +3,7 @@ import {useState, useEffect, useRef} from 'react'
 import useInterval from '../hooks/useInterval';
 import formattingNumber from '../dep/formattingNumber';
 import Timer from '../component/Timer';
-import DigitalClock from '../component/DigitalClock'
+import AnalogicClock from '../component/AnalogicClock'
 
 function Clock()
 {
@@ -58,7 +58,6 @@ function Clock()
         <Box component="span">:{formattingNumber(minutes)}</Box>
         <Box component="span">:{formattingNumber(secondes)}</Box>
       </Box>
-      <DigitalClock hrs={hours} min={minutes} sec={secondes} stress={true}/>
     </Box>);
 }
 

@@ -8,7 +8,7 @@ import Clock from '../component/Clock';
 import Timer from '../component/Timer';
 
 import TimeProvider from '../contexts/providers/TimeProvider';
-import DigitalClock from '../component/DigitalClock';
+import AnalogicClock from '../component/AnalogicClock';
 import {TimeContext} from '../contexts/TimeContext';
 
 function Home(props: {user: User}) {
@@ -25,7 +25,7 @@ function Home(props: {user: User}) {
   const gridNotLogged = (
       <Grid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}}>
         <Grid item xs={12} md={6}>Premier item de grille
-          <DigitalClock stress={true}/>
+          <AnalogicClock stress={true}/>
         </Grid>
         <Grid item xs={12} md={6}>{<Clock/>}</Grid>
         <Grid item xs={12} md={12}>{<Timer/>}</Grid>

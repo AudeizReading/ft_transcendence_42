@@ -4,7 +4,7 @@ import Box from '@mui/material/Box'
 import {TimeContext} from '../contexts/TimeContext';
 
 
-function DigitalClock(props: any)
+function AnalogicClock(props: any)
 {
   const timeData = useContext(TimeContext);
 
@@ -151,4 +151,4 @@ function DigitalClock(props: any)
     </Box>);
 }
 
-export default DigitalClock;
+export default AnalogicClock;
