@@ -7,7 +7,7 @@ import {useState, useEffect, useRef, createContext, useContext} from 'react'
 import Clock from '../component/Clock';
 import Timer from '../component/Timer';
 
-import TimeProvider from '../providers/TimeProvider';
+import TimeProvider from '../contexts/providers/TimeProvider';
 import DigitalClock from '../component/DigitalClock';
 import {TimeContext} from '../contexts/TimeContext';
 

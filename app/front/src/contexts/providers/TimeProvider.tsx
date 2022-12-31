@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
-import { TimeContext } from '../contexts/TimeContext';
+import { TimeContext } from '../TimeContext';
 import getDatasCurrentTime from '../dep/getDatasCurrentTime';
 
-import useInterval from '../hooks/useInterval';
+import useInterval from '../../hooks/useInterval';
 
 export default function TimeProvider(props: any) {
   const [timeData, setTimeData] = useState(getDatasCurrentTime());
