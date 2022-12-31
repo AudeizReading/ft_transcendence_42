@@ -5,11 +5,10 @@ import Footer from './Footer';
 import { User } from '../interface/User';
 import {useState, useEffect, useRef, createContext, useContext} from 'react'
 import Clock from '../component/Clock';
+import DateTime from '../component/DateTime';
 import Timer from '../component/Timer';
 
-import TimeProvider from '../contexts/providers/TimeProvider';
 import AnalogicClock from '../component/AnalogicClock';
-import {TimeContext} from '../contexts/TimeContext';
 
 function Home(props: {user: User}) {
 
@@ -27,14 +26,14 @@ function Home(props: {user: User}) {
         <Grid item xs={12} md={6}>Premier item de grille
           <AnalogicClock stress={true}/>
         </Grid>
-        <Grid item xs={12} md={6}>{<Clock/>}</Grid>
+        <Grid item xs={12} md={6}>{<DateTime component="h1"/>}{<Clock component="h6"/>}</Grid>
         <Grid item xs={12} md={12}>{<Timer/>}</Grid>
       </Grid>
   );
 
   return (
     <Box component="main" style={{ backgroundColor: "green", height:"400px" }}>
-    <TimeProvider>{!isLogged && gridNotLogged}</TimeProvider>
+    {!isLogged && gridNotLogged}
       
       This is HOME &lt;3
       <Footer />`

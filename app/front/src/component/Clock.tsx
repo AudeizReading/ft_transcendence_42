@@ -1,62 +1,36 @@
 import Box from '@mui/material/Box';
-import {useState, useEffect, useRef} from 'react'
-import useInterval from '../hooks/useInterval';
+import {useState, useEffect, useContext} from 'react'
+
+import {TimeContext} from '../contexts/TimeContext'
+
 import formattingNumber from '../dep/formattingNumber';
-import Timer from '../component/Timer';
-import AnalogicClock from '../component/AnalogicClock'
 
-function Clock()
+function Clock({component}: any)
 {
-  const [date, setDate] = useState(new Date());
+  const timeData = useContext(TimeContext);
+  const [date, setDate] = useState(timeData.curTime);
+  const [tag, setTag] = useState(component);
 
-  const [hours, setHours] = useState(date.getHours());
-  const [minutes, setMinutes] = useState(date.getMinutes());
-  const [secondes, setSecondes] = useState(date.getSeconds());
+  const [hours, setHours] = useState(timeData.hours);
+  const [minutes, setMinutes] = useState(timeData.minutes);
+  const [seconds, setSeconds] = useState(timeData.seconds);
 
-  const [day, setDay] = useState(date.getDate());
-  const [numDay, setNumDay] = useState(date.getDay());
-  const [month, setMonth] = useState(date.getMonth() + 1);
-  const [year, setYear] = useState(date.getFullYear());
-
-  const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-
-  // update des secondes a chaque seconde
-  useInterval(() => setSecondes(new Date().getSeconds()), 1000);
-
+  // update des secondes
+  useEffect(() => {seconds !== timeData.seconds && setSeconds(timeData.seconds)}, [timeData.seconds]);
   // update des minutes
-  useEffect(() => {secondes === 0 && setMinutes(new Date().getMinutes())}, [secondes]);
+  useEffect(() => {minutes !== timeData.minutes && setMinutes(timeData.minutes)}, [timeData.minutes]);
   // update des heures
-  useEffect(() => {minutes === 0 && secondes === 0 && setHours(new Date().getHours())}, [minutes]);
+  useEffect(() => {hours !== timeData.hours && setHours(timeData.hours)}, [timeData.hours]);
 
-  // update des jours
-  useEffect(() => {
-    if (hours === 0 && minutes === 0 && secondes === 0)
-    {
-      setDay(new Date().getDate());
-      setNumDay(new Date().getDay());
-    }
-  }, [hours]);
-
-  // update du mois
-  useEffect(() => {day === 1 && hours === 0 && minutes === 0 && secondes === 0 && setMonth(new Date().getMonth() + 1)}
-    , [day]);
-
-  // update de l'annee
-  useEffect(() => {month === 1 && day === 1 && hours === 0 && minutes === 0 && secondes === 0 && setYear(new Date().getFullYear())}
-    , [month]);
+  //update de la box de display (comme ca si on un titre ou une div ou autre, c'est plus flexible et reutilisable)
+  useEffect(() => {tag !== component && setTag(component)}, [component]);
 
   return (
     <Box component="div" sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center', alignItems: 'center'}}>
-      <Box component="h2">
-        <Box component="span">{days[numDay]}</Box>
-        <Box component="span"> {formattingNumber(day)}</Box>
-        <Box component="span">/{formattingNumber(month)}</Box>
-        <Box component="span">/{year}</Box>   
-      </Box>
-      <Box component="h3">
+      <Box component={tag}>
         <Box component="span">{formattingNumber(hours)}</Box> 
         <Box component="span">:{formattingNumber(minutes)}</Box>
-        <Box component="span">:{formattingNumber(secondes)}</Box>
+        <Box component="span">:{formattingNumber(seconds)}</Box>
       </Box>
     </Box>);
 }
