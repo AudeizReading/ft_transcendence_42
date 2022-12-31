@@ -6,7 +6,7 @@ export default function getDatasCurrentTime()
   return ({
     curTime,
     year: curTime.getFullYear(),
-    month: curTime.getMonth(),
+    month: curTime.getMonth() + 1,
     dayOfMonth: curTime.getDate(),
     dayOfWeek: curTime.getDay(),
     hours: curTime.getHours(),
