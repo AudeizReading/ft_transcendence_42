@@ -26,6 +26,7 @@ import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-d
 
 import { fetch_opt } from './dep/fetch'
 import { User } from './interface/User'
+import TimeProvider from './contexts/providers/TimeProvider';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -170,71 +171,73 @@ function App() {
   }, [alreadyOpen, fetch_userinfo, isNotAuth, user]);
 
   return (
-    <React.Fragment>
-      <Backdrop sx={{ color: '#000', zIndex: 2000 }} open={!loaded || alreadyOpen}>
-        <CircularProgress color="inherit" />
-        <Dialog
-          open={alreadyOpen}
-          TransitionComponent={Transition}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-          sx={{ zIndex: 2100 }}
-        >
-          <DialogTitle id="alert-dialog-title">
-            Veuillez nous excuser pour cette interruption
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Il semblerait que vous aviez Pong sur plus d'un onglet à la fois. Vous pouvez
-              décider de fermer l'autre page en cliquant sur "Fermer l'autre session".
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleDialogClose} color="error">
-              Fermer l'autre session
-            </Button>
-          </DialogActions>
-        </Dialog>
-        <Dialog
-          open={user.matchmaking_state === 'MATCHED' && progress <= 105}
-          TransitionComponent={Transition}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">
-            Un opposant a été trouvé
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Un opposant d'une grande force vous a été trouvé. Cliquez sur prêt pour lancer
-              la partie.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleReadyMatchMaking}>
-              <CircularProgress size={16} sx={{ mr: 1, verticalAlign: 'middle', mt: '-1px' }}
-                variant="determinate" value={progress}
-                /> Pret ({Math.max(MATCHMAKING_SECONDS - Math.round(progress * MATCHMAKING_SECONDS / 100), 0)}sec)
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Backdrop>
-      <BrowserRouter>
-        {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
-        <Routes>
-          <Route index path="/" element={<Home user={user}/>} />
-          <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/game/:gameid" element={<Game user={user} />} />
-          <Route path="/game/" element={<Game user={user} />} />
-          <Route path="/score" element={<Score />} />
-          <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
+    <TimeProvider>
+      <React.Fragment>
+        <Backdrop sx={{ color: '#000', zIndex: 2000 }} open={!loaded || alreadyOpen}>
+          <CircularProgress color="inherit" />
+          <Dialog
+            open={alreadyOpen}
+            TransitionComponent={Transition}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            sx={{ zIndex: 2100 }}
+          >
+            <DialogTitle id="alert-dialog-title">
+              Veuillez nous excuser pour cette interruption
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Il semblerait que vous aviez Pong sur plus d'un onglet à la fois. Vous pouvez
+                décider de fermer l'autre page en cliquant sur "Fermer l'autre session".
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClose} color="error">
+                Fermer l'autre session
+              </Button>
+            </DialogActions>
+          </Dialog>
+          <Dialog
+            open={user.matchmaking_state === 'MATCHED' && progress <= 105}
+            TransitionComponent={Transition}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              Un opposant a été trouvé
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Un opposant d'une grande force vous a été trouvé. Cliquez sur prêt pour lancer
+                la partie.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleReadyMatchMaking}>
+                <CircularProgress size={16} sx={{ mr: 1, verticalAlign: 'middle', mt: '-1px' }}
+                  variant="determinate" value={progress}
+                  /> Pret ({Math.max(MATCHMAKING_SECONDS - Math.round(progress * MATCHMAKING_SECONDS / 100), 0)}sec)
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Backdrop>
+        <BrowserRouter>
+          {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
+          <Routes>
+            <Route index path="/" element={<Home user={user}/>} />
+            <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
+            <Route path="/game/:gameid" element={<Game user={user} />} />
+            <Route path="/game/" element={<Game user={user} />} />
+            <Route path="/score" element={<Score />} />
+            <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
 
-          <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<Auth />} />
 
-          <Route path="*" element={<Error />} />
-        </Routes>
-      </BrowserRouter>
-    </React.Fragment>
+            <Route path="*" element={<Error />} />
+          </Routes>
+        </BrowserRouter>
+      </React.Fragment>
+    </TimeProvider>
   );
 }
 
