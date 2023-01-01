@@ -48,7 +48,7 @@ function Home(props: {
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
-
+  
   const customMessages = {
     notLogged: [
       "Why not throw a Pong Game ?", 
