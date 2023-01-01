@@ -23,7 +23,6 @@ function Footer(props: any)
 {
 	const sx_footer = {
 		position: 'relative',
-		bottom: 0,
 		color: 'primary.main',
 		backgroundColor: 'white',
 		width: '100%',

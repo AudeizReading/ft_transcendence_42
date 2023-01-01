@@ -20,7 +20,6 @@ function Timer()
 
   return (
     <Box component="div">
-      <Box component="span">{formattingNumber(count)}</Box>
       <Box component="div">
         <Box component="span">{formattingNumber(hours)}:</Box>
         <Box component="span">{formattingNumber(minutes)}:</Box>

@@ -46,14 +46,12 @@ function DateTime({component}: any)
   }
 
   return (
-    <Box component="div" sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center', alignItems: 'center'}}>
-      <Box component={tag}>
-        <Box component="span">{days[numDay]}</Box>
-        <Box component="span"> {formattingNumber(day)}</Box>
-        <Box component="sup">{formattingEnglishDate(day)}</Box>
-        <Box component="span"> {months[month]}</Box>
-        <Box component="span"> {year}</Box>   
-      </Box>
+    <Box component={tag}> 
+      <Box component="span">{days[numDay]}</Box>
+      <Box component="span"> {formattingNumber(day)}</Box>
+      <Box component="sup">{formattingEnglishDate(day)}</Box>
+      <Box component="span"> {months[month]}</Box>
+      <Box component="span"> {year}</Box>   
     </Box>);
 }
 

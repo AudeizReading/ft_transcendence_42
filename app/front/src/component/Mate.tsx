@@ -9,6 +9,8 @@ function Mate(props: any)
 		flexFlow: 'column',
 		justifyContent: 'center',
 		alignItems: 'center',
+		mx: '1%',
+		px: '1%'
 	};
 	
 	return (
