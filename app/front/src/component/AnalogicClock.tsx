@@ -2,7 +2,7 @@ import {useState, useEffect, useContext} from 'react'
 import Box from '@mui/material/Box'
 
 import {TimeContext} from '../contexts/TimeContext';
-
+import useWindowSize from '../hooks/useWindowSize';
 
 function AnalogicClock(props: any)
 {
@@ -13,6 +13,8 @@ function AnalogicClock(props: any)
   const [hours, setHours] = useState(timeData.hours);
 
   const [pressure, setPressure] = useState(props.stress);
+  const windowHeight = useWindowSize().height;
+  const [clockDiameter, setClockDiameter] = useState(Math.round(windowHeight / 3));
 
   const styleNeutral = {
     position: 'relative',
@@ -21,10 +23,9 @@ function AnalogicClock(props: any)
 
   const styleClock = {
     ...styleNeutral,
-    border: '5px solid red',
   };
 
-  const styleWrap = {
+  const [styleWrap, setStyleWrap] = useState({
     position: 'relative',
     borderRadius: '50%',
     backgroundColor: '#fff',
@@ -33,24 +34,25 @@ function AnalogicClock(props: any)
     borderTop: '5px solid #eee',
     borderRight: '5px solid #dee',
     boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
-    width: {xs: 50, sm: 100, md: 200},
-    height: {xs: 50, sm: 100, md: 200},
+    width: clockDiameter,
+    height: clockDiameter,
     display: {xs: 'none', sm: 'block'},
+    transition: '',
     m: 'auto'
-  };
+  });
 
   const [styleNeedles, setStyleNeedles] = useState({
     position: 'absolute',
     width: '2.1%',
     height: '30%',
     m: 'auto',
-    top: '-27%',
+    top: '-30%',
     left: 0,
     bottom: 0,
     right: 0,
     transformOrigin: 'bottom center',
     transform: 'rotate(0deg)',
-    boxShadow: '-3px -3px 12px 0px rgba(0, 0, 0, 0.4)',
+    boxShadow: '-3px -3px 18px 0px rgba(0, 0, 0, 0.4)',
     backgroundColor: 'black',
   });
 
@@ -59,9 +61,9 @@ function AnalogicClock(props: any)
     position: 'absolute',
     height: '40%',
     width: '1.2%',
-    top: '-38%',
+    top: '-40%',
     left: 0,
-    bboxShadow: '-3px -3px 15px 1px rgba(0, 0, 0, 0.4)',
+    boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.4)',
     transform: 'rotate(90deg)'
   });
 
@@ -70,22 +72,22 @@ function AnalogicClock(props: any)
     height: '28%',
     width: '0.7%',
     m: 'auto',
-    top: '-26%',
+    top: '-28%',
     left: 0,
     bottom: 0,
     right: 0,
     borderRadius: '1.4%',
     backgroundColor: '#ff4b3e',
     transformOrigin: 'bottom center',
-    boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.2)',
+    boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.25)',
     transform: 'rotate(180deg)'
   });
 
   const styleCenterClock = {
     position: 'absolute',
-    top: {xs: '47.5%', md: '48.5%'},
+    top: 0,
     left: 0,
-    bootom: 0,
+    bottom: 0,
     right: 0,
     width: '2.5%',
     height: '2.5%',
@@ -101,6 +103,15 @@ function AnalogicClock(props: any)
   useEffect(() => {minutes !== timeData.minutes && setMinutes(timeData.minutes)}, [timeData.minutes]);
   // update des heures
   useEffect(() => {hours !== timeData.hours && setHours(timeData.hours)}, [timeData.hours]);
+
+  useEffect(() => {
+    setClockDiameter(Math.round(windowHeight / 3))
+  }, [windowHeight]);
+
+  useEffect(() => {
+    if (clockDiameter < 351 && clockDiameter > 99)
+      setStyleWrap({...styleWrap, width: clockDiameter, height: clockDiameter, transition: 'height 0.15s ease-in-out, width 0.15s ease-in-out'})
+  }, [clockDiameter]);
 
   // update de l'aiguille des secondes
   useEffect(() => setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${seconds * 6}deg)`}), [seconds]);
