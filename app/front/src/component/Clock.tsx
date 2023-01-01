@@ -26,13 +26,12 @@ function Clock({component}: any)
   useEffect(() => {tag !== component && setTag(component)}, [component]);
 
   return (
-    <Box component="div" sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center', alignItems: 'center'}}>
-      <Box component={tag}>
-        <Box component="span">{formattingNumber(hours)}</Box> 
-        <Box component="span">:{formattingNumber(minutes)}</Box>
-        <Box component="span">:{formattingNumber(seconds)}</Box>
-      </Box>
-    </Box>);
+    <Box component={tag}>
+      <Box component="span">{formattingNumber(hours)}</Box> 
+      <Box component="span">:{formattingNumber(minutes)}</Box>
+      <Box component="span">:{formattingNumber(seconds)}</Box>
+    </Box>
+    );
 }
 
 export default Clock;
