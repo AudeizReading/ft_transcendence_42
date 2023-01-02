@@ -7,7 +7,7 @@ import Game from './page/Game';
 import Score from './page/Score';
 import Profile from './page/Profile';
 import Auth from './page/Auth';
-import FriendsTable from './page/Friends';
+import Friends from './page/Friends';
 
 
 import TopBar from './component/TopBar';
@@ -230,7 +230,7 @@ function App() {
             <Route path="/game/:gameid" element={<Game user={user} />} />
             <Route path="/game/" element={<Game user={user} />} />
             <Route path="/score" element={<Score />} />
-            <Route path="/myfriends" element={<FriendsTable />} />
+            <Route path="/myfriends" element={<Friends />} />
             <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
 
             <Route path="/auth" element={<Auth />} />
