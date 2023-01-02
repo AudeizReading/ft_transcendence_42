@@ -143,6 +143,11 @@ function Friends(props: any)
   ];
 
   const [gridRows, setRows] = useState(initrows);
+  const [search, setSearch] = useState("");
+
+  const filteredRows = gridRows.filter(
+    (row: FriendInterface) => row.name.toLowerCase().includes(search)
+  );
 
   return (
     <Box component="main">
@@ -154,17 +159,20 @@ function Friends(props: any)
           variant="outlined"
           margin="normal"
           fullWidth
+          value={search}
+          onChange={ (e : any) => setSearch(e.target.value) }
         />
       </Box>
       
       <Box sx={{ height: '87%', maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <DataGrid
-          rows={gridRows}
+          rows={filteredRows}
           columns={gridColums}
           pageSize={50}
           rowsPerPageOptions={[]}
           disableSelectionOnClick
           disableColumnSelector
+          disableColumnMenu
         />
       </Box>
 
