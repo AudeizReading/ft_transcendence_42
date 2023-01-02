@@ -58,7 +58,9 @@ export interface scoreType {
 
 function Score() {
   const [rows, setRows] = useState([] as scoreType[]);
-  rows.length === 0 &&
+
+  // Please, keep it simple to understand for the next person to read this ^^"
+  if (rows.length === 0) {
     fetch('http://' + window.location.hostname + ':8190/game/score', fetch_opt())
       .then(res => res.json())
       .then(
@@ -66,7 +68,8 @@ function Score() {
           setRows(result)
         },
         (error) => { }
-      )
+      );
+  }
 
   return (
     <Box component="main">
