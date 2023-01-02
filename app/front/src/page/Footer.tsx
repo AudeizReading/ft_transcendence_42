@@ -26,6 +26,7 @@ function Footer(props: any)
 		color: 'primary.main',
 		backgroundColor: 'white',
 		width: '100%',
+		maxHeight: '10%',
 		textAlign: "center",
 		m: 'auto',
 		p: 'auto',

@@ -1,10 +1,16 @@
 import {useState, useEffect} from 'react'
 import Box from '@mui/material/Box'
 
+<<<<<<< HEAD
 function AnalogicClock(props: {
   stress: boolean,
   time: Date
 })
+=======
+import {TimeContext} from '../contexts/TimeContext';
+
+function AnalogicClock(props: any)
+>>>>>>> Home: fix height props with the css related instead js
 {
   const [pressure, setPressure] = useState(props.stress);
 
@@ -17,7 +23,11 @@ function AnalogicClock(props: {
     ...styleNeutral,
   };
 
+<<<<<<< HEAD
   const [styleWrap] = useState({
+=======
+  const styleWrap = {
+>>>>>>> Home: fix height props with the css related instead js
     position: 'relative',
     borderRadius: '50%',
     backgroundColor: '#fff',
@@ -26,6 +36,7 @@ function AnalogicClock(props: {
     borderTop: '5px solid #eee',
     borderRight: '5px solid #dee',
     boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
+<<<<<<< HEAD
     width: '33vh',
     height: '33vh',
     maxWidth: 351,
@@ -36,6 +47,14 @@ function AnalogicClock(props: {
     transition: 'height 0.15s ease-in-out, width 0.15s ease-in-out',
     m: 'auto'
   } as any);
+=======
+    width: 'calc(100vh / 3)',
+    height: 'calc(100vh / 3)',
+    display: {xs: 'none', sm: 'block'},
+    transition: '',
+    m: 'auto'
+  };
+>>>>>>> Home: fix height props with the css related instead js
 
   const [styleNeedles, setStyleNeedles] = useState({
     position: 'absolute',
@@ -104,7 +123,6 @@ function AnalogicClock(props: {
     })
     return () => clearInterval(interval);
   }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles])
-
   const [styleTic, setStyleTic] = useState({
     display: {xs: 'none', sm: 'block'},
     position: 'absolute',

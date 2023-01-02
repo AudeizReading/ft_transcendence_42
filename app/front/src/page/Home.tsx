@@ -7,6 +7,7 @@ import Fade from '@mui/material/Fade';
 import { User } from '../interface/User';
 
 import Footer from './Footer';
+import Dashboard from '../component/Dashboard'
 
 import Clock from '../component/Clock';
 import DateTime from '../component/DateTime';
