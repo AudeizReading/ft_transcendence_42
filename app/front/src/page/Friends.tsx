@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import Box from '@mui/material/Box';
-import { Avatar, AvatarGroup } from '@mui/material';
+import { Avatar, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import Chip from '@mui/material/Chip';
 import ButtonBase from '@mui/material/ButtonBase';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import MessageIcon from '@mui/icons-material/Message';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import TextField from '@mui/material/TextField';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
@@ -52,23 +59,27 @@ const gridColums: GridColDef[] = [
   {
     field: "name",
     headerName: "Nom",
-    width: 200,
-    hideable: false,
+    width: 240,
     renderCell: (params: GridRenderCellParams) => <AvatarAndName {...params.row} />,
   },
   {
     field: "games-played",
     headerName: "Nombre de parties",
-    width: 200,
-    hideable: false,
+    width: 150,
     valueGetter: () => "TODO",
   },
   {
     field: "win-ratio",
     headerName: "Rapport Victoires/Défaites",
     width: 200,
-    hideable: false,
     valueGetter: () => "TODO",
+  },
+  {
+    field: "buttons",
+    headerName: "",
+    width: 200,
+    filterable: false,
+    renderCell: (params: GridRenderCellParams) => <FriendActionButtons {...params.row} />,
   },
 ];
 
@@ -78,8 +89,11 @@ interface FriendInterface {
   name: string,
   status: string,
   avatar?: string,
+  pending: boolean, // Of course, to be replaced by real logic
 }
 
+// Component to render the avatar and name of the user, with an online indicator badge.
+// The whole thing is clickable as a button.
 function AvatarAndName(props: FriendInterface)
 {
   const avatar = <Avatar alt={props.name} src={props.avatar}>{props.name[0]}</Avatar>;
@@ -115,40 +129,96 @@ function AvatarAndName(props: FriendInterface)
   );
 }
 
+// Component to render the buttons for an entry in the friend list. If it's a friend,
+// displays buttons for invite, chat, and unfriend. If it's a friend request, displays
+// buttons to accept or deny.
+function FriendActionButtons(props: {pending: boolean})
+{
+  const pendingFriend = (
+    <Box component="span">
+
+      <Tooltip title="Accepter l'ami" arrow disableInteractive>
+        <IconButton color="success">
+          <CheckIcon/>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Refuser l'ami" arrow disableInteractive>
+        <IconButton color="error">
+          <CloseIcon/>
+        </IconButton>
+      </Tooltip>
+
+    </Box>
+  );
+
+  const knownFriend = (
+    <Box component="span">
+
+      <Tooltip title="Inviter à jouer" arrow disableInteractive>
+        <IconButton color="success">
+          <VideogameAssetIcon/>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Envoyer un message" arrow disableInteractive>
+        <IconButton color="primary">
+          <MessageIcon/>
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Supprimer l'ami" arrow disableInteractive>
+        <IconButton color="error">
+          <DeleteForeverIcon/>
+        </IconButton>
+      </Tooltip>
+
+    </Box>
+  );
+
+  return (props.pending ? pendingFriend : knownFriend);
+}
+
+// Component to render the "My Friends" page.
 function Friends(props: any)
 {
   // For debugging only
-  const initrows: FriendInterface[] = [
+  const init_rows: FriendInterface[] = [
     {
       id: "bob",
       name: "Bob",
       status: "offline",
+      pending: true,
     },
     {
       id: "brice",
       name: "Brice",
       status: "offline",
+      pending: false,
     },
     {
       id: "edgar",
       name: "Edgar Hussein",
       status: "online",
+      pending: false,
     },
     {
       id: "sheesh",
       name: "SHEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEESH",
       status: "in-game",
+      pending: false,
       avatar: "https://upload.wikimedia.org/wikipedia/commons/3/38/Xavier_Niel004.jpg",
     },
   ];
 
-  const [gridRows, setRows] = useState(initrows);
+  const [gridRows, setRows] = useState(init_rows);
   const [search, setSearch] = useState("");
 
   const filteredRows = gridRows.filter(
     (row: FriendInterface) => row.name.toLowerCase().includes(search)
   );
 
+  // TODO: Fix the ugly percent height ( doesn't look good when screen is resized too much)
   return (
     <Box component="main">
       
