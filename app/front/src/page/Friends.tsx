@@ -73,7 +73,7 @@ export default function Friends(props: {
       <Box sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <TextField
           id="search-friend"
-          label="Search for a friend"
+          label="Rechercher un ami"
           variant="outlined"
           margin="normal"
           fullWidth

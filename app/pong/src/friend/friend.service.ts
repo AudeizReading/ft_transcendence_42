@@ -68,7 +68,7 @@ export class FriendService {
         ],
       },
       orderBy: {
-        state: 'desc' // WAITING FIRST ???
+        state: 'asc' // WAITING first
       },
       include: {
         userA: {
@@ -95,7 +95,7 @@ export class FriendService {
               '://<<host>>',
               '://' + process.env.FRONT_HOST,
             ),
-        status: 'offline', //| 'online' | 'playing',
+        status: 'offline', // TODO: "offline" | "online" | "playing"
         friend_status: (item.state === 'WAITING') ? 'pending' : 'accepted',
         games_played: user.games.length,
         games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
