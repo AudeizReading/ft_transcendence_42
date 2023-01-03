@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Friend, User, Prisma } from '@prisma/client';
+import { Friend, User, Game, Prisma } from '@prisma/client';
 
 export interface FriendForFront {
   id: number,
@@ -71,11 +71,22 @@ export class FriendService {
         state: 'desc' // WAITING FIRST ???
       },
       include: {
-        userA: true,
-        userB: true,
+        userA: {
+          include: {
+            games: true
+          }
+        },
+        userB: {
+          include: {
+            games: true
+          }
+        },
       },
     });
-    data.forEach((item: Friend & { userA: User, userB: User }) => {
+    data.forEach((item: Friend & {
+      userA: User & { games: Game[] },
+      userB: User & { games: Game[] }
+    }) => {
       const user = (item.userA.id !== userId) ? item.userA : item.userB
       friends.push({
         id: user.id,
@@ -86,8 +97,8 @@ export class FriendService {
             ),
         status: 'offline', //| 'online' | 'playing',
         friend_status: (item.state === 'WAITING') ? 'pending' : 'accepted',
-        games_played: 0,
-        games_won: 0,
+        games_played: user.games.length,
+        games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
       });
     });
     return friends

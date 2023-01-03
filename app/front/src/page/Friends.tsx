@@ -38,7 +38,7 @@ const gridColums: GridColDef[] = [
     headerName: "Rapport Victoires/Défaites",
     width: 200,
     valueGetter: (params: GridValueGetterParams) =>
-      (params.row.games_won / params.row.games_played).toFixed(2),
+      ((params.row.games_won / params.row.games_played) || 0).toFixed(2),
   },
   {
     field: "buttons",
@@ -59,8 +59,7 @@ export default function Friends(props: {
     user: User
   })
 {
-
-  const [gridRows, setRows] = useState(props.user.friends); // TODO: FIX refresh DATA !!! <== DATA NOT REFRESH
+  const gridRows = props.user.friends;
   const [search, setSearch] = useState("");
 
   const filteredRows = gridRows.filter(
