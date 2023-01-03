@@ -31,13 +31,14 @@ const gridColums: GridColDef[] = [
     field: "games-played",
     headerName: "Nombre de parties",
     width: 150,
-    valueGetter: () => "TODO",
+    valueGetter: (params: GridValueGetterParams) => params.row.games_played,
   },
   {
     field: "win-ratio",
     headerName: "Rapport Victoires/Défaites",
     width: 200,
-    valueGetter: () => "TODO",
+    valueGetter: (params: GridValueGetterParams) =>
+      (params.row.games_won / params.row.games_played).toFixed(2),
   },
   {
     field: "buttons",
@@ -74,8 +75,8 @@ const debug_init_rows: Friend[] = [
     avatar: "https://upload.wikimedia.org/wikipedia/commons/3/38/Xavier_Niel004.jpg",
     status: "playing",
     friend_status: "accepted",
-    games_played: 10,
-    games_won: 5,
+    games_played: 55,
+    games_won: 40,
   },
 ];
 
@@ -91,7 +92,7 @@ export default function Friends(props: any)
   const [search, setSearch] = useState("");
 
   const filteredRows = gridRows.filter(
-    (row: Friend) => row.name.toLowerCase().includes(search)
+    (row: Friend) => row.name.toLowerCase().includes(search.toLowerCase())
   );
 
   // TODO: Fix the ugly percent height ( doesn't look good when screen is resized too much)
