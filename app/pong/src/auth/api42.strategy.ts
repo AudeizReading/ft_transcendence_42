@@ -14,49 +14,48 @@ export class Api42Strategy extends PassportStrategy(Strategy, 'api42') {
       clientSecret: process.env.API_42_SECRET,
       callbackURL: 'http://' + process.env.FRONT_HOST + ':8190/auth/callback',
       profileFields: {
-        'id': function (obj) { return String(obj.id); },
-        'username': 'login',
-        'email': 'email',
-        'avatar': 'image.link'
-      }
+        id: function (obj) {
+          return String(obj.id);
+        },
+        username: 'login',
+        email: 'email',
+        avatar: 'image.link',
+      },
     });
   }
 
   async validate(accessToken: string, _refreshToken: string, profile: Profile) {
     const user = await this.usersService.user({
-      'login': profile.username
+      login: profile.username,
     });
     const sessionid = crypto.randomBytes(32).toString('base64');
-    if (!user)
-    {
+    if (!user) {
       console.log('create user');
       await this.usersService.createUser({
-        'email': profile.email,
-        'login': profile.username,
-        'name': profile.username,
-        'avatar': profile.avatar,
-        'sessionid': sessionid
+        email: profile.email,
+        login: profile.username,
+        name: profile.username,
+        avatar: profile.avatar,
+        sessionid: sessionid,
       });
-    }
-    else
-    {
+    } else {
       const refresh_av = user.avatar && user.avatar.indexOf('http') === 0;
 
       await this.usersService.updateUser({
         where: {
-          'login': profile.username
+          login: profile.username,
         },
         data: {
-          'avatar': (refresh_av) ? user.avatar : profile.avatar,
-          'sessionid': sessionid
-        }
-      })
+          avatar: refresh_av ? user.avatar : profile.avatar,
+          sessionid: sessionid,
+        },
+      });
     }
     // console.log(profile); // <<== toutes les infos ici :)
     return {
-      'login': profile.username,
-      'sessionid': sessionid,
-      'api42': profile
-    }
+      login: profile.username,
+      sessionid: sessionid,
+      api42: profile,
+    };
   }
 }

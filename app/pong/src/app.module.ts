@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
@@ -13,10 +13,19 @@ import { SocketModule } from './socket/socket.module';
 import { GameMatchMaking } from './game/game.matchmaking';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    // isGlobal: true,  ????????
-    envFilePath: ['.env'],
-  }), ScheduleModule.forRoot(), GameMatchMaking, AuthModule, GameModule, UsersModule, NotifModule, SocketModule],
+  imports: [
+    ConfigModule.forRoot({
+      // isGlobal: true,  ????????
+      envFilePath: ['.env'],
+    }),
+    ScheduleModule.forRoot(),
+    GameMatchMaking,
+    AuthModule,
+    GameModule,
+    UsersModule,
+    NotifModule,
+    SocketModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],
 })

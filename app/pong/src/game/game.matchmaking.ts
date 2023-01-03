@@ -8,19 +8,21 @@ import { MatchMaking, Prisma } from '@prisma/client';
 const MATCHMAKING_SECONDS = 25;
 
 @Module({
-  providers: [NotifService, PrismaService, GameService]
+  providers: [NotifService, PrismaService, GameService],
 })
 export class GameMatchMaking {
   private readonly logger = new Logger(GameMatchMaking.name);
 
-  constructor(private prisma: PrismaService,
-              private gameService: GameService,
-              private notifService: NotifService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gameService: GameService,
+    private notifService: NotifService,
+  ) {}
 
   @Interval(10000)
   async task_MatchMaking() {
     const waiting = await this.prisma.matchMaking.count({
-      where: { state: 'WAITING' }
+      where: { state: 'WAITING' },
     });
     const waiting_even = Math.min(waiting - (waiting % 2), 10); // Max 5 games each 10 seconds
     if (waiting_even > 0) {
@@ -33,26 +35,26 @@ export class GameMatchMaking {
         const couple = await this.gameService.matchMakings({
           skip: i * 2,
           take: 2,
-          orderBy: { createdAt: 'asc', },
-          where: { state: 'WAITING' }
+          orderBy: { createdAt: 'asc' },
+          where: { state: 'WAITING' },
         });
         console.log('couple matched: ', couple[0].userId, couple[1].userId);
         await this.prisma.matchMaking.updateMany({
           data: {
-            state: 'MATCHED'
+            state: 'MATCHED',
           },
           where: {
-            userId: { in: [couple[0].userId, couple[1].userId] }
-          }
+            userId: { in: [couple[0].userId, couple[1].userId] },
+          },
         });
       }
     }
     const where_didnotconfirm: Prisma.MatchMakingWhereInput = {
       state: 'MATCHED',
-      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) }
+      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000) },
     };
     const didnotconfirm = await this.prisma.matchMaking.count({
-      where: where_didnotconfirm
+      where: where_didnotconfirm,
     });
     if (didnotconfirm > 0) {
       this.logger.verbose('Cleaning MatchMaking!');
@@ -60,17 +62,18 @@ export class GameMatchMaking {
         const slot = await this.gameService.matchMakings({
           skip: i,
           take: 1,
-          orderBy: { createdAt: 'asc', },
-          where: where_didnotconfirm
+          orderBy: { createdAt: 'asc' },
+          where: where_didnotconfirm,
         });
         this.notifService.createNotif(slot[0].userId, {
-          text: "Vous n'avez pas confirmé à temps la partie trouvée !\n"
-            + "Vous avez été quitté du MatchMaking !"
+          text:
+            "Vous n'avez pas confirmé à temps la partie trouvée !\n" +
+            'Vous avez été quitté du MatchMaking !',
         });
         await this.prisma.matchMaking.delete({
           where: {
-            userId: slot[0].userId
-          }
+            userId: slot[0].userId,
+          },
         });
       }
     }
@@ -80,7 +83,7 @@ export class GameMatchMaking {
       // updatedAt: { gte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000 * 2) }
     };
     const confirmed = await this.prisma.matchMaking.count({
-      where: where_confirmed
+      where: where_confirmed,
     });
     const confirmed_even = Math.min(confirmed - (confirmed % 2), 10); // Max 5 games each 10 seconds
     if (confirmed_even > 0) {
@@ -89,31 +92,38 @@ export class GameMatchMaking {
         const couple = await this.gameService.matchMakings({
           skip: i * 2,
           take: 2,
-          orderBy: { createdAt: 'asc', },
-          where: where_confirmed
+          orderBy: { createdAt: 'asc' },
+          where: where_confirmed,
         });
-        console.log('couple confirmed: ', couple[0].userId, couple[1].userId, 'create a game.');
+        console.log(
+          'couple confirmed: ',
+          couple[0].userId,
+          couple[1].userId,
+          'create a game.',
+        );
         const action: ActionRedirContent = {
-          type: "redir",
-          url: "/game/",
+          type: 'redir',
+          url: '/game/',
         };
         await this.notifService.createAction(couple[0].userId, action);
         await this.notifService.createAction(couple[1].userId, action);
         this.gameService.createGame(couple[0].userId, couple[1].userId);
         await this.prisma.matchMaking.deleteMany({
           where: {
-            userId: { in: [couple[0].userId, couple[1].userId] }
-          }
+            userId: { in: [couple[0].userId, couple[1].userId] },
+          },
         });
       }
     }
 
     const where_didnotfind: Prisma.MatchMakingWhereInput = {
       state: 'CONFIRMED',
-      updatedAt: { lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000 * 2.2) }
+      updatedAt: {
+        lte: new Date(+new Date() - MATCHMAKING_SECONDS * 1000 * 2.2),
+      },
     };
     const didnotfind = await this.prisma.matchMaking.count({
-      where: where_didnotfind
+      where: where_didnotfind,
     });
     if (didnotfind > 0) {
       this.logger.verbose('Downgrade MatchMaking!');
@@ -121,20 +131,20 @@ export class GameMatchMaking {
         const slot = await this.gameService.matchMakings({
           skip: i,
           take: 1,
-          orderBy: { createdAt: 'asc', },
-          where: where_didnotfind
+          orderBy: { createdAt: 'asc' },
+          where: where_didnotfind,
         });
         this.notifService.createMsg(slot[0].userId, {
           text: "Votre opposant n'a pas validé à temps la partie !",
-          type: 'warning'
+          type: 'warning',
         });
         await this.prisma.matchMaking.update({
           data: {
-            state: 'WAITING'
+            state: 'WAITING',
           },
           where: {
-            userId: slot[0].userId
-          }
+            userId: slot[0].userId,
+          },
         });
       }
     }
@@ -148,19 +158,19 @@ export class GameMatchMaking {
         WAITING: waiting,
         DIDNT_CONFIRM: didnotconfirm,
         CONFIRMED: confirmed,
-        DIDNT_FIND: didnotfind
+        DIDNT_FIND: didnotfind,
       },
       after: {
         WAITING: await this.prisma.matchMaking.count({
-          where: { state: 'WAITING' }
+          where: { state: 'WAITING' },
         }),
         MATCHED: await this.prisma.matchMaking.count({
-          where: { state: 'MATCHED' }
+          where: { state: 'MATCHED' },
         }),
         CONFIRMED: await this.prisma.matchMaking.count({
-          where: { state: 'CONFIRMED' }
-        })
-      }
-    })
+          where: { state: 'CONFIRMED' },
+        }),
+      },
+    });
   }
- }
+}

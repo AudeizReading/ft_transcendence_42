@@ -362,7 +362,7 @@ function TopBar(props: {
                   ))}
                 </List> 
               :
-                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 2 }}>
+                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 0 }}>
                   Vous n'avez aucune notification !
                 </Box>
               }

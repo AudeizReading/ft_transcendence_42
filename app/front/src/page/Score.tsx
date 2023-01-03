@@ -73,7 +73,7 @@ function Score() {
 
   return (
     <Box component="main">
-      <Box sx={{ height: '100%', maxWidth: 800, width: '100%', mx: 'auto' }}>
+      <Box sx={{ minHeight: '400px', height: '100%', maxWidth: 800, width: '100%', mx: 'auto' }}>
         <DataGrid
           rows={rows}
           columns={columns}

@@ -27,20 +27,23 @@ export interface NotifDataType {
 
 export interface NotifContainerType {
   num: number;
-  arr: Array<NotifDataType>
+  arr: Array<NotifDataType>;
 }
 
 @Injectable()
 export class NotifService {
   constructor(private prisma: PrismaService) {}
 
-  async createAction(userId: number, content: ActionRedirContent): Promise<Notif> {
+  async createAction(
+    userId: number,
+    content: ActionRedirContent,
+  ): Promise<Notif> {
     return this.prisma.notif.create({
       data: {
         userId,
         content: JSON.stringify(content),
         read: false,
-        type: 'ACTION'
+        type: 'ACTION',
       },
     });
   }
@@ -51,7 +54,7 @@ export class NotifService {
         userId,
         content: JSON.stringify(content),
         read: false,
-        type: 'MSG'
+        type: 'MSG',
       },
     });
   }
@@ -62,7 +65,7 @@ export class NotifService {
         userId,
         content: JSON.stringify(content),
         read: false,
-        type: 'NOTIF'
+        type: 'NOTIF',
       },
     });
   }
@@ -70,13 +73,13 @@ export class NotifService {
   async readsNotif(userId: number, date: Date): Promise<{ count: number }> {
     return this.prisma.notif.updateMany({
       data: {
-        read: true
+        read: true,
       },
       where: {
         userId,
         type: 'NOTIF',
-        createdAt: { lte: date }
-      }
+        createdAt: { lte: date },
+      },
     });
   }
 
@@ -105,38 +108,41 @@ export class NotifService {
     });
   }
 
-  async deleteNotifs(where: Prisma.NotifWhereInput): Promise<{ count: number }> {
+  async deleteNotifs(
+    where: Prisma.NotifWhereInput,
+  ): Promise<{ count: number }> {
     return this.prisma.notif.deleteMany({
       where,
     });
   }
 
   async objectForFront(userId: number): Promise<{
-    notifs: NotifContainerType,
-    msgs: NotifContainerType,
-    actions: NotifContainerType
+    notifs: NotifContainerType;
+    msgs: NotifContainerType;
+    actions: NotifContainerType;
   }> {
     const notifs = [];
     const msgs = [];
     const actions = [];
     const data = await this.notifs({
       where: {
-        userId
+        userId,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
+        createdAt: 'desc',
+      },
+    });
     data.forEach((item) => {
-      const content: MsgContent | NotifContent | ActionRedirContent = JSON.parse(item.content);
+      const content: MsgContent | NotifContent | ActionRedirContent =
+        JSON.parse(item.content);
       const container = (() => {
         switch (item.type) {
-        case 'NOTIF':
-          return notifs;
-        case 'MSG':
-          return msgs;
-        case 'ACTION':
-          return actions;
+          case 'NOTIF':
+            return notifs;
+          case 'MSG':
+            return msgs;
+          case 'ACTION':
+            return actions;
         }
       })();
       container.push({
@@ -144,22 +150,22 @@ export class NotifService {
         date: item.createdAt,
         url: content['url'] || null,
         read: item.read,
-        type: content['type'] || null
-      })
-    })
+        type: content['type'] || null,
+      });
+    });
     return {
       notifs: {
         num: notifs.length,
-        arr: notifs
+        arr: notifs,
       },
       msgs: {
         num: msgs.length,
-        arr: msgs
+        arr: msgs,
       },
       actions: {
         num: actions.length,
-        arr: actions
-      }
-    }
+        arr: actions,
+      },
+    };
   }
 }

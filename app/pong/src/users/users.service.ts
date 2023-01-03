@@ -17,9 +17,9 @@ export class UsersService {
           include: {
             game: {
               include: {
-                players: true
-              }
-            }
+                players: true,
+              },
+            },
           },
           orderBy: {
             gameId: 'desc',
@@ -27,11 +27,11 @@ export class UsersService {
           where: {
             game: {
               NOT: {
-                state: 'ENDED'
-              }
-            }
-          }
-        }
+                state: 'ENDED',
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -42,16 +42,16 @@ export class UsersService {
   }> {
     const wins = await this.prisma.game.count({
       where: {
-        winnerId: userId
-      }
+        winnerId: userId,
+      },
     });
     const total = await this.prisma.playerGame.count({
       where: {
         userId,
         game: {
-          state: 'ENDED'
-        }
-      }
+          state: 'ENDED',
+        },
+      },
     });
     return {
       wins: wins,

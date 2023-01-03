@@ -6,9 +6,9 @@ import { Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 export interface scoreType {
   id: number;
   players: {
-    id: number,
-    name: string,
-    avatar: string,
+    id: number;
+    name: string;
+    avatar: string;
   }[];
   scores: number[];
   winnerId: number;
@@ -17,43 +17,50 @@ export interface scoreType {
 
 @Injectable()
 export class GameService {
-  constructor(private prisma: PrismaService,
-              private notifService: NotifService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifService: NotifService,
+  ) {}
 
-  async scoreForFront(/*take: number, pagination: number*/): Promise<scoreType[]> {
+  async scoreForFront(/*take: number, pagination: number*/): Promise<
+    scoreType[]
+  > {
     const scores: scoreType[] = [];
     const data = await this.prisma.game.findMany({
       /*skip: take * pagination,
       take: take,*/
       orderBy: {
-        winnedAt: 'desc'
+        winnedAt: 'desc',
       },
       where: {
-        state: 'ENDED'
+        state: 'ENDED',
       },
       include: {
         players: {
           include: {
-            user: true
-          }
-        }
-      }
+            user: true,
+          },
+        },
+      },
     });
     data.forEach((item) => {
       const players = item.players;
       const parsePlayer = (num) => ({
         id: players[num].user.id,
         name: players[num].user.name,
-        avatar: players[num].user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
-      })
+        avatar: players[num].user.avatar.replace(
+          '://<<host>>',
+          '://' + process.env.FRONT_HOST,
+        ),
+      });
       scores.push({
         id: item.id,
-        players: [ parsePlayer(0), parsePlayer(1) ],
+        players: [parsePlayer(0), parsePlayer(1)],
         scores: [item.scoreA, item.scoreB],
         winnerId: item.winnerId,
-        winnedAt: item.winnedAt
-      })
-    })
+        winnedAt: item.winnedAt,
+      });
+    });
     return scores;
   }
 
@@ -65,32 +72,39 @@ export class GameService {
     });
   }
 
-  async createGame(userId1: number, userId2: number | null): Promise<{ game: Game, players: PlayerGame[] }> {
+  async createGame(
+    userId1: number,
+    userId2: number | null,
+  ): Promise<{ game: Game; players: PlayerGame[] }> {
     const game = await this.prisma.game.create({
       data: {
         option: JSON.stringify({
           // options :)
-        })
+        }),
       },
     });
     const players = [];
-    players.push(await this.prisma.playerGame.create({
-      data: {
-        gameId: game.id,
-        userId: userId1
-      }
-    }));
-    if (userId2 !== null)
-      players.push(await this.prisma.playerGame.create({
+    players.push(
+      await this.prisma.playerGame.create({
         data: {
           gameId: game.id,
-          userId: userId2
-        }
-      }));
-    console.log()
+          userId: userId1,
+        },
+      }),
+    );
+    if (userId2 !== null)
+      players.push(
+        await this.prisma.playerGame.create({
+          data: {
+            gameId: game.id,
+            userId: userId2,
+          },
+        }),
+      );
+    console.log();
     return {
       game,
-      players
+      players,
     };
   }
 
@@ -98,27 +112,30 @@ export class GameService {
     const rawAvatars = await this.matchMakings({
       take: 10,
       orderBy: {
-        createdAt: 'asc'
+        createdAt: 'asc',
       },
       include: {
-        user: { 
+        user: {
           select: {
             name: true,
-            avatar: true
-          }
-        }
-      }
+            avatar: true,
+          },
+        },
+      },
     });
-    const avatars = []
+    const avatars = [];
     rawAvatars.map((item) => {
       avatars.push({
         name: item.user.name,
-        avatar: item.user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST)
-      })
-    })
+        avatar: item.user.avatar.replace(
+          '://<<host>>',
+          '://' + process.env.FRONT_HOST,
+        ),
+      });
+    });
     return {
       count: await this.matchMakingCount(),
-      avatars: avatars
+      avatars: avatars,
     };
   }
 
@@ -130,13 +147,12 @@ export class GameService {
     orderBy?: Prisma.MatchMakingOrderByWithRelationInput;
     select?: Prisma.MatchMakingSelect; // https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#findmany
     include?: Prisma.MatchMakingInclude; // https://www.prisma.io/docs/concepts/components/prisma-client/select-fields#include-relations-and-select-relation-fields
-  }): Promise<any> { // hack: any… because select
+  }): Promise<any> {
+    // hack: any… because select
     const { skip, take, cursor, where, orderBy, select, include } = params;
-    const opt: any = {}
-    if (include)
-        opt.include = include
-    else
-        opt.select = select
+    const opt: any = {};
+    if (include) opt.include = include;
+    else opt.select = select;
     return this.prisma.matchMaking.findMany({
       skip,
       take,
@@ -162,13 +178,17 @@ export class GameService {
     return this.prisma.matchMaking.count();
   }
 
-  async createMatchMaking(data: Prisma.MatchMakingCreateInput): Promise<MatchMaking> {
+  async createMatchMaking(
+    data: Prisma.MatchMakingCreateInput,
+  ): Promise<MatchMaking> {
     return this.prisma.matchMaking.create({
       data,
     });
   }
 
-  async deleteMatchMaking(where: Prisma.MatchMakingWhereUniqueInput): Promise<MatchMaking> {
+  async deleteMatchMaking(
+    where: Prisma.MatchMakingWhereUniqueInput,
+  ): Promise<MatchMaking> {
     return this.prisma.matchMaking.delete({
       where,
     });

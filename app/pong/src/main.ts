@@ -6,8 +6,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: {
       origin: '*',
-      maxAge: 600
-    }
+      maxAge: 600,
+    },
   });
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(8190);

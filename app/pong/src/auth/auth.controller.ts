@@ -1,4 +1,11 @@
-import { Controller, Get, Request, Query, HttpCode, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Request,
+  Query,
+  HttpCode,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { encode } from 'html-entities';
 import { Api42AuthGuard } from './api42.authguard';
@@ -18,8 +25,10 @@ export class ParamLogin {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService,
-              private usersService: UsersService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   /*@Get('callback')
   @HttpCode(401)
@@ -45,35 +54,32 @@ export class AuthController {
   @Get('fake/:login') // TODO: Not in eval?
   async fakeLogin(@Request() req, @Param() param: ParamLogin) {
     let user = await this.usersService.user({
-      'login': param.login
+      login: param.login,
     });
     const sessionid = crypto.randomBytes(32).toString('base64');
-    if (!user)
-    {
+    if (!user) {
       console.log('create user');
       await this.usersService.createUser({
-        'email': param.login + '@fake348004549.fr',
-        'login': param.login,
-        'name': param.login,
-        'avatar': 'http://<<host>>:3000/res/default_avatar.jpg',
-        'sessionid': sessionid
+        email: param.login + '@fake348004549.fr',
+        login: param.login,
+        name: param.login,
+        avatar: 'http://<<host>>:3000/res/default_avatar.jpg',
+        sessionid: sessionid,
       });
-    }
-    else
-    {
+    } else {
       const refresh_av = user.avatar && user.avatar.indexOf('http') === 0;
 
       await this.usersService.updateUser({
         where: {
-          'login': param.login
+          login: param.login,
         },
         data: {
-          'sessionid': sessionid
-        }
-      })
+          sessionid: sessionid,
+        },
+      });
     }
     user = await this.usersService.user({
-      'login': param.login
+      login: param.login,
     });
     console.log('You are a fake king');
     return `<script>
@@ -93,11 +99,11 @@ export class AuthController {
   async logout(@Request() req) {
     await this.usersService.updateUser({
       where: {
-        'login': req.user.login
+        login: req.user.login,
       },
       data: {
-        'sessionid': ''
-      }
-    })
+        sessionid: '',
+      },
+    });
   }
 }
