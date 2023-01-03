@@ -60,7 +60,7 @@ export default function Friends(props: {
   })
 {
 
-  const [gridRows, setRows] = useState(props.user.friends);
+  const [gridRows, setRows] = useState(props.user.friends); // TODO: FIX refresh DATA !!! <== DATA NOT REFRESH
   const [search, setSearch] = useState("");
 
   const filteredRows = gridRows.filter(
