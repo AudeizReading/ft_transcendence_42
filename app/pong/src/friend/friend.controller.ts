@@ -20,21 +20,21 @@ export class ParamId {
 export class FriendController {
   constructor(private friendService: FriendService) {}
 
-  @Get(':id/confirm')
+  @Get(':id/accept')
   @UseGuards(JwtAuthGuard)
-  async confirm(@Request() req, @Param() param: ParamId) {
-
+  async accept(@Request() req, @Param() param: ParamId) {
+    this.friendService.acceptFriendRequest(param.id, req.user.id);
   }
 
   @Get(':id/refuse')
   @UseGuards(JwtAuthGuard)
   async refuse(@Request() req, @Param() param: ParamId) {
-
+    this.friendService.deleteFriendship(param.id, req.user.id);
   }
-
-  @Get(':id/retract')
+  
+  @Get(':id/remove')
   @UseGuards(JwtAuthGuard)
-  async retract(@Request() req, @Param() param: ParamId) {
-
+  async remove(@Request() req, @Param() param: ParamId) {
+    this.friendService.deleteFriendship(param.id, req.user.id);
   }
 }

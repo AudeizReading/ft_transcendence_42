@@ -25,6 +25,31 @@ export class FriendService {
     });
   }
 
+  async acceptFriendRequest(fromId: number, toId: number)
+  {
+    await this.prisma.friend.updateMany({
+      where: {
+        userAId: +fromId,
+        userBId: +toId,
+      },
+      data: {
+        state: "FRIEND"
+      },
+    })
+    console.log(`Users ${fromId} and ${toId} are now friends.`);
+  }
+
+  async deleteFriendship(fromId: number, toId: number)
+  {
+    await this.prisma.friend.deleteMany({
+      where: {
+        userAId: +fromId,
+        userBId: +toId,
+      }
+    });
+    console.log(`Users ${fromId} and ${toId} are no longer friends.`);
+  }
+
   async friend(
     friendWhereUniqueInput: Prisma.FriendWhereUniqueInput,
   ): Promise<Friend | null> {
@@ -87,7 +112,8 @@ export class FriendService {
       userA: User & { games: Game[] },
       userB: User & { games: Game[] }
     }) => {
-      const user = (item.userA.id !== userId) ? item.userA : item.userB
+      // const user = (item.userA.id !== userId) ? item.userA : item.userB;
+      const user = item.userA;
       friends.push({
         id: user.id,
         name: user.name,
@@ -101,6 +127,6 @@ export class FriendService {
         games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
       });
     });
-    return friends
+    return friends.filter((item: FriendForFront) => item.id !== userId);
   }
 }

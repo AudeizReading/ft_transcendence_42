@@ -21,40 +21,7 @@ import Friend from '../interface/Friend';
 import UserButton from '../component/UserButton';
 import UserChip from '../component/UserChip';
 import LoadingButton from '../component/LoadingButton';
-
-// ========================================================================== //
-// ========================================================================== //
-// ========================================================================== //
-
-const gridColums: GridColDef[] = [
-  {
-    field: "name",
-    headerName: "Nom",
-    width: 240,
-    renderCell: (params: GridRenderCellParams) => <UserButton {...params.row} />,
-    // renderCell: (params: GridRenderCellParams) => <UserChip {...params.row} />,
-  },
-  {
-    field: "games-played",
-    headerName: "Nombre de parties",
-    width: 150,
-    valueGetter: (params: GridValueGetterParams) => params.row.games_played,
-  },
-  {
-    field: "win-ratio",
-    headerName: "Rapport Victoires/Défaites",
-    width: 200,
-    valueGetter: (params: GridValueGetterParams) =>
-      ((params.row.games_won / params.row.games_played) || 0).toFixed(2),
-  },
-  {
-    field: "buttons",
-    headerName: "",
-    width: 200,
-    sortable: false,
-    renderCell: (params: GridRenderCellParams) => <FriendActionButtons {...params.row} />,
-  },
-];
+import { fetch_opt } from '../dep/fetch';
 
 // ========================================================================== //
 // ========================================================================== //
@@ -62,10 +29,43 @@ const gridColums: GridColDef[] = [
 
 // Component to render the "My Friends" page.
 // Gets the array of friends of this user
-export default function Friends(props: { 
-    user: User
-  })
+export default function Friends(props: { fetch_userinfo: Function, user: User })
 {
+  const gridColums: GridColDef[] = [
+    {
+      field: "name",
+      headerName: "Nom",
+      width: 240,
+      renderCell: (params: GridRenderCellParams) => <UserButton {...params.row} />,
+      // renderCell: (params: GridRenderCellParams) => <UserChip {...params.row} />,
+    },
+    {
+      field: "games-played",
+      headerName: "Nombre de parties",
+      width: 150,
+      valueGetter: (params: GridValueGetterParams) => params.row.games_played,
+    },
+    {
+      field: "win-ratio",
+      headerName: "Rapport Victoires/Défaites",
+      width: 200,
+      valueGetter: (params: GridValueGetterParams) =>
+        ((params.row.games_won / params.row.games_played) || 0).toFixed(2),
+    },
+    {
+      field: "buttons",
+      headerName: "",
+      width: 200,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) =>
+        <FriendActionButtons user={props.user} fetch_userinfo={props.fetch_userinfo} {...params.row} />,
+    },
+  ];
+
+  // ========================================================================== //
+  // ========================================================================== //
+  // ========================================================================== //
+
   const gridRows = props.user.friends;
   const [search, setSearch] = useState("");
   const [addingFriend, setAddingFriend] = useState(false);
@@ -78,7 +78,7 @@ export default function Friends(props: {
   return (
     <Box component="main">
 
-      <AddFriendDialog addingFriend={addingFriend} setAddingFriend={setAddingFriend} />
+      <AddFriendDialog fetch_userinfo={props.fetch_userinfo} addingFriend={addingFriend} setAddingFriend={setAddingFriend} />
       
       <Box display="flex" alignItems="center" sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <TextField
@@ -114,9 +114,11 @@ export default function Friends(props: {
   );
 }
 
-
-
-function AddFriendDialog(props: any)
+function AddFriendDialog(props: {
+    fetch_userinfo: Function,
+    addingFriend: boolean,
+    setAddingFriend: Function
+  })
 {
   const {addingFriend, setAddingFriend} = props;
   const [friendAddSearch, setFriendAddSearch] = useState("");
@@ -164,49 +166,66 @@ function AddFriendDialog(props: any)
 // Component to render the buttons for an entry in the friend list. If it's a friend,
 // displays buttons for invite, chat, and unfriend. If it's a friend request, displays
 // buttons to accept or deny.
-function FriendActionButtons(props: {friend_status: string})
+function FriendActionButtons(props: {
+    user: User,
+    fetch_userinfo: Function,
+    id: number,
+    friend_status: "pending" | "accepted"
+  })
 {
+  async function callFriendController(action: string) {
+    await fetch(`http://${window.location.hostname}:8190/friend/${props.id}/${action}`, fetch_opt());
+    props.fetch_userinfo();
+  }
+
   const pendingFriend = (
     <Box component="span">
-
       <Tooltip title="Accepter l'ami" arrow disableInteractive>
-        <IconButton color="success">
+        <IconButton color="success" onClick={() => callFriendController("accept")}>
           <CheckIcon/>
         </IconButton>
       </Tooltip>
-
       <Tooltip title="Refuser l'ami" arrow disableInteractive>
+        <IconButton color="error" onClick={() => callFriendController("refuse")}>
+          <CloseIcon/>
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+
+  // NOTE: Will be used later
+  const requestedFriend = (
+    <Box component="span">
+      <p>Invitation sent</p>
+      <Tooltip title="Annuler la demande d'ami" arrow disableInteractive>
         <IconButton color="error">
           <CloseIcon/>
         </IconButton>
       </Tooltip>
-
     </Box>
   );
 
   const knownFriend = (
     <Box component="span">
-
       <Tooltip title="Inviter à jouer" arrow disableInteractive>
         <IconButton color="success">
           <VideogameAssetIcon/>
         </IconButton>
       </Tooltip>
-
       <Tooltip title="Envoyer un message" arrow disableInteractive>
         <IconButton color="primary">
           <MessageIcon/>
         </IconButton>
       </Tooltip>
-
       <Tooltip title="Supprimer l'ami" arrow disableInteractive>
-        <IconButton color="error">
+        <IconButton color="error" onClick={() => callFriendController("remove")}>
           <DeleteForeverIcon/>
         </IconButton>
       </Tooltip>
-
     </Box>
   );
 
+  // if (props.user.id === props.id)
+  //   return requestedFriend;
   return (props.friend_status === "pending" ? pendingFriend : knownFriend);
 }

@@ -232,7 +232,7 @@ function App() {
             <Route path="/game/:gameid" element={<Game user={user} />} />
             <Route path="/game/" element={<Game user={user} />} />
             <Route path="/score" element={<Score />} />
-            <Route path="/myfriends" element={<Friends user={user} />} />
+            <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
             <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
 
             <Route path="/auth" element={<Auth />} />
