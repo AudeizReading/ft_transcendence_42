@@ -7,7 +7,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   MessageBody,
-  ConnectedSocket
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
@@ -18,7 +18,7 @@ import { User } from '@prisma/client';
 interface Client {
   userId: number;
   socketId: string;
-};
+}
 
 type SocketUserAuth = Socket & {
   user: User;
@@ -31,12 +31,14 @@ type SocketUserAuth = Socket & {
   namespace: 'game',
   cors: {
     origin: '*',
-    maxAge: 600
-  }
+    maxAge: 600,
+  },
 })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private jwtService: JwtService,
-              private jwtStrategy: JwtStrategy) {}
+  constructor(
+    private jwtService: JwtService,
+    private jwtStrategy: JwtStrategy,
+  ) {}
 
   @WebSocketServer()
   private server: Server;
@@ -50,22 +52,26 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const token = fromAuthHeaderOAsBearerToken(socket);
     const user = await (async () => {
       try {
-        return this.jwtStrategy.validate(await this.jwtService.verify(token, { secret: process.env.JWT_SECRET }));
+        return this.jwtStrategy.validate(
+          await this.jwtService.verify(token, {
+            secret: process.env.JWT_SECRET,
+          }),
+        );
       } catch (e) {
-        if (e.name !== 'JsonWebTokenError')
-          console.error(e); // show other error
-        return (null);
+        if (e.name !== 'JsonWebTokenError') console.error(e); // show other error
+        return null;
       }
     })();
     console.log('connection', socket.id);
-    if (!user) {// && demo) ??? ---> pouvoir laisser voir la demo aux hors-lignes
+    if (!user) {
+      // && demo) ??? ---> pouvoir laisser voir la demo aux hors-lignes
       socket.disconnect();
       return { success: false, gameid: -1 };
     }
 
     const client: Client = {
       userId: user.id,
-      socketId: socket.id
+      socketId: socket.id,
     };
     this.clients.set(client.socketId, client);
 
@@ -79,32 +85,34 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (socket.handshake?.query?.gameid == 'mygame' && user.playingAt) {
       console.log('Est-ce que la game peut commencer ?');
       const oppId = (() => {
-        const players = user.playingAt.game.players.filter((a) => a.userId !== user.id);
-        if (players[0])
-          return players[0].userId
-        else
-          return -1;
+        const players = user.playingAt.game.players.filter(
+          (a) => a.userId !== user.id,
+        );
+        if (players[0]) return players[0].userId;
+        else return -1;
       })();
-      const users = [...this.clients]
-        .filter(([key, val]) => val.userId === oppId);
+      const users = [...this.clients].filter(
+        ([key, val]) => val.userId === oppId,
+      );
       if (users.length <= 0) {
-        console.log("Il vous manque encore un opposant !", oppId);
+        console.log('Il vous manque encore un opposant !', oppId);
       } else {
-        console.log("oui")
+        console.log('oui');
       }
       gameId = user.playingAt.gameId;
     }
 
     if (gameId > 0) {
-      const game = this.games.get(gameId)
+      const game = this.games.get(gameId);
       if (game) {
         game.push(user.id);
       } else {
-        this.games.set(gameId, [user.id])
+        this.games.set(gameId, [user.id]);
       }
-      return { // not send ??
+      return {
+        // not send ??
         success: true,
-        gameid: gameId
+        gameid: gameId,
       };
     }
   }
@@ -118,7 +126,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
           if (userId === socket.user.id) {
             console.log('disconnected of game ', gameId);
             const users = this.games.get(gameId);
-            this.games.set(gameId, users.filter((a) => a != userId));
+            this.games.set(
+              gameId,
+              users.filter((a) => a != userId),
+            );
           }
         });
       });
@@ -148,7 +159,10 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('login')
-  handleLogin(@MessageBody() data: string, @ConnectedSocket() socket: SocketUserAuth) {
+  handleLogin(
+    @MessageBody() data: string,
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
     //console.log(socket.user);
     return { success: true };
   }

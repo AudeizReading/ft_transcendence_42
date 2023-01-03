@@ -6,6 +6,6 @@ import { UsersService } from '../users/users.service';
 
 @Module({
   providers: [NotifService, PrismaService, UsersService],
-  controllers: [NotifController]
+  controllers: [NotifController],
 })
 export class NotifModule {}

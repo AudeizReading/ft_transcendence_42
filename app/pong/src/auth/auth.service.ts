@@ -7,7 +7,7 @@ export class AuthService {
 
   getToken(login: string, sessionid: string) {
     const payload = { login: login, sessionid: sessionid };
-  	return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET })
+    return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
   }
 
   /*getUser() {

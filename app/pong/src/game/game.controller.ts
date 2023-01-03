@@ -7,7 +7,6 @@ import { GameService } from '../game/game.service';
 export class GameController {
   constructor(private gameService: GameService) {}
 
-
   @Get('score')
   async score(@Request() req) {
     return this.gameService.scoreForFront();
@@ -19,23 +18,23 @@ export class GameController {
     if (req.user.isPlaying)
       return {
         matchmaking: false,
-        ...await this.gameService.listTenMatchMakings()
+        ...(await this.gameService.listTenMatchMakings()),
       };
 
-    if (req.user.mMaking !== null)
-      {} // TODO: update ?
+    if (req.user.mMaking !== null) {
+    } // TODO: update ?
     else if (!req.user.isPlaying)
       await this.gameService.createMatchMaking({
         user: {
           connect: {
-            id: req.user.id
-          }
+            id: req.user.id,
+          },
         },
-        preference: "{}"
+        preference: '{}',
       });
     return {
       matchmaking: !req.user.isPlaying,
-      ...await this.gameService.listTenMatchMakings()
+      ...(await this.gameService.listTenMatchMakings()),
     };
   }
 
@@ -43,39 +42,37 @@ export class GameController {
   async matchmaking_info(@Request() req) {
     return {
       matchmaking: req.user.mMaking !== null,
-      ...await this.gameService.listTenMatchMakings()
+      ...(await this.gameService.listTenMatchMakings()),
     };
   }
 
   @Post('matchmaking/quit')
   @UseGuards(JwtAuthGuard)
   async matchmaking_quit(@Request() req) {
-    if (req.user.mMaking === null)
-      return { matchmaking: false };
+    if (req.user.mMaking === null) return { matchmaking: false };
     else
       await this.gameService.deleteMatchMaking({
         userId: req.user.id,
       });
     return {
-      matchmaking: false
+      matchmaking: false,
     };
   }
 
   @Get('matchmaking/confirm')
   @UseGuards(JwtAuthGuard)
   async matchmaking_confirm(@Request() req): Promise<{ result: boolean }> {
-    if (req.user.mMaking?.state !== 'MATCHED')
-      return { result: false };
+    if (req.user.mMaking?.state !== 'MATCHED') return { result: false };
     const result = await this.gameService.updateMatchMaking({
       data: {
-        state: 'CONFIRMED'
+        state: 'CONFIRMED',
       },
       where: {
-        userId: req.user.id
-      }
-    })
+        userId: req.user.id,
+      },
+    });
     return {
-      result: !!result
+      result: !!result,
     };
   }
 }

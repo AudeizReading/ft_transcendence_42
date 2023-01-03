@@ -1,4 +1,11 @@
-import { Controller, Post, Get, Request, UseGuards, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Request,
+  UseGuards,
+  Param,
+} from '@nestjs/common';
 import { NotifService } from '../notif/notif.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
@@ -21,17 +28,18 @@ export class NotifController {
   @Get('fake/:id')
   async make_fake_notif(@Param() param: ParamId) {
     this.notifService.createNotif(Number(param.id), {
-      text: 'Vous avez demander une fake notif la voici. '
-      + 'Pour être un peu plus utile, si vous cliquez sur moi vous allez '
-      + 'être redirigé sur votre profil.',
-      url: '/user/' + Number(param.id)
+      text:
+        'Vous avez demander une fake notif la voici. ' +
+        'Pour être un peu plus utile, si vous cliquez sur moi vous allez ' +
+        'être redirigé sur votre profil.',
+      url: '/user/' + Number(param.id),
     });
   }
 
   @Get('fake/msg/:id')
   async make_fake_message(@Param() param: ParamId) {
     this.notifService.createMsg(Number(param.id), {
-      text: 'Fake message !'
+      text: 'Fake message !',
     });
   }
 
@@ -39,8 +47,11 @@ export class NotifController {
   @UseGuards(JwtAuthGuard)
   async read_all(@Request() req, @Param() param: ParamDate) {
     return {
-      count: await this.notifService.readsNotif(req.user.id, new Date(param.date))
-    }
+      count: await this.notifService.readsNotif(
+        req.user.id,
+        new Date(param.date),
+      ),
+    };
   }
 
   @Get('read_last_msg/:date')
@@ -50,9 +61,9 @@ export class NotifController {
       count: await this.notifService.deleteNotifs({
         userId: req.user.id,
         createdAt: param.date,
-        type: 'MSG'
-      })
-    }
+        type: 'MSG',
+      }),
+    };
   }
 
   @Get('done_last_action/:date')
@@ -62,8 +73,8 @@ export class NotifController {
       count: await this.notifService.deleteNotifs({
         userId: req.user.id,
         createdAt: param.date,
-        type: 'ACTION'
-      })
-    }
+        type: 'ACTION',
+      }),
+    };
   }
 }
