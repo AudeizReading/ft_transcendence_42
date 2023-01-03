@@ -24,7 +24,8 @@ model User {
   games      PlayerGame[]
   mMaking    MatchMaking?
 
-  //friends    Friend[]
+  friendsA   Friend[]     @relation("UserA")
+  friendsB   Friend[]     @relation("UserB")
 }
 
 model Notif {
@@ -93,26 +94,19 @@ enum StateMatchMaking {
   CONFIRMED
 }
 
-// model FriendRelation {
-//   id         Int          @default(autoincrement()) @id
-//
-//   state      StateFriend  @default(WAITING)
-//
-//   friends[]  Friend
-// }
+model Friend {
+  userA      User            @relation("UserA", fields: [userAId], references: [id])
+  userAId    Int
+  userB      User            @relation("UserB", fields: [userBId], references: [id])
+  userBId    Int
+  state      StateFriend  @default(WAITING)
+  @@id([userAId, userBId])
+}
 
-// model Friend {
-//   relation   FriendRelation  @relation(fields: [relationId], references: [id])
-//   relationId Int
-//   user       User            @relation(fields: [userId], references: [id])
-//   userId     Int
-//   @@id([relationId, userId])
-// }
-
-// enum StateFriend {
-//   WAITING
-//   FRIEND
-// }
+enum StateFriend { 
+  WAITING 
+  FRIEND 
+}
 
 model Image {
   id         Int     @default(autoincrement()) @id

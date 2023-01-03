@@ -5,12 +5,13 @@ import { styled } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 
 import { User } from '../interface/User';
+import Friend from '../interface/Friend';
 
 // Component to render the avatar and name of the user, with an online indicator badge.
 // The whole thing is clickable as a button.
-export default function UserButton(props: User)
+export default function UserButton(props: Friend)
 {
-  const AvatarBadge = getBadge({...props});
+  const AvatarBadge = getBadge(props.status);
 
   return (
     <ButtonBase href={`http://${window.location.hostname}:3000/user/${props.id}`}>
@@ -28,7 +29,7 @@ export default function UserButton(props: User)
   );
 }
 
-function getBadge(props: {connected: boolean, is_playing: boolean})
+function getBadge(status: string)
 {
   const GreenBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
@@ -54,9 +55,9 @@ function getBadge(props: {connected: boolean, is_playing: boolean})
     }
   }));
 
-  if (props.connected && props.is_playing)
+  if (status === "playing")
     return BlueBadge;
-  else if (props.connected)
+  else if (status === "online")
     return GreenBadge;
   else
     return GreyBadge;
