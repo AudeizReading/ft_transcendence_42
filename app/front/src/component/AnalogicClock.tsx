@@ -8,6 +8,7 @@ function AnalogicClock(props: {
 })
 =======
 import {TimeContext} from '../contexts/TimeContext';
+import useInterval from '../hooks/useInterval';
 
 function AnalogicClock(props: any)
 >>>>>>> Home: fix height props with the css related instead js
@@ -66,7 +67,7 @@ function AnalogicClock(props: any)
     bottom: 0,
     right: 0,
     transformOrigin: 'bottom center',
-    transform: 'rotate(0deg)',
+    transform: `rotate(${((hours % 12) + (minutes / 60)) * 30}deg)`,
     boxShadow: '-3px -3px 18px 0px rgba(0, 0, 0, 0.4)',
     backgroundColor: 'black',
   });
@@ -79,7 +80,7 @@ function AnalogicClock(props: any)
     top: '-40%',
     left: 0,
     boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.4)',
-    transform: 'rotate(90deg)'
+    transform: `rotate(${minutes * 6}deg)`
   });
 
   const [styleNeedleSecond, setStyleNeedleSecond] = useState({
@@ -95,7 +96,7 @@ function AnalogicClock(props: any)
     backgroundColor: '#ff4b3e',
     transformOrigin: 'bottom center',
     boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.25)',
-    transform: 'rotate(180deg)'
+    transform: `rotate(${seconds * 6}deg)`
   });
 
   const styleCenterClock = {
