@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
+
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import TextField from '@mui/material/TextField';
+import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
+import Button from '@mui/material/Button';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+
 import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import TextField from '@mui/material/TextField';
-import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
 import { User, NotifContainerType, NotifDataType } from '../interface/User';
 import Friend from '../interface/Friend';
 import UserButton from '../component/UserButton';
 import UserChip from '../component/UserChip';
+import LoadingButton from '../component/LoadingButton';
 
 // ========================================================================== //
 // ========================================================================== //
@@ -61,6 +68,7 @@ export default function Friends(props: {
 {
   const gridRows = props.user.friends;
   const [search, setSearch] = useState("");
+  const [addingFriend, setAddingFriend] = useState(false);
 
   const filteredRows = gridRows.filter(
     (row: Friend) => row.name.toLowerCase().includes(search.toLowerCase())
@@ -69,20 +77,28 @@ export default function Friends(props: {
   // TODO: Fix the ugly percent height ( doesn't look good when screen is resized too much)
   return (
     <Box component="main">
+
+      <AddFriendDialog addingFriend={addingFriend} setAddingFriend={setAddingFriend} />
       
-      <Box sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
+      <Box display="flex" alignItems="center" sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <TextField
           id="search-friend"
           label="Rechercher un ami"
           variant="outlined"
-          margin="normal"
           fullWidth
           value={search}
           onChange={ (e : any) => setSearch(e.target.value) }
         />
+        <Button
+          variant="contained"
+          sx={{ml: 1, height: 55, width: '25%'}}
+          onClick={(e: any) => setAddingFriend(true)}
+        >
+          Ajouter un ami
+        </Button>
       </Box>
       
-      <Box sx={{ height: '87%', maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
+      <Box sx={{ height: '91%', maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <DataGrid
           rows={filteredRows}
           columns={gridColums}
@@ -95,6 +111,53 @@ export default function Friends(props: {
       </Box>
 
     </Box>
+  );
+}
+
+
+
+function AddFriendDialog(props: any)
+{
+  const {addingFriend, setAddingFriend} = props;
+  const [friendAddSearch, setFriendAddSearch] = useState("");
+  const [isError, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  function closeDialog() {
+    setFriendAddSearch("");
+    setError(false);
+    setLoading(false);
+    setAddingFriend(false);
+  }
+
+  return (
+    <Dialog open={addingFriend} onClose={closeDialog} maxWidth="sm" fullWidth>
+      <DialogTitle>Ajouter un ami</DialogTitle>
+      <DialogContent>
+        <TextField
+          error={isError}
+          autoFocus
+          margin="dense"
+          id="name"
+          label={isError ? "Impossible d'ajouter l'ami" : "Nom de l'ami à ajouter"}
+          type="search"
+          variant="outlined"
+          fullWidth
+          value={friendAddSearch}
+          onChange={ (e : any) => {
+            setFriendAddSearch(e.target.value);
+            if (isError)
+              setError(false);
+          } }
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={closeDialog}>Annuler</Button>
+        <Button variant="outlined" onClick={() => setError(true)}>Set error</Button>
+        <Button variant="outlined" onClick={() => setLoading(!loading)}>Toggle loading</Button>
+        <LoadingButton loading={loading}>Ajouter</LoadingButton>
+      </DialogActions>
+    </Dialog>
   );
 }
 
