@@ -56,6 +56,7 @@ function App() {
     matchmaking_state: null,
     matchmaking_remaining: null,
     matchmaking_users: { count: 0, avatars: [] },
+    friends: [],
     avatar: '',
     notifs: { num: 0, arr: [] },
     msgs: { num: 0, arr: [] },
@@ -84,6 +85,7 @@ function App() {
             matchmaking_state: result.user.matchmaking_state,
             matchmaking_remaining: result.user.matchmaking_remaining,
             matchmaking_users: result.matchmaking_users,
+            friends: result.friends,
             avatar: result.user.avatar,
             notifs: result.notifs,
             msgs: result.msgs,
@@ -230,7 +232,7 @@ function App() {
             <Route path="/game/:gameid" element={<Game user={user} />} />
             <Route path="/game/" element={<Game user={user} />} />
             <Route path="/score" element={<Score />} />
-            <Route path="/myfriends" element={<Friends />} />
+            <Route path="/myfriends" element={<Friends user={user} />} />
             <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
 
             <Route path="/auth" element={<Auth />} />

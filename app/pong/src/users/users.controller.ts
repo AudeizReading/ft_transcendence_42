@@ -16,6 +16,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from '../users/users.service';
 import { NotifService } from '../notif/notif.service';
+import { FriendService } from '../friend/friend.service';
 import { GameService } from '../game/game.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
@@ -36,6 +37,7 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private notifService: NotifService,
+    private friendService: FriendService,
     private gameService: GameService,
   ) {}
 
@@ -57,9 +59,10 @@ export class UsersController {
           req.user.mMaking?.state === 'MATCHED'
             ? req.user.mMaking.updatedAt
             : null,
-        is_playing: req.user.isPlaying,
+        is_playing: req.user.isPlaying
       },
       ...(await this.notifService.objectForFront(req.user.id)),
+      friends: await this.friendService.objectForFront(req.user.id),
       matchmaking_users: await this.gameService.listTenMatchMakings(), // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
     };
   }

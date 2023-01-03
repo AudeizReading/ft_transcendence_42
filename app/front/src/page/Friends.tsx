@@ -49,46 +49,18 @@ const gridColums: GridColDef[] = [
   },
 ];
 
-// For debugging only
-const debug_init_rows: Friend[] = [
-  {
-    id: 1,
-    name: "Bob",
-    avatar: "",
-    status: "offline",
-    friend_status: "accepted",
-    games_played: 10,
-    games_won: 5,
-  },
-  {
-    id: 2,
-    name: "Edgar",
-    avatar: "",
-    status: "online",
-    friend_status: "pending",
-    games_played: 2,
-    games_won: 0,
-  },
-  {
-    id: 3,
-    name: "SHEEEEEEEEEEEEEEEEEEEEESH",
-    avatar: "https://upload.wikimedia.org/wikipedia/commons/3/38/Xavier_Niel004.jpg",
-    status: "playing",
-    friend_status: "accepted",
-    games_played: 55,
-    games_won: 40,
-  },
-];
-
 // ========================================================================== //
 // ========================================================================== //
 // ========================================================================== //
 
 // Component to render the "My Friends" page.
 // Gets the array of friends of this user
-export default function Friends(props: any)
+export default function Friends(props: { 
+    user: User
+  })
 {
-  const [gridRows, setRows] = useState(debug_init_rows);
+
+  const [gridRows, setRows] = useState(props.user.friends);
   const [search, setSearch] = useState("");
 
   const filteredRows = gridRows.filter(

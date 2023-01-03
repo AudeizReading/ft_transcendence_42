@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
+import { FriendModule } from './friend/friend.module';
 import { GameModule } from './game/game.module';
 import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
@@ -22,6 +23,7 @@ import { GameMatchMaking } from './game/game.matchmaking';
     GameMatchMaking,
     AuthModule,
     GameModule,
+    FriendModule,
     UsersModule,
     NotifModule,
     SocketModule,

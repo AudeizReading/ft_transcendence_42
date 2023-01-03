@@ -1,3 +1,5 @@
+import Friend from './Friend'
+
 export interface NotifDataType { /* also in back */
   text: string;
   date: string;
@@ -24,6 +26,7 @@ export interface User {
       avatar: string;
     }[];
   };
+  friends: Friend[];
   avatar: string;
   notifs: NotifContainerType;
   msgs: NotifContainerType;
