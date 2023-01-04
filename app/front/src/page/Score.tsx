@@ -5,6 +5,7 @@ import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 
 import { fetch_opt } from '../dep/fetch'
+import UserButton from '../component/UserButton';
 
 const columns: GridColDef[] = [
   {
@@ -20,8 +21,12 @@ const columns: GridColDef[] = [
     headerName: 'Gagnant',
     description: 'Le gagnant du match',
     width: 150,
-    valueGetter: (params: GridValueGetterParams) => 
-      params.row.players.filter((player: any) => player.id === params.row.winnerId)[0].name
+    renderCell(params: GridRenderCellParams) {
+      const winner = params.row.players.filter(
+        (player: any) => player.id === params.row.winnerId
+      )[0];
+      return <UserButton noBadge {...winner} />;
+    },
   },
   {
     field: 'winnedAt',

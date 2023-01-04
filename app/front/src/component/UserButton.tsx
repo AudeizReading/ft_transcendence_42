@@ -9,10 +9,27 @@ import Friend from '../interface/Friend';
 
 // Component to render the avatar and name of the user, with an online indicator badge.
 // The whole thing is clickable as a button.
-export default function UserButton(props: Friend)
+// Setting the noBadge prop or giving an undefined status disables the status badge on the avatar
+export default function UserButton(props: {
+    id: number,
+    name: string,
+    avatar: string,
+    status?: "offline" | "online" | "playing" | undefined,
+    noBadge?: boolean,
+  })
 {
-  const AvatarBadge = getBadge(props.status);
+  if (!props.status || props.noBadge) {
+    return (
+      <ButtonBase href={`http://${window.location.hostname}:3000/user/${props.id}`}>
+        <Avatar alt={props.name} src={props.avatar}>{props.name[0]}</Avatar>
+        <Box sx={{pl: 1}}>
+          {props.name}
+        </Box>
+      </ButtonBase>
+    );
+  }
 
+  const AvatarBadge = getBadge(props.status);
   return (
     <ButtonBase href={`http://${window.location.hostname}:3000/user/${props.id}`}>
       <AvatarBadge
@@ -29,7 +46,7 @@ export default function UserButton(props: Friend)
   );
 }
 
-function getBadge(status: string)
+function getBadge(status: "offline" | "online" | "playing" | undefined)
 {
   const GreenBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
