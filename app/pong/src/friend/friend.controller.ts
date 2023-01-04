@@ -8,8 +8,10 @@ import {
 } from '@nestjs/common';
 import { FriendService } from '../friend/friend.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
+import { User } from '@prisma/client';
 
 import { IsNumberString } from 'class-validator';
+import { UsersService } from 'src/users/users.service';
 
 export class ParamId {
   @IsNumberString()
@@ -18,7 +20,10 @@ export class ParamId {
 
 @Controller('friend')
 export class FriendController {
-  constructor(private friendService: FriendService) {}
+  constructor(
+    private friendService: FriendService,
+    private usersService: UsersService,
+  ) {}
 
   @Get(':id/accept')
   @UseGuards(JwtAuthGuard)
@@ -36,5 +41,22 @@ export class FriendController {
   @UseGuards(JwtAuthGuard)
   async remove(@Request() req, @Param() param: ParamId) {
     this.friendService.deleteFriendship(param.id, req.user.id);
+  }
+
+  @Get(':name/request')
+  @UseGuards(JwtAuthGuard)
+  async requestFriend(@Request() req, @Param() param: any) {
+    try {
+      const target_user: User | null = await this.usersService.user({name: param.name});
+      if (!target_user) {
+        return false;
+      }
+      console.log(`Target: ${target_user.name}`);
+      await this.friendService.createFriend(req.user.id, target_user.id);
+      return true;
+    }
+    catch (error) {
+      return false;
+    }
   }
 }

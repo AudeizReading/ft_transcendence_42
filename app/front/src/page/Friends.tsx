@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -10,6 +10,8 @@ import TextField from '@mui/material/TextField';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 import Button from '@mui/material/Button';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -121,44 +123,76 @@ function AddFriendDialog(props: {
   })
 {
   const {addingFriend, setAddingFriend} = props;
-  const [friendAddSearch, setFriendAddSearch] = useState("");
+  const [friendName, setFriendName] = useState("");
+  const [loading, setLoading] = useState(false); // Do I NEED a state for that?
   const [isError, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const textFieldRef = useRef<any>(null);
 
   function closeDialog() {
-    setFriendAddSearch("");
+    setAddingFriend(false);
+    setFriendName("");
     setError(false);
     setLoading(false);
-    setAddingFriend(false);
+    setSuccess(false);
+  }
+
+  function getFieldLabel() {
+    if (isError)
+      return "Impossible d'ajouter l'ami";
+    else if (success)
+      return "Demande d'ami envoyée !";
+    else
+      return "Nom de l'ami à ajouter";
+  }
+
+  async function requestFriend(e: React.FormEvent) {
+    e.preventDefault();
+    if (friendName.length === 0)
+      return;
+
+    setLoading(true);
+    const result = await fetch(`http://${window.location.hostname}:8190/friend/${friendName}/request`, fetch_opt());
+    const req_success: boolean = await result.json();
+    if (!req_success) {
+      setError(true);
+    }
+    else {
+      setSuccess(true);
+    }
+    textFieldRef.current!.focus();
+    setLoading(false);
   }
 
   return (
     <Dialog open={addingFriend} onClose={closeDialog} maxWidth="sm" fullWidth>
-      <DialogTitle>Ajouter un ami</DialogTitle>
-      <DialogContent>
-        <TextField
-          error={isError}
-          autoFocus
-          margin="dense"
-          id="name"
-          label={isError ? "Impossible d'ajouter l'ami" : "Nom de l'ami à ajouter"}
-          type="search"
-          variant="outlined"
-          fullWidth
-          value={friendAddSearch}
-          onChange={ (e : any) => {
-            setFriendAddSearch(e.target.value);
-            if (isError)
+      <form onSubmit={requestFriend}>
+        <DialogTitle>Ajouter un ami</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            inputRef={textFieldRef}
+            error={isError}
+            margin="dense"
+            id="name"
+            label={getFieldLabel()}
+            type="search"
+            variant="outlined"
+            color={success ? "success" : "primary"}
+            fullWidth
+            value={friendName}
+            onChange={ (e : any) => {
+              setFriendName(e.target.value);
               setError(false);
-          } }
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={closeDialog}>Annuler</Button>
-        <Button variant="outlined" onClick={() => setError(true)}>Set error</Button>
-        <Button variant="outlined" onClick={() => setLoading(!loading)}>Toggle loading</Button>
-        <LoadingButton loading={loading}>Ajouter</LoadingButton>
-      </DialogActions>
+              setSuccess(false);
+            } }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDialog}>Annuler</Button>
+          <LoadingButton type="submit" loading={loading}>Ajouter</LoadingButton>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 }
