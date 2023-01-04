@@ -25,7 +25,6 @@ function Home(props: {user: User}) {
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
-  console.log(user, isLogged);
 
   const customMessages = {
     notLogged: [
