@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import { TextField, Box, useTheme, Typography } from '@mui/material';
+import { fetch_opt } from '../dep/fetch';
 
 interface EditableNameProps {
   editable: boolean,
@@ -30,16 +31,20 @@ export default function EditableName(props: EditableNameProps)
     fontWeight: "bold",
   };
 
-  function quitEditing() {
-    // TODO: Change name query
-    setNewName(props.name);
+  async function quitEditing() {
+    const res = await fetch(`http://${window.location.hostname}:8190/user/change-name/${newName}`, fetch_opt());
+    const updtName = await res.text();
+    console.log(updtName);
+    setNewName(updtName);
+    props.fetch_userinfo();
+    // TODO: error handling
     setEditing(false);
   }
 
   const nameView = (
     <TextField
       size="small"
-      value={props.name}
+      value={newName}
       sx={{ ...viewNameStyle, input: {...textFieldFont} }}
       onClick={() => setEditing(true)}
     />
