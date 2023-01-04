@@ -13,19 +13,32 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { Socket, Server } from 'socket.io';
 import { fromAuthHeaderOAsBearerToken } from '../auth/jwt.strategy';
-import { User } from '@prisma/client';
+import { User, Game } from '@prisma/client';
 
 interface Client {
-  userId: number;
-  socketId: string;
+  userId: number
+  socketId: string
+}
+
+interface pingpongData {
+  first: number
+  second: number
+  third: number
+  fourth: number
+  fifth: number
 }
 
 type SocketUserAuth = Socket & {
-  user: User;
+  user: User
 };
 
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
+
+interface PlayGame {
+  game: Game
+  users: number[]
+}
 
 @WebSocketGateway(8192, {
   namespace: 'game',
@@ -45,12 +58,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private clients: Map<string, Client> = new Map();
 
-  private games: Map<number, number[]> = new Map();
+  private games: Map<number, PlayGame> = new Map();
 
-  // @UseGuards(JwtAuthGuard) <== Not supported for handleConnection
-  async handleConnection(socket: Socket) {
+  private async getUserWithToken(socket: Socket) {
     const token = fromAuthHeaderOAsBearerToken(socket);
-    const user = await (async () => {
+    return await (async () => {
       try {
         return this.jwtStrategy.validate(
           await this.jwtService.verify(token, {
@@ -62,12 +74,17 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return null;
       }
     })();
-    console.log('connection', socket.id);
+  }
+
+  // @UseGuards(JwtAuthGuard) <== Not supported for handleConnection
+  async handleConnection(socket: Socket) {
+    const user = await this.getUserWithToken(socket);
     if (!user) {
       // && demo) ??? ---> pouvoir laisser voir la demo aux hors-lignes
       socket.disconnect();
       return { success: false, gameid: -1 };
     }
+    console.log(user.name, 'has join.');
 
     const client: Client = {
       userId: user.id,
@@ -84,31 +101,39 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (socket.handshake?.query?.gameid == 'mygame' && user.playingAt) {
       console.log('Est-ce que la game peut commencer ?');
-      const oppId = (() => {
-        const players = user.playingAt.game.players.filter(
-          (a) => a.userId !== user.id,
+      if (user.playingAt.game.state === 'WAITING') {
+        const oppId = (() => {
+          const players = user.playingAt.game.players.filter(
+            (a) => a.userId !== user.id,
+          );
+          if (players[0]) return players[0].userId;
+          else return -1;
+        })();
+        const users = [...this.clients].filter(
+          ([key, val]) => val.userId === oppId,
         );
-        if (players[0]) return players[0].userId;
-        else return -1;
-      })();
-      const users = [...this.clients].filter(
-        ([key, val]) => val.userId === oppId,
-      );
-      if (users.length <= 0) {
-        console.log('Il vous manque encore un opposant !', oppId);
+        if (users.length <= 0) {
+          console.log('Il vous manque encore un opposant !', oppId);
+        } else {
+          console.log('oui');
+        }
+        gameId = user.playingAt.gameId;
       } else {
-        console.log('oui');
+          console.log('Elle a déjà commencé, tu es en retard !');
       }
-      gameId = user.playingAt.gameId;
     }
 
     if (gameId > 0) {
-      const game = this.games.get(gameId);
+      const game: PlayGame = this.games.get(gameId);
       if (game) {
-        game.push(user.id);
+        game.users.push(user.id);
       } else {
-        this.games.set(gameId, [user.id]);
+        this.games.set(gameId, {
+          game: user.playingAt.game,
+          users: [user.id]
+        } as PlayGame);
       }
+      console.log(this.games)
       return {
         // not send ??
         success: true,
@@ -118,24 +143,23 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(JwtAuthGuard)
-  handleDisconnect(@ConnectedSocket() socket: SocketUserAuth) {
+  async handleDisconnect(@ConnectedSocket() socket: SocketUserAuth) {
+    const user = await this.getUserWithToken(socket);
     this.clients.delete(socket.id);
-    if (socket.user) {
+    if (user) {
       this.games.forEach((game, gameId) => {
-        game.forEach((userId) => {
-          if (userId === socket.user.id) {
+        game.users.forEach((userId) => {
+          if (userId === user.id) {
             console.log('disconnected of game ', gameId);
-            const users = this.games.get(gameId);
+            game.users = game.users.filter((a) => a != userId)
             this.games.set(
               gameId,
-              users.filter((a) => a != userId),
+              game,
             );
           }
         });
       });
-      console.log(socket.user.name + ' disconnects', socket.id);
-    } else {
-      console.log('disconnection', socket.id);
+      console.log(user.name + ' has left.');
     }
   }
 
@@ -157,20 +181,28 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
   }*/
 
-  @UseGuards(JwtAuthGuard)
-  @SubscribeMessage('login')
-  handleLogin(
-    @MessageBody() data: string,
+  @SubscribeMessage('ping')
+  async ping(
+    @MessageBody() data: pingpongData,
     @ConnectedSocket() socket: SocketUserAuth,
   ) {
-    //console.log(socket.user);
-    return { success: true };
+    data.second = +new Date();
+    return data;
+  }
+
+  @SubscribeMessage('pong')
+  async pong(
+    @MessageBody() data: pingpongData,
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
+    data.fourth = +new Date();
+    return data;
   }
 
   /*@SubscribeMessage('login')
   handlerLogin(
     socket: Socket,
-    payload: any,
+    payload: { login: string, sessionid: string },
   )/*: { success: boolean; isPublisher?: boolean }* / {
     console.log('??')
     /*const [userName, roomName] = payload;

@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
+import { User, MatchMaking, Game, PlayerGame } from '@prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -14,8 +15,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: any) {
-    const user = await this.usersService.user({
+  async validate(payload: { login: string, sessionid: string }) {
+    const user: User & {
+      mMaking?: MatchMaking[],
+      games?: (PlayerGame & {
+        game: (Game & ({
+          players: PlayerGame[]
+        }))
+      })[]
+    } = await this.usersService.user({
       login: payload.login,
     });
     if (!user || user.sessionid != payload.sessionid) {
@@ -29,9 +37,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       name: user.name,
       sessionid: payload.sessionid,
       avatar: user.avatar,
-      mMaking: (user as any).mMaking, // Ca me fait légérement rire ce hack (et le ts, se veux mieux que le js ? LOL)
-      isPlaying: (user as any).games.length != 0,
-      playingAt: ((user as any).games || [])[0],
+      mMaking: user.mMaking,
+      isPlaying: user.games.length != 0,
+      playingAt: (user.games || [])[0],
     };
   }
 }

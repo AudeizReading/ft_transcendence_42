@@ -16,6 +16,14 @@ export interface dataCanvas {
   gameId: string | number;
 }
 
+interface pingpongData {
+  first: number,
+  second: number,
+  third: number,
+  fourth: number,
+  fifth: number
+}
+
 export function getPlayerPosition(player: dataPlayer) {
   if (player.at !== null && player.dir !== 0) {
     // https://stackoverflow.com/q/153507/
@@ -54,12 +62,36 @@ function LogicGame(props: {
   useEffect(() => {
     let socket: Socket;
     if (!ws_loaded.current) {
+      let latence = 0
+      let diff_datetime = 0
       socket = socketIOClient('ws://' + window.location.hostname + ':8192/game?page=game&gameid=' + String(props.data.gameId), {
         extraHeaders: fetch_opt().headers
       });
-      socket.emit('login', {}, (data: any) => {
-        console.log(data);
-      })
+
+      setTimeout(() => {
+        socket.emit('ping', {
+          first: +new Date(), // client
+          second: 0,
+          third: 0, // client
+          fourth: 0,
+          fifth: 0 // client
+        }, (data: pingpongData) => {
+          data.third = +new Date();
+          socket.emit('pong', data, (data: pingpongData) => {
+            data.fifth = +new Date();
+            latence = (data.fifth - data.first) / 2;
+            const [a, b, c, d] = [data.second - data.first, data.third - data.second,
+              data.fourth - data.third, data.fifth - data.fourth];
+            const diffs = [a - latence, -(b - latence), c - latence, -(d - latence)];
+            const diff_datetime = diffs.reduce(function(a, b) { return a + b; }, 0) / diffs.length;
+            console.info('latence', latence, 'diff_datetime', diff_datetime)
+            /*console.log(a, b, c, d, diff_time);
+            console.log(a - diff_time, b + diff_time, c - diff_time, d + diff_time, a + b + c + d, data.fifth - data.first);
+            console.log(data.third - data.first, data.fifth - data.third);
+            console.log(data.fourth - data.second);*/
+          });
+        });
+      }, 1000);
       /*socket.on('message', (data) => {
         console.log(data);
       });*/
