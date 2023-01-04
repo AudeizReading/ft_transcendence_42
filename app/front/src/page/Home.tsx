@@ -1,14 +1,11 @@
 import React from 'react';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
 import Grid from '@mui/system/Unstable_Grid';
 
 import { User } from '../interface/User';
-
-import {TimeContext} from '../contexts/TimeContext';
-import useWindowSize from '../hooks/useWindowSize';
 
 import Footer from './Footer';
 
@@ -17,11 +14,8 @@ import DateTime from '../component/DateTime';
 import AnalogicClock from '../component/AnalogicClock';
 
 function Home(props: {user: User}) {
-
   const [user, setUser] = useState(props.user);
   const [isLogged, setIsLogged] = useState(user.connected);
-  const windowHeight = useWindowSize().height;
-  const timeData = useContext(TimeContext);
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
@@ -34,20 +28,29 @@ function Home(props: {user: User}) {
   ]};
 
   function randomizeMessages() {
-    return (customMessages.notLogged[timeData.hours % (customMessages.notLogged.length - 1)]);
+    return (customMessages.notLogged[new Date().getHours() % (customMessages.notLogged.length - 1)]);
   }
 
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date());
+    })
+    return () => clearInterval(interval);
+  }, [time])
+
   const gridNotLogged = (
-      <Grid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{height: {xs: windowHeight - 120, lg: windowHeight - 90}}}>
+      <Grid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'}}}>
         <Grid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center'}}>
-          <DateTime component="h2"/>
+          <DateTime component="h2" time={time}/>
         </Grid>
 
         <Grid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
-          <Grid xs={12} md={5} mdOffset={7} sx={{position: 'relative', display: {xs: 'none', sm: 'flex'}, flexFlow: 'column', alignItems: 'center'}}>
-            <AnalogicClock stress={true}/>
-            <Grid xs={12} mdOffset={0} sx={{position: 'absolute', top: '62%',width: '100%', textAlign: 'center', zIndex: 10}}>
-              <Clock component="h6"/>
+          <Grid xs={12} md={5} mdOffset={7} sx={{position: 'relative', display: 'flex', flexFlow: 'column', alignItems: 'center'}}>
+            <AnalogicClock stress={true} time={time}/>
+            <Grid xs={12} mdOffset={0} sx={{position: 'absolute', top: '62%', width: '100%', textAlign: 'center', zIndex: 10}}>
+              <Clock component="h6" time={time}/>
             </Grid>
           </Grid>
 
@@ -61,7 +64,7 @@ function Home(props: {user: User}) {
   );
 
   return (
-    <Box component="main" sx={{ height: windowHeight, overflow: 'hidden' }}>
+    <Box component="main" sx={{ height: '100vh', overflow: 'auto' }}>
       {isLogged === false && <Fade in={true} timeout={400}>{gridNotLogged}</Fade>}
       <Footer />
     </Box>

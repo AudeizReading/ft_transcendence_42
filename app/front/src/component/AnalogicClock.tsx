@@ -1,20 +1,12 @@
-import {useState, useEffect, useContext} from 'react'
+import {useState, useEffect} from 'react'
 import Box from '@mui/material/Box'
 
-import {TimeContext} from '../contexts/TimeContext';
-import useWindowSize from '../hooks/useWindowSize';
-
-function AnalogicClock(props: any)
+function AnalogicClock(props: {
+  stress: boolean,
+  time: Date
+})
 {
-  const timeData = useContext(TimeContext);
-
-  const [seconds, setSeconds] = useState(timeData.seconds);
-  const [minutes, setMinutes] = useState(timeData.minutes);
-  const [hours, setHours] = useState(timeData.hours);
-
   const [pressure, setPressure] = useState(props.stress);
-  const windowHeight = useWindowSize().height;
-  const [clockDiameter, setClockDiameter] = useState(Math.round(windowHeight / 3));
 
   const styleNeutral = {
     position: 'relative',
@@ -25,7 +17,7 @@ function AnalogicClock(props: any)
     ...styleNeutral,
   };
 
-  const [styleWrap, setStyleWrap] = useState({
+  const [styleWrap] = useState({
     position: 'relative',
     borderRadius: '50%',
     backgroundColor: '#fff',
@@ -34,12 +26,16 @@ function AnalogicClock(props: any)
     borderTop: '5px solid #eee',
     borderRight: '5px solid #dee',
     boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
-    width: clockDiameter,
-    height: clockDiameter,
-    display: {xs: 'none', sm: 'block'},
-    transition: '',
+    width: '33vh',
+    height: '33vh',
+    maxWidth: 351,
+    minWidth: 99,
+    maxHeight: 351,
+    minHeight: 99,
+    display: 'block',
+    transition: 'height 0.15s ease-in-out, width 0.15s ease-in-out',
     m: 'auto'
-  });
+  } as any);
 
   const [styleNeedles, setStyleNeedles] = useState({
     position: 'absolute',
@@ -97,28 +93,17 @@ function AnalogicClock(props: any)
     m: 'auto'
   };
 
-  // update des secondes
-  useEffect(() => {seconds !== timeData.seconds && setSeconds(timeData.seconds)}, [timeData.seconds]);
-  // update des minutes
-  useEffect(() => {minutes !== timeData.minutes && setMinutes(timeData.minutes)}, [timeData.minutes]);
-  // update des heures
-  useEffect(() => {hours !== timeData.hours && setHours(timeData.hours)}, [timeData.hours]);
+  const [time, setTime] = useState(new Date());
 
   useEffect(() => {
-    setClockDiameter(Math.round(windowHeight / 3))
-  }, [windowHeight]);
-
-  useEffect(() => {
-    if (clockDiameter < 351 && clockDiameter > 99)
-      setStyleWrap({...styleWrap, width: clockDiameter, height: clockDiameter, transition: 'height 0.15s ease-in-out, width 0.15s ease-in-out'})
-  }, [clockDiameter]);
-
-  // update de l'aiguille des secondes
-  useEffect(() => setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${seconds * 6}deg)`}), [seconds]);
-  // update de l'aiguille des minutes
-  useEffect(() => setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${minutes * 6}deg)`}), [minutes]);
-  // update de l'aiguille des heures
-  useEffect(() => setStyleNeedles({...styleNeedles, transform: `rotate(${hours * 30}deg)`}), [hours]);
+    const interval = setInterval(() => {
+      setTime(new Date());
+      setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${time.getSeconds() * 6}deg)`})
+      setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${time.getMinutes() * 6}deg)`})
+      setStyleNeedles({...styleNeedles, transform: `rotate(${time.getHours() * 30}deg)`})
+    })
+    return () => clearInterval(interval);
+  }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles])
 
   const [styleTic, setStyleTic] = useState({
     display: {xs: 'none', sm: 'block'},
@@ -141,14 +126,17 @@ function AnalogicClock(props: any)
 
   // On peut choisir de mettre la pression au visiteur, dans ce cas un TIC TAC apparait a cote de l'horloge
   useEffect(() => {props.stress === true && setPressure(true)}, [props.stress]);
-  useEffect(() => {pressure === false && setStyleTic({...styleTic, display: {xs: 'none', sm: 'none'}})}, [pressure]);
-  useEffect(() => {pressure === false && setStyleTac({...styleTac, display: {xs: 'none', sm: 'none'}})}, [pressure]);
-
+  useEffect(() => {
+    if (pressure === false) {
+      setStyleTic({...styleTic, display: {xs: 'none', sm: 'none'}})
+      setStyleTac({...styleTac, display: {xs: 'none', sm: 'none'}})
+    }
+  }, [pressure, styleTic, styleTac]);
 
   return (
     <Box component="div" sx={styleClock}>
       <Box component="div" sx={styleNeutral}>
-        <Box component="span" sx={styleTic}>{(seconds % 2) === 1 && "TIC"}</Box>
+        <Box component="span" sx={styleTic}>{(time.getSeconds() % 2) === 1 && "TIC"}</Box>
       </Box>
       <Box component="div" sx={styleWrap}>
         <Box component="span" sx={styleNeedles}></Box> 
@@ -157,7 +145,7 @@ function AnalogicClock(props: any)
         <Box component="span" sx={styleCenterClock}></Box>
       </Box>
       <Box component='div' sx={styleNeutral}>
-        <Box component="span" sx={styleTac}>{(seconds % 2) === 0 && "TAC"}</Box>
+        <Box component="span" sx={styleTac}>{(time.getSeconds() % 2) === 0 && "TAC"}</Box>
       </Box>
     </Box>);
 }
