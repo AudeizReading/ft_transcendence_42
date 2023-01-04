@@ -3,7 +3,7 @@ export default interface Friend {
   name: string,
   avatar: string,
   status: "offline" | "online" | "playing",
-  friend_status: "pending" | "accepted",
+  friend_status: "requested" | "pending" | "accepted",
   games_played: number,
   games_won: number,
 }

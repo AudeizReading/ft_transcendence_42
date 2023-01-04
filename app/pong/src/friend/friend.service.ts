@@ -7,7 +7,7 @@ export interface FriendForFront {
   name: string,
   avatar: string,
   status: 'offline' | 'online' | 'playing',
-  friend_status: 'pending' | 'accepted',
+  friend_status: 'requested' | 'pending' | 'accepted',
   games_played: number,
   games_won: number,
 }
@@ -42,9 +42,9 @@ export class FriendService {
   async deleteFriendship(fromId: number, toId: number)
   {
     await this.prisma.friend.deleteMany({
-      where: { // FIXME this just isn't a thing
-        userAId: +fromId | +toId,
-        userBId: +toId | +fromId,
+      where: {
+        userAId: +fromId,
+        userBId: +toId,
       }
     });
     console.log(`Users ${fromId} and ${toId} are no longer friends.`);
@@ -83,7 +83,6 @@ export class FriendService {
     });
   }
 
-  // FIXME: shows own requests
   async objectForFront(userId: number): Promise<FriendForFront[]> {
     const friends: FriendForFront[] = [];
     const data = await this.friends({
@@ -109,12 +108,18 @@ export class FriendService {
         },
       },
     });
+
+    const getFriendStatus = (fromId: number, state: string) => {
+      if (fromId === userId && state === 'WAITING')
+        return "requested";
+      return (state === 'WAITING' ? "pending" : "accepted");
+    }
+
     data.forEach((item: Friend & {
       userA: User & { games: Game[] },
       userB: User & { games: Game[] }
     }) => {
       const user = (item.userA.id !== userId) ? item.userA : item.userB;
-      // const user = item.userA;
       friends.push({
         id: user.id,
         name: user.name,
@@ -123,11 +128,12 @@ export class FriendService {
               '://' + process.env.FRONT_HOST,
             ),
         status: 'offline', // TODO: "offline" | "online" | "playing"
-        friend_status: (item.state === 'WAITING') ? 'pending' : 'accepted',
+        friend_status: getFriendStatus(item.userAId, item.state),
         games_played: user.games.length,
         games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
       });
     });
+
     return friends;
   }
 }

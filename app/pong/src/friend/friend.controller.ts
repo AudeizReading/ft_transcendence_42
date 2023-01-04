@@ -42,6 +42,12 @@ export class FriendController {
   async remove(@Request() req, @Param() param: ParamId) {
     this.friendService.deleteFriendship(param.id, req.user.id);
   }
+  
+  @Get(':id/cancelrequest')
+  @UseGuards(JwtAuthGuard)
+  async cancelRequest(@Request() req, @Param() param: ParamId) {
+    this.friendService.deleteFriendship(req.user.id, param.id);
+  }
 
   @Get(':name/request')
   @UseGuards(JwtAuthGuard)

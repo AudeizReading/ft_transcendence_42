@@ -80,7 +80,11 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
   return (
     <Box component="main">
 
-      <AddFriendDialog fetch_userinfo={props.fetch_userinfo} addingFriend={addingFriend} setAddingFriend={setAddingFriend} />
+      <AddFriendDialog
+        fetch_userinfo={props.fetch_userinfo}
+        addingFriend={addingFriend}
+        setAddingFriend={setAddingFriend}
+      />
       
       <Box display="flex" alignItems="center" sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <TextField
@@ -125,22 +129,19 @@ function AddFriendDialog(props: {
   const {addingFriend, setAddingFriend} = props;
   const [friendName, setFriendName] = useState("");
   const [loading, setLoading] = useState(false); // Do I NEED a state for that?
-  const [isError, setError] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [status, setStatus] = useState("neutral") // "neutral" | "success" | "failure"
   const textFieldRef = useRef<any>(null);
 
   function closeDialog() {
     setAddingFriend(false);
     setFriendName("");
-    setError(false);
-    setLoading(false);
-    setSuccess(false);
+    setStatus("neutral");
   }
 
   function getFieldLabel() {
-    if (isError)
+    if (status === "error")
       return "Impossible d'ajouter l'ami";
-    else if (success)
+    else if (status === "success")
       return "Demande d'ami envoyée !";
     else
       return "Nom de l'ami à ajouter";
@@ -153,14 +154,10 @@ function AddFriendDialog(props: {
 
     setLoading(true);
     const result = await fetch(`http://${window.location.hostname}:8190/friend/${friendName}/request`, fetch_opt());
-    const req_success: boolean = await result.json();
-    if (!req_success) {
-      setError(true);
-    }
-    else {
-      setSuccess(true);
-    }
+    const success: boolean = await result.json();
+    setStatus(success ? "success" : "error");
     textFieldRef.current!.focus();
+    props.fetch_userinfo(); // Update to get friend request in background
     setLoading(false);
   }
 
@@ -172,19 +169,18 @@ function AddFriendDialog(props: {
           <TextField
             autoFocus
             inputRef={textFieldRef}
-            error={isError}
+            error={status === "error"}
             margin="dense"
             id="name"
             label={getFieldLabel()}
             type="search"
             variant="outlined"
-            color={success ? "success" : "primary"}
+            color={status === "success" ? "success" : "primary"}
             fullWidth
             value={friendName}
             onChange={ (e : any) => {
               setFriendName(e.target.value);
-              setError(false);
-              setSuccess(false);
+              setStatus("neutral");
             } }
           />
         </DialogContent>
@@ -204,7 +200,7 @@ function FriendActionButtons(props: {
     user: User,
     fetch_userinfo: Function,
     id: number,
-    friend_status: "pending" | "accepted"
+    friend_status: "requested" | "pending" | "accepted"
   })
 {
   async function callFriendController(action: string) {
@@ -227,12 +223,11 @@ function FriendActionButtons(props: {
     </Box>
   );
 
-  // NOTE: Will be used later
   const requestedFriend = (
     <Box component="span">
-      <p>Invitation sent</p>
+      <span>Invitation envoyée</span>
       <Tooltip title="Annuler la demande d'ami" arrow disableInteractive>
-        <IconButton color="error">
+        <IconButton color="error" onClick={() => callFriendController("cancelrequest")}>
           <CloseIcon/>
         </IconButton>
       </Tooltip>
@@ -259,7 +254,7 @@ function FriendActionButtons(props: {
     </Box>
   );
 
-  // if (props.user.id === props.id)
-  //   return requestedFriend;
+  if (props.friend_status === "requested")
+    return requestedFriend;
   return (props.friend_status === "pending" ? pendingFriend : knownFriend);
 }
