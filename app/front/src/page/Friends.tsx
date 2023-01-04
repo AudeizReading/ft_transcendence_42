@@ -68,30 +68,29 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
   // ========================================================================== //
   // ========================================================================== //
 
-  const gridRows = props.user.friends;
   const [search, setSearch] = useState("");
-  const [addingFriend, setAddingFriend] = useState(false);
-
-  const filteredRows = gridRows.filter(
+  const [addingFriend, setAddingFriend] = useState(false); // Turns on or off popup
+  // Filter the rows of the table with the search bar
+  const gridRows = props.user.friends.filter(
     (row: Friend) => row.name.toLowerCase().includes(search.toLowerCase())
   );
 
   // TODO: Fix the ugly percent height ( doesn't look good when screen is resized too much)
   return (
-    <Box component="main">
-
+    <Box component="main" sx={{mt: 1}}>
       <AddFriendDialog
         fetch_userinfo={props.fetch_userinfo}
         addingFriend={addingFriend}
         setAddingFriend={setAddingFriend}
       />
-      
+
       <Box display="flex" alignItems="center" sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <TextField
           id="search-friend"
           label="Rechercher un ami"
           variant="outlined"
           fullWidth
+          type="search"
           value={search}
           onChange={ (e : any) => setSearch(e.target.value) }
         />
@@ -103,10 +102,10 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
           Ajouter un ami
         </Button>
       </Box>
-      
+
       <Box sx={{ height: '91%', maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
         <DataGrid
-          rows={filteredRows}
+          rows={gridRows}
           columns={gridColums}
           pageSize={50}
           rowsPerPageOptions={[]}
@@ -115,7 +114,6 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
           disableColumnMenu
         />
       </Box>
-
     </Box>
   );
 }
@@ -130,7 +128,7 @@ function AddFriendDialog(props: {
   const [friendName, setFriendName] = useState("");
   const [loading, setLoading] = useState(false); // Do I NEED a state for that?
   const [status, setStatus] = useState("neutral") // "neutral" | "success" | "failure"
-  const textFieldRef = useRef<any>(null);
+  const textFieldRef = useRef<HTMLInputElement>(null); // Used to refocus on the text field
 
   function closeDialog() {
     setAddingFriend(false);
@@ -151,7 +149,6 @@ function AddFriendDialog(props: {
     e.preventDefault();
     if (friendName.length === 0)
       return;
-
     setLoading(true);
     const result = await fetch(`http://${window.location.hostname}:8190/friend/${friendName}/request`, fetch_opt());
     const success: boolean = await result.json();
