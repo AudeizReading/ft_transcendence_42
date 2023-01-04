@@ -19,7 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       login: payload.login,
     });
     if (!user || user.sessionid != payload.sessionid) {
-      throw new UnauthorizedException('Invalid payload');
+      console.error('Invalid payload');
+      return false;
     }
     // You can add user data in `req.user` for the controller
     return {
