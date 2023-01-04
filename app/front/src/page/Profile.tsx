@@ -9,6 +9,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
+import EditableName from '../component/EditableName';
 
 function Profile(props: { 
     fetch_userinfo: Function,
@@ -99,19 +100,35 @@ function Profile(props: {
               visibility: 'hidden',
               opacity: 0,
               transition: 'all 0.1s linear'
-            } }}>
+            } }}
+          >
             <Avatar
               alt={user.name}
               src={user.avatar}
               sx={{ width: '100%', height: '100%' }}
             />
-            {user.id !== null && user.id === props.user.id && <Fab className="editIcon" color="secondary" aria-label="upload avatar" component="label"
-                 sx={{ position: 'absolute', top: '190px', right: '10px' }}>
-              <input hidden accept="image/*" type="file" onChange={handleCapture} />
-              <EditIcon />
-            </Fab>}
+            {
+              user.id !== null && user.id === props.user.id &&
+                <Fab
+                  className="editIcon"
+                  color="primary"
+                  component="label"
+                  sx={{ position: 'absolute', top: '190px', right: '10px' }}
+                >
+                  <input hidden accept="image/*" type="file" onChange={handleCapture} />
+                  <EditIcon />
+                </Fab>
+            }
           </Box>
-          <h1>{user.name}</h1>
+
+          <Box sx={{m: 1}}>
+            <EditableName
+              editable={user.id !== null && user.id === props.user.id}
+              name={user.name}
+              fetch_userinfo={props.fetch_userinfo}
+            />
+          </Box>
+
         </Grid>
         <Grid xs={12} item alignItems="center">
           <Box
