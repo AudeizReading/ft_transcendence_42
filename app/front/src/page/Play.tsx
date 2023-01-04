@@ -21,7 +21,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-function Play(props: { 
+function Play(props: {
+    loaded: boolean,
     fetch_userinfo: Function,
     user: User
   }) {
@@ -210,7 +211,7 @@ function Play(props: {
               opacity: 0.42,
               mixBlendMode: 'multiply'
             }}>
-              <CanvasGame gameId="demo" />
+             {props.loaded && <CanvasGame gameId="demo" />}
             </Box>
           </Grid>
           <Grid item xs={12} md={4} sx={{

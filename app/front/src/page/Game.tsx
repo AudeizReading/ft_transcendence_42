@@ -5,7 +5,8 @@ import { useParams } from 'react-router-dom';
 import { User } from '../interface/User'
 import CanvasGame from '../component/CanvasGame';
 
-function Game(props: { 
+function Game(props: {
+    loaded: boolean,
     user: User
   }) {
   const [ message, setMessage ] = useState('Chargement…')
@@ -23,10 +24,10 @@ function Game(props: {
 
   return (
     <Box component="main" style={{ backgroundColor: "blue", height:"400px", overflow:"hidden" }}>
-      {gameid
+      {props.loaded && (gameid
         ? <CanvasGame gameId={gameid} playable border="3px solid black" />
-        : <Box component="p">{message}</Box>
-      }
+        : <Box component="p">{message || 'loading…'}</Box>
+      )}
     </Box>
   );
 }

@@ -115,12 +115,12 @@ function App() {
 
   useEffect(() => {
     const refresh = (bool: boolean) => {
-      if (bool) {
+      if (bool && !alreadyOpen) {
         fetch_userinfo();
         fetched_firsttime.current = true;
       }
       clearTimeout(timeout.current);
-      timeout.current = setTimeout(refresh, alreadyOpen ? 450000 : (loaded && user.matchmaking_state !== null ? 3000 : 8000), 1);
+      timeout.current = setTimeout(refresh, loaded && user.matchmaking_state !== null ? 3000 : 8000, true);
       // TODO: Better? Socket.io?
     };
     refresh(!fetched_firsttime.current);
@@ -171,7 +171,7 @@ function App() {
       //window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('click_iamfirst', handleDialogClose);
     };
-  }, [alreadyOpen, fetch_userinfo, isNotAuth, user]);
+  }, [loaded, alreadyOpen, fetch_userinfo, isNotAuth, user]);
 
   return (
     <TimeProvider>
@@ -228,9 +228,9 @@ function App() {
           {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
           <Routes>
             <Route index path="/" element={<Home user={user}/>} />
-            <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} />} />
-            <Route path="/game/:gameid" element={<Game user={user} />} />
-            <Route path="/game/" element={<Game user={user} />} />
+            <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
+            <Route path="/game/:gameid" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />
+            <Route path="/game/" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />
             <Route path="/score" element={<Score />} />
             <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
             <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />

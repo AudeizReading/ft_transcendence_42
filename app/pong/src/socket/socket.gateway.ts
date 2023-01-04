@@ -84,6 +84,15 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.disconnect();
       return { success: false, gameid: -1 };
     }
+    const iterator1 = this.clients[Symbol.iterator]();
+
+    for (const item of iterator1) {
+      if (item[1].userId === user.id) {
+        console.log('double connexion!')
+        socket.disconnect();
+        return { success: false, gameid: -1 };
+      }
+    }
     console.log(user.name, 'has join.');
 
     const client: Client = {
@@ -145,6 +154,8 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseGuards(JwtAuthGuard)
   async handleDisconnect(@ConnectedSocket() socket: SocketUserAuth) {
     const user = await this.getUserWithToken(socket);
+    if (!this.clients.get(socket.id))
+      return ;
     this.clients.delete(socket.id);
     if (user) {
       this.games.forEach((game, gameId) => {
