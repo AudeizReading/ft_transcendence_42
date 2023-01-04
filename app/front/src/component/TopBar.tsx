@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -59,6 +60,7 @@ function TopBar(props: {
     fetch_userinfo: Function,
     user: User
   }) {
+  const theme = useTheme();
 
   const [user, setUser] = useState({...props.user});
 
@@ -179,7 +181,7 @@ function TopBar(props: {
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ flexWrap: 'wrap' }}>
           <SportsSoccer sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
             variant="h6"
@@ -225,7 +227,12 @@ function TopBar(props: {
               {drawer}
             </Drawer>
           </Box>
-          <SportsSoccer sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+          <SportsSoccer sx={{ display: {
+            xs: 'flex', md: 'none',
+            [theme.breakpoints.down(320)]: {
+              display: 'none',
+            },
+          }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
@@ -233,7 +240,12 @@ function TopBar(props: {
             to="/"
             sx={{
               mr: 2,
-              display: { xs: 'flex', md: 'none' },
+              display: {
+                xs: 'flex', md: 'none',
+                [theme.breakpoints.down(320)]: {
+                  display: 'none',
+                },
+              },
               flexGrow: 1,
               fontFamily: 'monospace',
               fontWeight: 700,
