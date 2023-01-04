@@ -61,7 +61,7 @@ function Home(props: {user: User}) {
   );
 
   return (
-    <Box component="main" sx={{ backgroundColor: "green", height: windowHeight, overflow: 'hidden' }}>
+    <Box component="main" sx={{ height: windowHeight, overflow: 'hidden' }}>
       {isLogged === false && <Fade in={true} timeout={400}>{gridNotLogged}</Fade>}
       <Footer />
     </Box>
