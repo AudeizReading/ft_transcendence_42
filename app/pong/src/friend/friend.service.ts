@@ -84,7 +84,7 @@ export class FriendService {
   }
 
   async objectForFront(userId: number): Promise<FriendForFront[]> {
-    const friends: FriendForFront[] = [];
+    // const friends: FriendForFront[] = [];
     const data = await this.friends({
       where: {
         OR: [
@@ -115,23 +115,29 @@ export class FriendService {
       return (state === 'WAITING' ? "pending" : "accepted");
     }
 
-    data.forEach((item: Friend & {
-      userA: User & { games: Game[] },
-      userB: User & { games: Game[] }
-    }) => {
-      const user = (item.userA.id !== userId) ? item.userA : item.userB;
-      friends.push({
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar.replace(
-              '://<<host>>',
-              '://' + process.env.FRONT_HOST,
-            ),
-        status: 'offline', // TODO: "offline" | "online" | "playing"
-        friend_status: getFriendStatus(item.userAId, item.state),
-        games_played: user.games.length,
-        games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
-      });
+    const friends = data.map((item: Friend & {
+        userA: User & { games: Game[] },
+        userB: User & { games: Game[] }
+      }) => {
+        const user = (item.userA.id !== userId) ? item.userA : item.userB;
+        return {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar.replace(
+                '://<<host>>',
+                '://' + process.env.FRONT_HOST,
+              ),
+          status: 'offline', // TODO: "offline" | "online" | "playing"
+          friend_status: getFriendStatus(item.userAId, item.state),
+          games_played: user.games.length,
+          games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
+        } as FriendForFront;
+      })
+      .sort((a, b) => { // Sorts in the order described in the array
+        const statusOrder = ["pending", "requested", "accepted"];
+        const statusA = statusOrder.findIndex((status) => status === a.friend_status);
+        const statusB = statusOrder.findIndex((status) => status === b.friend_status);
+        return statusA - statusB;
     });
 
     return friends;
