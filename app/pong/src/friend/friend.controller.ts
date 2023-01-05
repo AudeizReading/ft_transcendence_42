@@ -58,7 +58,7 @@ export class FriendController {
         return false;
       }
       console.log(`Target: ${target_user.name}`);
-      await this.friendService.createFriend(req.user.id, target_user.id);
+      await this.friendService.createFriend(req.user.name, req.user.id, target_user.id);
       return true;
     }
     catch (error) {

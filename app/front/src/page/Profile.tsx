@@ -6,10 +6,14 @@ import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, Typography } from '@mui/material';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
+import EditableName from '../component/EditableName';
+import ProfileActionButtons from '../component/ProfileActionButtons';
 
+// TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: { 
     fetch_userinfo: Function,
     user: User
@@ -40,7 +44,7 @@ function Profile(props: {
             name: result.name,
             avatar: result.avatar,
             wins: result.wins,
-            loses: result.loses
+            loses: result.loses,
           })
         },
         (error) => {
@@ -79,6 +83,8 @@ function Profile(props: {
       )
   };
 
+  const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
+
   return (
     <Box component="main" sx={{ textAlign: 'center' }}>
     {loaded &&
@@ -99,21 +105,45 @@ function Profile(props: {
               visibility: 'hidden',
               opacity: 0,
               transition: 'all 0.1s linear'
-            } }}>
+            } }}
+          >
             <Avatar
               alt={user.name}
               src={user.avatar}
               sx={{ width: '100%', height: '100%' }}
             />
-            {user.id !== null && user.id === props.user.id && <Fab className="editIcon" color="secondary" aria-label="upload avatar" component="label"
-                 sx={{ position: 'absolute', top: '190px', right: '10px' }}>
-              <input hidden accept="image/*" type="file" onChange={handleCapture} />
-              <EditIcon />
-            </Fab>}
+            {
+              isOwnProfile &&
+                <Fab
+                  className="editIcon"
+                  color="primary"
+                  component="label"
+                  sx={{ position: 'absolute', top: '190px', right: '10px' }}
+                >
+                  <input hidden accept="image/*" type="file" onChange={handleCapture} />
+                  <EditIcon />
+                </Fab>
+            }
           </Box>
-          <h1>{user.name}</h1>
+
+          <Box>
+            <EditableName
+              editable={isOwnProfile}
+              name={user.name}
+              fetch_userinfo={props.fetch_userinfo}
+            />
+          </Box>
+
         </Grid>
         <Grid xs={12} item alignItems="center">
+          <Box sx={{m: 1}}>
+            <ProfileActionButtons
+              disabled={isOwnProfile}
+              fetch_userinfo={props.fetch_userinfo}
+              currentUserFriends={props.user.friends}
+              profileUser={user}
+            />
+          </Box>
           <Box
             sx={{
               display: 'flex',
@@ -134,6 +164,14 @@ function Profile(props: {
             <Paper variant="outlined">
               <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
               <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
+            </Paper>
+            <Paper variant="outlined" sx={{p: 0, m: 0}}>
+              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 0, top: 0, padding: 0 }}>Parties jouées</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.loses}</p>
+            </Paper>
+            <Paper variant="outlined">
+              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{((user.wins / (user.loses || 1))).toFixed(2)}</p>
             </Paper>
           </Box>
         </Grid>

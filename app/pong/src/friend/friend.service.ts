@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Friend, User, Game, Prisma } from '@prisma/client';
+import { NotifService } from 'src/notif/notif.service';
 
 export interface FriendForFront {
   id: number,
@@ -14,15 +15,24 @@ export interface FriendForFront {
 
 @Injectable()
 export class FriendService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notif: NotifService,
+  ) {}
 
-  async createFriend(userAId: number, userBId: number): Promise<Friend> {
-    return this.prisma.friend.create({
+  async createFriend(userA_name: string, userAId: number, userBId: number): Promise<Friend>
+  {
+    const newFrienship = await this.prisma.friend.create({
       data: {
         userAId,
         userBId
       },
     });
+    this.notif.createNotif(userBId, {
+      text: `${userA_name} vous a envoyé une demande d'ami`,
+      url: `user/${userAId}`,
+    });
+    return newFrienship;
   }
 
   async acceptFriendRequest(fromId: number, toId: number)
@@ -43,8 +53,10 @@ export class FriendService {
   {
     await this.prisma.friend.deleteMany({
       where: {
-        userAId: +fromId,
-        userBId: +toId,
+        OR: [
+          { userAId: +fromId, userBId: +toId },
+          { userAId: +toId, userBId: +fromId },
+        ]
       }
     });
     console.log(`Users ${fromId} and ${toId} are no longer friends.`);

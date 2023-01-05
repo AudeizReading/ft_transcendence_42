@@ -143,4 +143,20 @@ export class UsersController {
     resp.set('Content-Type', file.name.replace(/^(.*)\./, 'image/'));
     return new StreamableFile(file.content);
   }
+
+  // TODO: Change this to a POST request, I just don't know how yet
+  // and I don't have the time right now
+  @Get('user/change-name/:newname')
+  @UseGuards(JwtAuthGuard)
+  async change_name(@Request() req, @Param() params: any)
+  {
+    // TODO: Indicate it's an error with codes and shit
+    if (params.newname.length > 32 || params.newname.length < 4)
+      return req.user.name;
+
+    return this.usersService.updateUser({
+      where: {id: req.user.id},
+      data: {name: params.newname}
+    }).then((user) => user.name);
+  }
 }
