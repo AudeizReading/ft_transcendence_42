@@ -10,7 +10,6 @@ import { GameModule } from './game/game.module';
 import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { SocketModule } from './socket/socket.module';
 import { GameMatchMaking } from './game/game.matchmaking';
 
 @Module({
@@ -26,7 +25,6 @@ import { GameMatchMaking } from './game/game.matchmaking';
     FriendModule,
     UsersModule,
     NotifModule,
-    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],
