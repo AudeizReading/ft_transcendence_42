@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { TextField, Box, useTheme, Typography } from '@mui/material';
+import { TextField, useTheme } from '@mui/material';
 import { fetch_opt } from '../dep/fetch';
 
 interface EditableNameProps {
