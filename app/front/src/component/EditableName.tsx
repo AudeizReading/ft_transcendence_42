@@ -56,6 +56,7 @@ export default function EditableName(props: EditableNameProps)
       size="small"
       value={name}
       sx={{ ...viewNameStyle, textArea: {...textFieldFont} }}
+      InputProps={{ readOnly: true }}
       onClick={() => setEditing(props.editable)}
     />
   );
@@ -70,6 +71,12 @@ export default function EditableName(props: EditableNameProps)
       onBlur={quitEditing}
       onChange={(e: any) => setNewName(e.target.value)}
       inputProps={{maxLength: 32}}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          quitEditing();
+        }
+      }}
     />
   );
 

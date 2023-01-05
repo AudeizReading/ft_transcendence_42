@@ -6,6 +6,7 @@ import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, Typography } from '@mui/material';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
@@ -163,6 +164,14 @@ function Profile(props: {
             <Paper variant="outlined">
               <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
               <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
+            </Paper>
+            <Paper variant="outlined" sx={{p: 0, m: 0}}>
+              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 0, top: 0, padding: 0 }}>Parties jouées</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.loses}</p>
+            </Paper>
+            <Paper variant="outlined">
+              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
+              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{((user.wins / (user.loses || 1))).toFixed(2)}</p>
             </Paper>
           </Box>
         </Grid>
