@@ -295,13 +295,13 @@ function TopBar(props: {
               anchorEl={anchorElNotif}
               open={Boolean(anchorElNotif)}
               onClose={handleCloseNotifMenu}
-              onClick={handleCloseNotifMenu}
+              // onClick={handleCloseNotifMenu}
               PaperProps={{
                 elevation: 0,
                 sx: {
                   overflow: 'visible',
                   filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                  maxWidth: 350,
+                  width: 400,
                   maxHeight: user.notifs.num ? '80%' : '102px',
                   mt: 1,
                   '&.MuiPaper-root': { height: '100%' },
@@ -352,6 +352,8 @@ function TopBar(props: {
               </MenuItem>
               <MenuItem key="content" disableGutters={true} disableRipple={true}
                 sx={{
+                  textAlign: 'center',
+                  display: 'block',
                   overflow: 'auto',
                   '&:hover': {
                     bgcolor: 'inherit'
@@ -361,6 +363,7 @@ function TopBar(props: {
                 <NotifList
                   notifs={user.notifs}
                   handleCloseNotifMenu={handleCloseNotifMenu}
+                  fetch_userinfo={props.fetch_userinfo}
                 />
               </MenuItem>
               {/* <MenuItem key="bottom" disableGutters={true} disableRipple={true}

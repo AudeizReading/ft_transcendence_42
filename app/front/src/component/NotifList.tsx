@@ -4,10 +4,12 @@ import { Box, IconButton, List, ListItem, ListItemButton, ListItemText } from '@
 import DeleteIcon from '@mui/icons-material/Delete';
 import { NotifContainerType } from '../interface/User';
 import { Link as RouterLink } from 'react-router-dom';
+import { fetch_opt } from '../dep/fetch';
 
 interface NotifListProps {
   handleCloseNotifMenu: () => void,
   notifs: NotifContainerType,
+  fetch_userinfo: Function,
 }
 
 // { user.notifs.num ?
@@ -42,15 +44,19 @@ interface NotifListProps {
 
 export default function NotifList(props: NotifListProps)
 {
-  if (!props.notifs.num)
-    return (
-      <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 0 }}>
-        Vous n'avez aucune notification !
-      </Box>
-  );
+  if (!props.notifs.num) {
+    return <p>Vous n'avez aucune notification !</p>;
+  }
 
-  const deleteNotifButton = (
-    <IconButton edge="end" onClick={() => alert("I work!")}>
+  const getDeleteNotifButton = (id: number) => (
+    <IconButton
+      edge="end"
+      // TODO: Error handling?
+      onClick={async () => {
+        await fetch(`http://${window.location.hostname}:8190/notif/delete/${id}`, fetch_opt());
+        props.fetch_userinfo();
+      }}
+    >
       <DeleteIcon />
     </IconButton>
   );
@@ -58,23 +64,18 @@ export default function NotifList(props: NotifListProps)
   const notifListJSX = props.notifs.arr.map( (notif, index) =>
     <ListItem
       key={index}
-      sx={{ display: 'block', p: 0, m: 0 }}
+      sx={{ p: 0, m: 0 }}
       divider={index < props.notifs.arr.length - 1}
       onClick={props.handleCloseNotifMenu}
       // Make this a RouterLink only if there's a URL in the notif
       { ...(notif.url ? {component: RouterLink, to: notif.url} : {}) }
-      secondaryAction={deleteNotifButton}
+      secondaryAction={getDeleteNotifButton(notif.id)}
     >
       <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
-        <Box sx={{
-          color: notif.read ? 'grey' : 'text.primary',
-          display: 'block',
-          fontWeight: 'medium',
-          whiteSpace: 'normal' }}
-        >
+        <Box sx={{color: notif.read ? 'grey' : 'text.primary', whiteSpace: 'normal'}} >
           {notif.text}
         </Box>
-        <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
+        <Box sx={{ color: 'text.secondary', fontSize: 11, textAlign: 'right' }} >
           {new Date(notif.date).toLocaleString()}
         </Box>
       </ListItemButton>
