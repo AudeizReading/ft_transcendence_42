@@ -146,7 +146,7 @@ export class FriendService {
         } as FriendForFront;
       })
       .sort((a, b) => { // Sorts in the order described in the array
-        const statusOrder = ["pending", "requested", "accepted"];
+        const statusOrder = ["pending", "accepted", "requested"];
         const statusA = statusOrder.findIndex((status) => status === a.friend_status);
         const statusB = statusOrder.findIndex((status) => status === b.friend_status);
         return statusA - statusB;
