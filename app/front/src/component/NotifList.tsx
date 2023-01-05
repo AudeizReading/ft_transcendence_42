@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { Box, IconButton, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Box, IconButton, List, ListItem, ListItemButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { NotifContainerType } from '../interface/User';
 import { Link as RouterLink } from 'react-router-dom';
