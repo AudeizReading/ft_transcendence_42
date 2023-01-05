@@ -1,6 +1,7 @@
 import Friend from './Friend'
 
 export interface NotifDataType { /* also in back */
+  id: number,
   text: string;
   date: string;
   url?: string | null;

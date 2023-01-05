@@ -18,6 +18,7 @@ export interface ActionRedirContent {
 }
 
 export interface NotifDataType {
+  id: number,
   text: string;
   date: string;
   url?: string | null;
@@ -146,6 +147,7 @@ export class NotifService {
         }
       })();
       container.push({
+        id: item.id,
         text: content['text'] || null,
         date: item.createdAt,
         url: content['url'] || null,
