@@ -72,6 +72,20 @@ export class GameService {
     });
   }
 
+  async updateGame(params: {
+    where: Prisma.GameWhereUniqueInput;
+    data: Prisma.GameUpdateInput;
+  }): Promise<Game & { players: PlayerGame[] }> {
+    const { where, data } = params;
+    return this.prisma.game.update({
+      data,
+      where,
+      include: {
+        players: true,
+      },
+    });
+  }
+
   async createGame(
     userId1: number,
     userId2: number | null,

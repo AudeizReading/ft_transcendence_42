@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, point, plane } from '../dep/minirt_functions'
-import LogicGame, { dataCanvas, getPlayerPosition } from './LogicGame';
+import { v_dot, v_sub, v_scale, v_norm, pl_intersect, pl_time_to_vector, DataElement, DataGame, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
+import LogicGame, { getPlayerPosition } from './LogicGame';
 
-function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas) {
+function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, gameId: string | number) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   /*context.fillStyle = 'black';
   context.beginPath();
@@ -27,7 +27,7 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
   context.font = 'small-caps bold 12px/1 sans-serif';
   context.textAlign = 'right';
   context.textBaseline = 'bottom';
-  context.fillText(String(data.gameId), 400, 300);
+  context.fillText(String(gameId), 400, 300);
 
   context.fillStyle = 'black';
   context.strokeStyle = 'black';
@@ -40,95 +40,120 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
   context.fillText('0', 400 - 80, 40);
 
   // Joueurs
-  const pl: plane = {
+  const pl: Plane = {
     n: { x: 1, y: 0 },
-    pos: { x: 20, y: 140 },
+    pos: { x: 20, y: 0 },
     size: 20
   };
 
-  const pr: plane = {
+  const pr: Plane = {
     n: { x: -1, y: 0 },
-    pos: { x: 400 - 20, y: 140 },
+    pos: { x: 400 - 20, y: 0 },
     size: 20
   };
 
   if (data.players) {
     if (data.players.length >= 1) {
-      pl.pos.y = getPlayerPosition(data.players[0]);
+      pl.pos.y = Math.round(getPlayerPosition(data.players[0]) as number);
       pl.size = data.players[0].size;
     }
     if (data.players.length >= 2) {
-      pr.pos.y = getPlayerPosition(data.players[1]);
-      pl.size = data.players[1].size;
+      pr.pos.y = Math.round(getPlayerPosition(data.players[1]) as number);
+      pr.size = data.players[1].size;
     }
   }
 
   context.lineWidth = 5;
   context.setLineDash([]);
 
-  const players: plane[] = [pl, pr];
+  const players: Plane[] = [pl, pr];
   for (let i = 0; i < players.length; i++) {
     context.beginPath();
     context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y);
     context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0));
     context.stroke();
+    context.strokeStyle = 'green';
+    context.beginPath();
+    context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y);
+    context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0) / 3);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0) / 3 * 2);
+    context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0));
+    context.stroke();
+    context.strokeStyle = 'black';
   }
 
   // Balle
-  context.fillRect(320, 240, 6, 6);
+  const ballPos: Point = data.ball.pos as Point
+  context.fillRect(ballPos.x - data.ball.size / 2, ballPos.y - data.ball.size / 2, data.ball.size, data.ball.size);
 
-  const dir: point = {
+  // const vec: Point = v_norm({
+  //   x: pl.pos.x - 200,
+  //   y: pl.pos.y - 150 + (+new Date()/300%((pl.size||1) + 20)) - 10
+  // })
+
+  // const dir: Point = {
+  //   x: vec.x,
+  //   y: vec.y
+  // };
+
+  // const dir: Point = {
+  //   x: Math.cos(Math.PI/180 * -60),
+  //   y: Math.sin(Math.PI/180 * -60)
+  // };
+
+  const dir: Point = {
     x: Math.cos(Math.PI/4 * (+new Date()/10)*0.004),
     y: Math.sin(Math.PI/4 * (+new Date()/10)*0.004)
   };
 
-  /*const dir: point = {
-    x: .66,
-    y: .34
-  };*/
+  // const dir: Point = {
+  //   x: .66,
+  //   y: .34
+  // };
 
-  const bt: plane = {
+  const bt: Plane = {
     n: { x: 0, y: 1 },
     pos: { x: 0, y: 0 }
   };
 
-  const bb: plane = {
+  const bb: Plane = {
     n: { x: 0, y: -1 },
     pos: { x: 0, y: 300 }
   };
 
-  const bl: plane = {
+  const bl: Plane = {
     n: { x: 1, y: 0 },
     pos: { x: 0, y: 0 }
   };
 
-  const br: plane = {
+  const br: Plane = {
     n: { x: -1, y: 0 },
     pos: { x: 400, y: 0 }
   };
 
-  const start: point = { x: 123, y: 184 };
-
-  //start
+  //ballPos
   context.fillStyle = 'red';
-  context.fillRect(start.x - 3, start.y - 3, 6, 6);
+  context.fillRect(ballPos.x - 3, ballPos.y - 3, 6, 6);
   context.strokeStyle = 'white';
   context.lineWidth = 2;
 
-  let planes: plane[] = [pl, pr, bt, bb];
-  let i = -1, a: point, b: point, ray: point, time: number, point: point | null = null, max: number = 0;
-  a = {...start};
+  let planes: Plane[] = [pl, pr, bt, bb];
+  let i = -1, a: Point, b: Point, ray: Point, time: number, point: Point | null = null, max: number = 0;
+  a = {...ballPos};
   ray = {...dir};
   do {
     b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
     time = -1;
-    for (i = 0; i < planes.length; i++)
+    for (i = 0; i < planes.length; i++) {
       if ((time = pl_intersect(a, b, planes[i])) > -1) {
         point = pl_time_to_vector(a, b, time);
-        if (planes[i].size && !(planes[i].pos.y <= point.y && point.y <= planes[i].pos.y + (planes[i].size || 0)))
+        if (planes[i].size && !check_segment_collision(planes[i], point))
           continue ;
         break ;
       }
+    }
 
     if (time > -1 && point) {
       context.fillStyle = 'orange';
@@ -138,40 +163,52 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
       context.lineTo(point.x, point.y);
       context.stroke();
       context.fillRect(point.x - 3, point.y - 3, 6, 6);
-      ray = v_sub(ray, v_scale(planes[i].n, 2.0 * v_dot(planes[i].n, ray)));
+      let normal: Point = planes[i].n
+      if (planes[i].size && check_segment_collision(planes[i], point)) {
+        const size: number = (planes[i].size || 0);
+        let dist = (point.y - planes[i].pos.y + 3) / (size + 6) * 160; // 3 et 6 == rayon/diametre de la balle
+        if (Math.sign(planes[i].n.x) < 0)
+          dist = (160 - dist) - 180
+        ray = {
+          x: Math.cos(Math.PI / 180 * (dist - 80)),
+          y: Math.sin(Math.PI / 180 * (dist - 80))
+        }
+      }
+      else
+        ray = v_sub(ray, v_scale(normal, 2.0 * v_dot(normal, ray)));
       a = {...point};
     } else {
-      context.strokeStyle = 'white';
-      context.beginPath();
-      context.moveTo(a.x, a.y);
-      context.lineTo(b.x, b.y);
-      context.stroke();
+      // dir vec(0;+1), quand le rayon va tout droit
+      break ;
     }
   } while(time > -1 && point && 0 <= point.x && point.x <= 400 && ++max < 100)
 
   planes = [pl, pr, bl, br];
-  a = {...start};
+  a = {...ballPos};
   ray = {...dir};
   b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
   time = -1;
-  for (i = 0; i < planes.length; i++)
+  // Draw first collision on player
+  for (i = 0; i < planes.length; i++) {
     if ((time = pl_intersect(a, b, planes[i])) > -1) {
       point = pl_time_to_vector(a, b, time);
-      if (!(0 <= point.y && point.y <= 300)) {
+      if (point && !(0 <= point.y && point.y <= 300)) {
         point.y = Math.abs(point.y);
         const pair = Math.floor(point.y / 300) % 2;
         point.y = point.y % 300;
         if (pair) 
           point.y = 300 - point.y;
+
       }
-      if (planes[i].size && !(planes[i].pos.y <= point.y && point.y <= planes[i].pos.y + (planes[i].size || 0)))
+      if (planes[i].size && !check_segment_collision(planes[i], point))
         continue ;
       break ;
     }
+  }
   point = pl_time_to_vector(a, b, time);
 
   if (time > -1) {
-    if (!(0 <= point.y && point.y <= 300)) {
+    if (point && !(0 <= point.y && point.y <= 300)) {
       point.y = Math.abs(point.y);
       const pair = Math.floor(point.y / 300) % 2;
       point.y = point.y % 300;
@@ -179,7 +216,7 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: dataCanvas)
         point.y = 300 - point.y;
     }
     context.fillStyle = 'white';
-    context.fillRect(point.x - 3, point.y - 3, 6, 6);
+    point && context.fillRect(point.x - 3, point.y - 3, 6, 6);
   }
 }
 
@@ -189,9 +226,13 @@ function CanvasGame(props: {
    gameId: string | number,
   }) {
   const canvasEl: { current: HTMLElement | null } = useRef(null);
-  const [data/*, setData*/] = useState({
-    gameId: props.gameId
-  } as dataCanvas);
+  const [data] = useState({
+    players: [
+      { dir: 0, pos: 164, speed: 250, size: 40, at: null },
+      { dir: 0, pos: 210, speed: 250, size: 40, at: null },
+    ],
+    ball: { dir: { x: 0, y: 0 }, pos: { x: 320, y: 240 }, speed: 250, size: 6, at: null }
+  } as DataGame);
 
   useEffect(() => {
     if (!canvasEl.current)
@@ -204,7 +245,7 @@ function CanvasGame(props: {
 
     const render = () => {
       tick++;
-      draw(context, tick, data);
+      draw(context, tick, data, props.gameId);
       animationFrameId = window.requestAnimationFrame(render);
     }
     render();
@@ -220,7 +261,7 @@ function CanvasGame(props: {
         border: props.border,
         margin: 20
       }}></canvas>
-      <LogicGame data={data} playable={props.playable?true:false} />
+      <LogicGame data={data} gameId={props.gameId} playable={props.playable?true:false} />
     </React.Fragment>
   );
 }
