@@ -12,36 +12,6 @@ interface NotifListProps {
   fetch_userinfo: Function,
 }
 
-// { user.notifs.num ?
-//   <List sx={{ height:'100%', p: 0, overflow: 'auto' }}>
-//     {user.notifs.arr.map((notif, index) => (
-//       Boolean(index) && <Divider /> , // eslint-disable-line
-//       <ListItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', p: 0, m: 0 }}
-//         {...(notif.url !== '' ? {
-//             component: RouterLink,
-//             to: notif.url
-//           } : {})
-//         }
-//       >
-//         <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
-//           <Box sx={{ color: notif.read && false /* TODO: readAt ??? */ ? 'grey' : 'text.primary', display: 'block',
-//                     fontWeight: 'medium', whiteSpace: 'normal' }}>
-//             {notif.text}
-//           </Box>
-//           <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
-//             {new Date(notif.date).toLocaleString()}
-//           </Box>
-//         </ListItemButton>
-//       </ListItem>
-//     ))
-//     }
-//   </List> 
-// :
-//   <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 0 }}>
-//     Vous n'avez aucune notification !
-//   </Box>
-// }
-
 export default function NotifList(props: NotifListProps)
 {
   if (!props.notifs.num) {
