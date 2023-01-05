@@ -10,6 +10,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
 import EditableName from '../component/EditableName';
+import ProfileActionButtons from '../component/ProfileActionButtons';
 
 // TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: { 
@@ -42,7 +43,7 @@ function Profile(props: {
             name: result.name,
             avatar: result.avatar,
             wins: result.wins,
-            loses: result.loses
+            loses: result.loses,
           })
         },
         (error) => {
@@ -124,7 +125,7 @@ function Profile(props: {
             }
           </Box>
 
-          <Box sx={{m: 1}}>
+          <Box>
             <EditableName
               editable={isOwnProfile}
               name={user.name}
@@ -134,6 +135,14 @@ function Profile(props: {
 
         </Grid>
         <Grid xs={12} item alignItems="center">
+          <Box sx={{m: 1}}>
+            <ProfileActionButtons
+              disabled={isOwnProfile}
+              fetch_userinfo={props.fetch_userinfo}
+              currentUserFriends={props.user.friends}
+              profileUser={user}
+            />
+          </Box>
           <Box
             sx={{
               display: 'flex',
