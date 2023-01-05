@@ -150,6 +150,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async change_name(@Request() req, @Param() params: any)
   {
+    // TODO: Indicate it's an error with codes and shit
+    if (params.newname.length > 32 || params.newname.length < 4)
+      return req.user.name;
+
     return this.usersService.updateUser({
       where: {id: req.user.id},
       data: {name: params.newname}

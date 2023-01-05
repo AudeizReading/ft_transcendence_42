@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import { TextField, Box, useTheme, Typography } from '@mui/material';
 import { fetch_opt } from '../dep/fetch';
@@ -12,6 +12,7 @@ interface EditableNameProps {
 export default function EditableName(props: EditableNameProps)
 {
   const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(props.name);
   const [newName, setNewName] = useState(props.name);
   const theme = useTheme();
   
@@ -29,13 +30,20 @@ export default function EditableName(props: EditableNameProps)
     textAlign: "center",
     fontSize: "2em",
     fontWeight: "bold",
+    lineHeight: 1,
   };
 
   async function quitEditing() {
+    setNewName(newName.trim());
+    if (newName.length === 0 || newName === name) {
+      setNewName(name);
+      setEditing(false);
+      return;
+    }
     const res = await fetch(`http://${window.location.hostname}:8190/user/change-name/${newName}`, fetch_opt());
     const updtName = await res.text();
-    console.log(updtName);
     setNewName(updtName);
+    setName(updtName);
     props.fetch_userinfo();
     // TODO: error handling
     setEditing(false);
@@ -43,20 +51,25 @@ export default function EditableName(props: EditableNameProps)
 
   const nameView = (
     <TextField
+      spellCheck={false}
+      multiline
       size="small"
-      value={newName}
-      sx={{ ...viewNameStyle, input: {...textFieldFont} }}
+      value={name}
+      sx={{ ...viewNameStyle, textArea: {...textFieldFont} }}
       onClick={() => setEditing(true)}
     />
   );
   
   const editingView = (
     <TextField
+      spellCheck={false}
+      multiline
       size="small"
       value={newName}
-      sx={{input: {...textFieldFont} }}
+      sx={{textArea: {...textFieldFont} }}
       onBlur={quitEditing}
       onChange={(e: any) => setNewName(e.target.value)}
+      inputProps={{maxLength: 32}}
     />
   );
 
