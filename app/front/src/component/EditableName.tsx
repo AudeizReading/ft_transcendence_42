@@ -40,7 +40,7 @@ export default function EditableName(props: EditableNameProps)
       setEditing(false);
       return;
     }
-    const res = await fetch(`http://${window.location.hostname}:8190/user/change-name/${newName}`, fetch_opt());
+    const res = await fetch(`http://${window.location.hostname}:8190/user/change-name/${encodeURIComponent(newName)}`, fetch_opt());
     const updtName = await res.text();
     setNewName(updtName);
     setName(updtName);
