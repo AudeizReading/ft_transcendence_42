@@ -31,7 +31,9 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
     props.fetch_userinfo();
   }
 
-  const friend_status = getFriendStatus(props.currentUserFriends, props.profileUser.id);
+  const friend_status = props.currentUserFriends
+    .find(friend => friend.id === props.profileUser.id)
+    ?.friend_status;
 
   const normalUser = (
     <Box component="span">
@@ -94,10 +96,4 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
     return friendUser;
   else
     return normalUser;
-}
-
-function getFriendStatus(friends: Friend[], friendID: number)
-{
-  const friendship = friends.find((friend: Friend) => friend.id === friendID);
-  return friendship?.friend_status;
 }
