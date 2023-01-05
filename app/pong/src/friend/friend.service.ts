@@ -43,8 +43,10 @@ export class FriendService {
   {
     await this.prisma.friend.deleteMany({
       where: {
-        userAId: +fromId,
-        userBId: +toId,
+        OR: [
+          { userAId: +fromId, userBId: +toId },
+          { userAId: +toId, userBId: +fromId },
+        ]
       }
     });
     console.log(`Users ${fromId} and ${toId} are no longer friends.`);
