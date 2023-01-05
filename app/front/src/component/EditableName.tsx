@@ -73,5 +73,10 @@ export default function EditableName(props: EditableNameProps)
     />
   );
 
+  useEffect(() => {
+    setName(props.name);
+    setNewName(props.name);
+  }, [props.name]);
+
   return editing ? editingView : nameView;
 }

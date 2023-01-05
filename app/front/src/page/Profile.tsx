@@ -12,7 +12,6 @@ import { User } from '../interface/User'
 import EditableName from '../component/EditableName';
 
 // TODO: Get a "User not found" page instead of a blank thing
-// FIXME: Wrong name displayed when going from another user's profile to own profile
 function Profile(props: { 
     fetch_userinfo: Function,
     user: User
