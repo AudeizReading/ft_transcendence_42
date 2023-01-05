@@ -6,7 +6,7 @@ import { fetch_opt } from '../dep/fetch';
 interface EditableNameProps {
   editable: boolean,
   name: string,
-  fetch_userinfo: Function
+  fetch_userinfo: Function,
 }
 
 export default function EditableName(props: EditableNameProps)
@@ -56,7 +56,7 @@ export default function EditableName(props: EditableNameProps)
       size="small"
       value={name}
       sx={{ ...viewNameStyle, textArea: {...textFieldFont} }}
-      onClick={() => setEditing(true)}
+      onClick={() => setEditing(props.editable)}
     />
   );
   

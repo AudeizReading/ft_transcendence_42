@@ -11,6 +11,8 @@ import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
 import EditableName from '../component/EditableName';
 
+// TODO: Get a "User not found" page instead of a blank thing
+// FIXME: Wrong name displayed when going from another user's profile to own profile
 function Profile(props: { 
     fetch_userinfo: Function,
     user: User
@@ -80,6 +82,8 @@ function Profile(props: {
       )
   };
 
+  const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
+
   return (
     <Box component="main" sx={{ textAlign: 'center' }}>
     {loaded &&
@@ -108,7 +112,7 @@ function Profile(props: {
               sx={{ width: '100%', height: '100%' }}
             />
             {
-              user.id !== null && user.id === props.user.id &&
+              isOwnProfile &&
                 <Fab
                   className="editIcon"
                   color="primary"
@@ -123,7 +127,7 @@ function Profile(props: {
 
           <Box sx={{m: 1}}>
             <EditableName
-              editable={user.id !== null && user.id === props.user.id}
+              editable={isOwnProfile}
               name={user.name}
               fetch_userinfo={props.fetch_userinfo}
             />
