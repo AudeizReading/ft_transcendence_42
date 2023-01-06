@@ -76,8 +76,9 @@ function Score() {
         <DataGrid
           rows={rows}
           columns={columns}
-          pageSize={50}
-          rowsPerPageOptions={[]}
+          // pageSize={50}
+          // rowsPerPageOptions={[]}
+          autoPageSize
           disableSelectionOnClick
           disableColumnSelector
         />

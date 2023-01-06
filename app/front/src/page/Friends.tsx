@@ -116,8 +116,9 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
         <DataGrid
           rows={gridRows}
           columns={gridColums}
-          pageSize={50}
-          rowsPerPageOptions={[]}
+          // pageSize={50}
+          // rowsPerPageOptions={[]}
+          autoPageSize
           disableSelectionOnClick
           disableColumnSelector
           disableColumnMenu
