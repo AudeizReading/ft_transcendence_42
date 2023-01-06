@@ -1,27 +1,22 @@
 import React, { useState, useRef } from 'react';
 
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import TextField from '@mui/material/TextField';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 import Button from '@mui/material/Button';
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
 import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import CheckIcon from '@mui/icons-material/Check';
 
-import { User, NotifContainerType, NotifDataType } from '../interface/User';
+import { User } from '../interface/User';
 import Friend from '../interface/Friend';
 import UserButton from '../component/UserButton';
-import UserChip from '../component/UserChip';
 import LoadingButton from '../component/LoadingButton';
 import { fetch_opt } from '../dep/fetch';
 
@@ -75,35 +70,49 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
     (row: Friend) => row.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // TODO: Fix the ugly percent height ( doesn't look good when screen is resized too much)
   return (
-    <Box component="main" sx={{mt: 1}}>
+    <Box component="main" sx={{ my: 1, display: "flex", flexDirection: "column" }} >
       <AddFriendDialog
         fetch_userinfo={props.fetch_userinfo}
         addingFriend={addingFriend}
         setAddingFriend={setAddingFriend}
       />
 
-      <Box display="flex" alignItems="center" sx={{ maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
-        <TextField
-          id="search-friend"
-          label="Rechercher un ami"
-          variant="outlined"
-          fullWidth
-          type="search"
-          value={search}
-          onChange={ (e : any) => setSearch(e.target.value) }
-        />
-        <Button
-          variant="contained"
-          sx={{ml: 1, height: 55, width: '25%'}}
-          onClick={(e: any) => setAddingFriend(true)}
+        <Box display="flex" alignItems="center"
+          sx={{
+            maxWidth: 800,
+            width: '100%',
+            mx: 'auto',
+            my: 1
+          }}
         >
-          Ajouter un ami
-        </Button>
-      </Box>
+          <TextField
+            id="search-friend"
+            label="Rechercher un ami"
+            variant="outlined"
+            fullWidth
+            type="search"
+            value={search}
+            onChange={ (e : any) => setSearch(e.target.value) }
+          />
+          <Button
+            variant="contained"
+            sx={{ml: 1, height: 55, width: '25%'}}
+            onClick={(e: any) => setAddingFriend(true)}
+          >
+            Ajouter un ami
+          </Button>
+        </Box>
 
-      <Box sx={{ height: '91%', maxWidth: 800, width: '100%', mx: 'auto', my: 1 }}>
+      <Box
+        sx={{
+          minHeight: 300,
+          height: '100%',
+          maxWidth: 800,
+          width: '100%',
+          mx: 'auto',
+        }}
+      >
         <DataGrid
           rows={gridRows}
           columns={gridColums}

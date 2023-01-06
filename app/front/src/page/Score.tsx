@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
 
 import { fetch_opt } from '../dep/fetch'
 import UserButton from '../component/UserButton';
@@ -12,7 +10,7 @@ const columns: GridColDef[] = [
     field: 'score',
     headerName: 'Score',
     description: 'Le score du match',
-    width: 150,
+    width: 100,
     valueGetter: (params: GridValueGetterParams) =>
       `${params.row.scores[0]} - ${params.row.scores[1]}`
   },
@@ -21,31 +19,31 @@ const columns: GridColDef[] = [
     headerName: 'Gagnant',
     description: 'Le gagnant du match',
     width: 150,
-    renderCell(params: GridRenderCellParams) {
-      const winner = params.row.players.filter(
-        (player: any) => player.id === params.row.winnerId
-      )[0];
-      return <UserButton noBadge {...winner} />;
+    renderCell(params: GridRenderCellParams<scoreType, scoreType>) {
+      const winner = params.row.players.find(
+        (player) => player.id === params.row.winnerId
+      );
+      return <UserButton noBadge {...winner!} />;
     },
   },
   {
     field: 'winnedAt',
     headerName: 'Le',
     description: 'Date de la victoire',
-    width: 200,
+    width: 175,
     valueGetter: (params: GridValueGetterParams) =>
       new Date(params.row.winnedAt).toLocaleString()
   },
   {
     field: 'players',
     headerName: 'Joueurs',
-    width: 200,
-    renderCell: (params: GridRenderCellParams<any>) =>
-      <AvatarGroup max={2}>
-      {params.row.players && params.row.players.map((item: any) =>
-        <Avatar alt={item.name} src={item.avatar} sx={{ height: 22, width: 22 }} />
-      )}
-      </AvatarGroup>
+    width: 370,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: (params: GridRenderCellParams<scoreType, scoreType>) => (
+      params.row.players.map( (player) =>
+        <UserButton key={player.id} noBadge {...player} sx={{mr: 2}} /> )
+    )
   },
 ];
 
@@ -64,9 +62,8 @@ export interface scoreType {
 function Score() {
   const [rows, setRows] = useState([] as scoreType[]);
 
-  // Please, keep it simple to understand for the next person to read this ^^"
   if (rows.length === 0) {
-    fetch('http://' + window.location.hostname + ':8190/game/score', fetch_opt())
+    fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
       .then(res => res.json())
       .then(
         (result) => {
@@ -77,14 +74,23 @@ function Score() {
   }
 
   return (
-    <Box component="main">
-      <Box sx={{ minHeight: '400px', height: '100%', maxWidth: 800, width: '100%', mx: 'auto' }}>
+    <Box component="main" sx={{mt: 1, mb: 1}}>
+      <Box
+        sx={{
+          minHeight: 300,
+          height: '100%',
+          maxWidth: 800,
+          width: '100%',
+          mx: 'auto',
+        }}
+      >
         <DataGrid
           rows={rows}
           columns={columns}
           pageSize={50}
           rowsPerPageOptions={[]}
           disableSelectionOnClick
+          disableColumnSelector
         />
       </Box>
     </Box>

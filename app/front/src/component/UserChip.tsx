@@ -1,24 +1,28 @@
 import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
-import { User } from '../interface/User';
+import { Link as RouterLink } from 'react-router-dom';
 
-function UserChip(props: User)
+interface UserChipProps {
+  id: number,
+  name: string,
+  avatar: string,  
+}
+
+function UserChip(props: UserChipProps)
 {
-  const {name, avatar} = props;
+  const {id, name, avatar} = props;
   const avatarComponent = <Avatar alt={name} src={avatar}>{name[0]}</Avatar>;
 
-  const chip = (
+  return (
     <Chip
       avatar={avatarComponent}
       label={props.name}
       variant="outlined"
-      component="a"
-      href={`http://${window.location.hostname}:3000/user/${name}`}
+      component={RouterLink}
+      to={`user/${id}`}
       clickable
-      />
+    />
   );
-
-  return chip;
 }
 
 export default UserChip;

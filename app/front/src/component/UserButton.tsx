@@ -14,14 +14,18 @@ export default function UserButton(props: {
     avatar: string,
     status?: "offline" | "online" | "playing" | undefined,
     noBadge?: boolean,
+    sx?: any,
   })
 {
+  const croppedName = props.name.length > 10 ? props.name.slice(0, 9) + '...'
+    : props.name;
+
   if (!props.status || props.noBadge) {
     return (
-      <ButtonBase href={`http://${window.location.hostname}:3000/user/${props.id}`}>
-        <Avatar alt={props.name} src={props.avatar}>{props.name[0]}</Avatar>
+      <ButtonBase component={RouterLink} to={`/user/${props.id}`} sx={props.sx}>
+        <Avatar alt={props.name} src={props.avatar}>{croppedName[0]}</Avatar>
         <Box sx={{pl: 1}}>
-          {props.name}
+          {croppedName}
         </Box>
       </ButtonBase>
     );
@@ -29,16 +33,16 @@ export default function UserButton(props: {
 
   const AvatarBadge = getBadge(props.status);
   return (
-    <ButtonBase component={RouterLink} to={`/user/${props.id}`} >
+    <ButtonBase component={RouterLink} to={`/user/${props.id}`} sx={props.sx} >
       <AvatarBadge
         overlap="circular"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         variant="dot"
       >
-        <Avatar alt={props.name} src={props.avatar}>{props.name[0]}</Avatar>
+        <Avatar alt={props.name} src={props.avatar}>{croppedName[0]}</Avatar>
       </AvatarBadge>
       <Box sx={{pl: 1}}>
-        {props.name}
+        {croppedName}
       </Box>
     </ButtonBase>
   );
