@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { Friend, User, Game, Prisma } from '@prisma/client';
 import { NotifService } from 'src/notif/notif.service';
@@ -22,6 +22,20 @@ export class FriendService {
 
   async createFriend(userA_name: string, userAId: number, userBId: number): Promise<Friend>
   {
+    if (+userAId === +userBId)
+      throw new BadRequestException("Cannot be friend to self");
+      
+    const otherFriendships = await this.prisma.friend.findMany({
+      where: {
+        userAId: +userBId,
+        userBId: +userAId,
+      }
+    });
+    if (otherFriendships.length) {
+      await this.acceptFriendRequest(userBId, userAId);
+      return otherFriendships[0];
+    }
+
     const newFrienship = await this.prisma.friend.create({
       data: {
         userAId,
@@ -45,7 +59,7 @@ export class FriendService {
       data: {
         state: "FRIEND"
       },
-    })
+    });
     console.log(`Users ${fromId} and ${toId} are now friends.`);
   }
 
