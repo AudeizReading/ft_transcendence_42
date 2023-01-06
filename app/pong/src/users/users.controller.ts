@@ -21,6 +21,7 @@ import { GameService } from '../game/game.service';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 
 import { IsNumberString, IsString } from 'class-validator';
+import { get } from 'http';
 
 export class ParamUserProfile {
   @IsNumberString()
@@ -86,6 +87,13 @@ export class UsersController {
       ),
       ...(await this.usersService.getScore(user.id)),
     };
+  }
+
+  @Get('user/:userid/games')
+  @UseGuards(JwtAuthGuard)
+  async played_games(@Request() req, @Param() param: ParamUserProfile)
+  {
+    return this.usersService.getPlayedGames(param.userid);
   }
 
   @Post('user/avatar-upload')

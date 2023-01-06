@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { User, Image, Prisma } from '@prisma/client';
+import { User, Image, Prisma, Game } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -57,6 +57,30 @@ export class UsersService {
       wins: wins,
       loses: total - wins,
     };
+  }
+
+  async getPlayedGames(userID: number)
+  {
+    const games = await this.prisma.game.findMany({
+      where: {
+        state: "ENDED",
+      },
+      include: {
+        players: {
+          where: {
+            userId: +userID,
+          }
+        }
+      }
+    });
+    const filtered = games.filter( (game) => !!game.players.length);
+    const returnedGames = filtered.map( (game) => {
+      delete game.players;
+      return game;
+    }) as Game[]; // Remove the players array from the returned type
+
+    console.log(returnedGames);
+    return returnedGames;
   }
 
   async users(params: {

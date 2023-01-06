@@ -83,6 +83,13 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
       >
         Supprimer l'ami
       </Button>
+      <Button variant="outlined" color="primary" sx={{m: 1}}
+        onClick={async () => {
+          await fetch(`http://${window.location.hostname}:8190/user/${props.profileUser.id}/games`, fetch_opt());
+        }}
+      >
+        DEBUG: Fetch games
+      </Button>
     </Box>
   );
 
