@@ -34,6 +34,7 @@ import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
 import { handleOpenAuthPopup } from '../dep/handleOpenAuthPopup'
+import NotifList from './NotifList';
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   props,
@@ -69,13 +70,18 @@ function TopBar(props: {
 
   const handleOpenNotifMenu = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotif(event.currentTarget);
+    // if (user.notifs.num > 0 && !user.notifs.arr[0].read) {
+    //   fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + user.notifs.arr[0].date, fetch_opt());
+    //   user.notifs.arr.forEach((notif) => notif.read = true);
+    // }
+  };
+  const handleCloseNotifMenu = async () => {
+    setAnchorElNotif(null);
+    setAnchorElNotif(null);
     if (user.notifs.num > 0 && !user.notifs.arr[0].read) {
       fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + user.notifs.arr[0].date, fetch_opt());
       user.notifs.arr.forEach((notif) => notif.read = true);
     }
-  };
-  const handleCloseNotifMenu = () => {
-    setAnchorElNotif(null);
   };
   /* --- */
 
@@ -289,13 +295,13 @@ function TopBar(props: {
               anchorEl={anchorElNotif}
               open={Boolean(anchorElNotif)}
               onClose={handleCloseNotifMenu}
-              onClick={handleCloseNotifMenu}
+              // onClick={handleCloseNotifMenu}
               PaperProps={{
                 elevation: 0,
                 sx: {
                   overflow: 'visible',
                   filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                  maxWidth: 350,
+                  width: 400,
                   maxHeight: user.notifs.num ? '80%' : '102px',
                   mt: 1,
                   '&.MuiPaper-root': { height: '100%' },
@@ -340,44 +346,25 @@ function TopBar(props: {
                   '&:hover': {
                     bgcolor: 'primary.main',
                   }
-                }}>
+                }}
+              >
                 Notifications
               </MenuItem>
               <MenuItem key="content" disableGutters={true} disableRipple={true}
                 sx={{
+                  textAlign: 'center',
+                  display: 'block',
                   overflow: 'auto',
                   '&:hover': {
                     bgcolor: 'inherit'
                   },
-                }}>
-              { user.notifs.num ?
-                <List sx={{ height:'100%', p: 0, overflow: 'auto' }}>
-                  {user.notifs.arr.map((notif, index) => (
-                    Boolean(index) && <Divider /> , // eslint-disable-line
-                    <ListItem key={index} onClick={handleCloseNotifMenu} sx={{ display: 'block', p: 0, m: 0 }}
-                      {...(notif.url !== '' ? {
-                          component: RouterLink,
-                          to: notif.url
-                        } : {})
-                      }
-                    >
-                      <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
-                        <Box sx={{ color: notif.read && false /* TODO: readAt ??? */ ? 'grey' : 'text.primary', display: 'block',
-                                   fontWeight: 'medium', whiteSpace: 'normal' }}>
-                          {notif.text}
-                        </Box>
-                        <Box sx={{ color: 'text.secondary', display: 'block', fontSize: 11, textAlign: 'right' }}>
-                          {new Date(notif.date).toLocaleString()}
-                        </Box>
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List> 
-              :
-                <Box sx={{ color: 'text.primary', display: 'block', fontWeight: 'medium', whiteSpace: 'normal', px: 4, py: 0 }}>
-                  Vous n'avez aucune notification !
-                </Box>
-              }
+                }}
+              >
+                <NotifList
+                  notifs={user.notifs}
+                  handleCloseNotifMenu={handleCloseNotifMenu}
+                  fetch_userinfo={props.fetch_userinfo}
+                />
               </MenuItem>
               {/* <MenuItem key="bottom" disableGutters={true} disableRipple={true}
                 sx={{

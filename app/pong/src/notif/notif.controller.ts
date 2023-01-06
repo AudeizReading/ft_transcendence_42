@@ -77,4 +77,13 @@ export class NotifController {
       }),
     };
   }
+
+  @Get('delete/:id')
+  @UseGuards(JwtAuthGuard)
+  async delete_notif(@Request() req, @Param() param: ParamId)
+  {
+    console.log("delete request");
+    return this.notifService.deleteNotifs({id: +param.id})
+      .then(res => res.count);
+  }
 }
