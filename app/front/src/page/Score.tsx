@@ -42,7 +42,7 @@ const columns: GridColDef[] = [
     sortable: false,
     renderCell: (params: GridRenderCellParams<scoreType, scoreType>) => (
       params.row.players.map( (player) =>
-        <UserButton key={player.id} noBadge {...player} sx={{mr: 2}} /> )
+        <UserButton key={player.id} noBadge cropName={12} {...player} sx={{mr: 2}} /> )
     )
   },
 ];

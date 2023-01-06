@@ -14,10 +14,12 @@ export default function UserButton(props: {
     avatar: string,
     status?: "offline" | "online" | "playing" | undefined,
     noBadge?: boolean,
+    cropName?: number,
     sx?: any,
   })
 {
-  const croppedName = props.name.length > 10 ? props.name.slice(0, 9) + '...'
+  const croppedName = props.cropName && props.name.length > props.cropName ?
+    props.name.slice(0, props.cropName - 1) + '...'
     : props.name;
 
   if (!props.status || props.noBadge) {
