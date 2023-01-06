@@ -6,7 +6,6 @@ import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, Typography } from '@mui/material';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'

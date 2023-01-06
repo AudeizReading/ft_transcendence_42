@@ -3,9 +3,7 @@ import ButtonBase from '@mui/material/ButtonBase';
 import Avatar from '@mui/material/Avatar';
 import { styled } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
-
-import { User } from '../interface/User';
-import Friend from '../interface/Friend';
+import { Link as RouterLink } from 'react-router-dom';
 
 // Component to render the avatar and name of the user, with an online indicator badge.
 // The whole thing is clickable as a button.
@@ -31,7 +29,7 @@ export default function UserButton(props: {
 
   const AvatarBadge = getBadge(props.status);
   return (
-    <ButtonBase href={`http://${window.location.hostname}:3000/user/${props.id}`}>
+    <ButtonBase component={RouterLink} to={`/user/${props.id}`} >
       <AvatarBadge
         overlap="circular"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
