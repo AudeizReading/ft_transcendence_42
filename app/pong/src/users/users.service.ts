@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { User, Image, Prisma, Game } from '@prisma/client';
+import { GameInterface } from 'src/game/game.service';
 
 @Injectable()
 export class UsersService {
@@ -59,28 +60,46 @@ export class UsersService {
     };
   }
 
+  // NOTE: If we ever do more than 2 player games, this will have to be redone
   async getPlayedGames(userID: number)
   {
+    // Get all games user has played, and include the "players" table
     const games = await this.prisma.game.findMany({
       where: {
         state: "ENDED",
       },
       include: {
         players: {
-          where: {
-            userId: +userID,
+          include: {
+            user: true
           }
         }
       }
     });
-    const filtered = games.filter( (game) => !!game.players.length);
-    const returnedGames = filtered.map( (game) => {
-      delete game.players;
-      return game;
-    }) as Game[]; // Remove the players array from the returned type
-
-    console.log(returnedGames);
-    return returnedGames;
+    // Filter out the games this user hasn't played
+    const filtered = games.filter( (game) => !!game.players.find(player => player.userId === +userID) );
+    // Parse the results in a GameInterface object
+    const parsed = filtered.map( (game) => {
+      return {
+        id: game.id,
+        winnerId: game.winnerId,
+        winnedAt: game.winnedAt,
+        scores: [game.scoreA, game.scoreB],
+        players: [
+          {
+            id: game.players[0].user.id,
+            name: game.players[0].user.name,
+            avatar: game.players[0].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
+          },
+          {
+            id: game.players[1].user.id,
+            name: game.players[1].user.name,
+            avatar: game.players[1].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
+          },
+        ]
+      } as GameInterface;
+    });
+    return parsed;
   }
 
   async users(params: {

@@ -4,6 +4,7 @@ import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } fro
 
 import { fetch_opt } from '../dep/fetch'
 import UserButton from '../component/UserButton';
+import GameInterface from '../interface/GameInterface';
 
 const columns: GridColDef[] = [
   {
@@ -19,7 +20,7 @@ const columns: GridColDef[] = [
     headerName: 'Gagnant',
     description: 'Le gagnant du match',
     width: 150,
-    renderCell(params: GridRenderCellParams<scoreType, scoreType>) {
+    renderCell(params: GridRenderCellParams<GameInterface, GameInterface>) {
       const winner = params.row.players.find(
         (player) => player.id === params.row.winnerId
       );
@@ -40,27 +41,15 @@ const columns: GridColDef[] = [
     width: 370,
     disableColumnMenu: true,
     sortable: false,
-    renderCell: (params: GridRenderCellParams<scoreType, scoreType>) => (
+    renderCell: (params: GridRenderCellParams<GameInterface, GameInterface>) => (
       params.row.players.map( (player) =>
         <UserButton key={player.id} noBadge cropName={12} {...player} sx={{mr: 2}} /> )
     )
   },
 ];
 
-export interface scoreType {
-  id: number;
-  players: {
-    id: number,
-    name: string,
-    avatar: string,
-  }[];
-  scores: number[];
-  winnerId: number;
-  winnedAt: Date;
-}
-
 function Score() {
-  const [rows, setRows] = useState([] as scoreType[]);
+  const [rows, setRows] = useState([] as GameInterface[]);
 
   if (rows.length === 0) {
     fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
