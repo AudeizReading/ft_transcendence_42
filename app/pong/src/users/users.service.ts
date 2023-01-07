@@ -72,6 +72,34 @@ export class UsersService {
     };
   }
 
+  async getUserStatusFromID(userID: number): Promise<"offline" | "online" | "playing">
+  {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userID
+      }
+    });
+    return this.getUserStatus(user);
+  }
+
+  async getUserStatus(user: User): Promise<"offline" | "online" | "playing">
+  {
+    if (!user.sessionid /* || user.lastFetch > 10sec */) {
+      return "offline";
+    }
+    const isPlaying = !!await this.prisma.playerGame.count({
+      where: {
+        userId: user.id,
+        NOT: {
+          game: {
+            state: "ENDED"
+          }
+        }
+      }
+    });
+    return (isPlaying ? "playing" : "online");
+  }
+
   async users(params: {
     skip?: number;
     take?: number;

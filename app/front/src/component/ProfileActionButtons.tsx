@@ -21,6 +21,7 @@ interface ProfileActionButtonsProps {
     avatar: string,
     wins: number,
     loses: number,
+    status: string,
   },
 }
 
@@ -72,7 +73,8 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const friendUser = (
     <Box component="span">
-      <Button variant="contained" color="success" sx={{m: 1}} startIcon={<VideogameAssetIcon/>} >
+      <Button variant="contained" color="success" sx={{m: 1}} startIcon={<VideogameAssetIcon/>}
+        disabled={props.profileUser.status !== "online"}>
         Inviter à jouer
       </Button>
       <Button variant="contained" color="primary" sx={{m: 1}} startIcon={<MessageIcon/>} >

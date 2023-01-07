@@ -24,7 +24,8 @@ function Profile(props: {
     name: '',
     avatar: '',
     wins: 0,
-    loses: 0
+    loses: 0,
+    status: "offline",
   });
 
   const [loaded, setLoaded] = useState(false);
@@ -44,6 +45,7 @@ function Profile(props: {
             avatar: result.avatar,
             wins: result.wins,
             loses: result.loses,
+            status: result.status,
           })
         },
         (error) => {

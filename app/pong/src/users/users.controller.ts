@@ -85,6 +85,7 @@ export class UsersController {
         '://' + process.env.FRONT_HOST,
       ),
       ...(await this.usersService.getScore(user.id)),
+      status: await this.usersService.getUserStatus(user),
     };
   }
 
