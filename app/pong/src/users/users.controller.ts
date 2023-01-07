@@ -64,6 +64,7 @@ export class UsersController {
       ...(await this.notifService.objectForFront(req.user.id)),
       friends: await this.friendService.objectForFront(req.user.id),
       matchmaking_users: await this.gameService.listTenMatchMakings(), // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
+      lastFetch: Date.now(),
     };
   }
 
