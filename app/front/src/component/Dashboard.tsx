@@ -26,6 +26,25 @@ import { User } from '../interface/User';
 
 import TextField from '@mui/material/TextField';
 
+interface IItem {
+	title: String,
+	subheader: String,
+	content: String | {},
+	customSx?: {},
+	key: String,
+}
+
+interface IItemArray {
+	[index: number]: IItem;
+}
+
+interface IColumn {
+	items: IItemArray,
+	key: String,
+	xs: Number,
+	sx?: {},
+}
+
 // DashboardCard
 function DashboardCard(props: any)
 {
@@ -33,7 +52,7 @@ function DashboardCard(props: any)
 	const [openMore, setOpenMore] = useState(false);
 	const [sxOpenMore, setSxOpenMore] = useState({
 		transform: 'rotate(0deg)',
-		transition: 'width ease 4ms, height ease 4ms',
+		transition: 'width ease 4ms, height ease 4ms, transform ease 4ms',
 	});
 	const [sxCardContent, setSxCardContent] = useState({
 		px: '5%',
@@ -58,7 +77,10 @@ function DashboardCard(props: any)
 		if (openMore)
 		{
 			handleCloseMore();
-			setSxOpenMore({...sxOpenMore, transform: 'rotate(0deg)'});
+			setSxOpenMore({
+				...sxOpenMore, 
+				transform: 'rotate(0deg)'
+			});
 			setSxCardContent({
 				...sxCardContent,
 				overflow: 'hidden',
@@ -68,14 +90,16 @@ function DashboardCard(props: any)
 		else
 		{
 			handleOpenMore();
-			setSxOpenMore({...sxOpenMore, transform: 'rotate(180deg)'});
+			setSxOpenMore({
+				...sxOpenMore, 
+				transform: 'rotate(180deg)'
+			});
 			setSxCardContent({
 				...sxCardContent,
 				overflow: 'visible',
 				height: 'auto',
 			});
 		}
-		console.log(openMore);
 	};
 
 	const handleTrashClick = () => {
@@ -85,7 +109,15 @@ function DashboardCard(props: any)
 	};
 
 	return (
-		<Card key={props.uid} variant={'elevation'} elevation={8} sx={{...props.sx, px: '2%'}}>
+		<Card 
+			key={props.uid} 
+			variant={'elevation'} 
+			elevation={8} 
+			sx={{
+				...props.sx, 
+				px: '2%',
+			}}
+		>
 			<CardHeader 
 					action={
 						!openSettings
@@ -104,12 +136,21 @@ function DashboardCard(props: any)
 					title={props.title}
 					subheader={props.subheader}
 			/>
-			<CardContent sx={sxCardContent}>
+			<CardContent 
+				sx={sxCardContent}
+			>
 				{props.children}
 			</CardContent>
-			<CardActions sx={{display: 'flex', justifyContent: 'flex-end'}}>
-				<IconButton aria-label='more' onClick={handleMoreClick}>
-					<ExpandMoreIcon color='secondary' fontSize={"large"} sx={sxOpenMore}/>
+			<CardActions 
+				sx={{
+					display: 'flex', 
+					justifyContent: 'flex-end'
+				}}
+			>
+				<IconButton aria-label='more' onClick={handleMoreClick}
+				>
+					<ExpandMoreIcon color='secondary' fontSize={"large"} sx={sxOpenMore}
+					/>
 				</IconButton>
 			</CardActions>
 		</Card>
@@ -125,21 +166,11 @@ function DashboardCardForm(props: any)
 	const [title, setTitle] = useState(props.title || '');
 	const [subheader, setSubheader] = useState(props.subheader || '');
 	const submitText = props.uid ? 'Update' : 'Create';
+	console.log(props.uid);
 
-	function handleContentChange(e: any)
-	{
-		setContent(e.target.value);
-	}
-
-	function handleTitleChange(e: any)
-	{
-		setTitle(e.target.value);
-	}
-
-	function handleSubheaderChange(e: any)
-	{
-		setSubheader(e.target.value);
-	}
+	const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContent(e.target.value);
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setTitle(e.target.value);
+	const handleSubheaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSubheader(e.target.value);
 
 	const handleSubmit = () => {
 		title.length !== 0 && subheader.length !== 0 && content.length !== 0 &&
@@ -148,78 +179,126 @@ function DashboardCardForm(props: any)
 			subheader: subheader,
 			content: content,
 			customSx: {},
-			key: props.uid || title, // il faut changer ca
-		});
+			key: props.uid,
+		} as IItem);
 	};
 
 	return (
-		<Card key={props.uid} sx={{...props.sx, overflow: 'scroll', height: '50vh', width: '50vw', m: 'auto'}} variant={'elevation'} elevation={8}>
-			<CardHeader sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center'}} title={submitText}/>
+		<Card 
+			key={props.uid} 
+			sx={{
+				...props.sx, 
+				overflow: 'scroll', 
+				height: '50vh', 
+				width: '50vw', 
+				m: 'auto'
+			}} 
+			variant={'elevation'} 
+			elevation={8}
+		>
+			<CardHeader 
+				sx={{
+					display: 'flex', 
+					flexFlow: 'column', 
+					justifyContent: 'center'
+				}} 
+				title={submitText}
+			/>
 
 			<CardContent 
-				sx={{m: '5%'}}>
+				sx={{
+					m: '5%',
+				}}
+			>
 				<TextField 
-					sx={{width: '100%'}}
+					sx={{
+						width: '100%',
+					}}
 					required variant="outlined" 
 					label="Title" 
 					onChange={handleTitleChange} 
 					placeholder={props.title} 
-					value={title}/>
+					value={title}
+				/>
 			</CardContent>
 			<CardContent 
-				sx={{m: '5%'}}>
+				sx={{
+					m: '5%',
+				}}
+			>
 				<TextField 
-					sx={{width: '100%'}}
+					sx={{
+						width: '100%',
+					}}
 					required variant="outlined" 
 					label="Subheader" 
 					onChange={handleSubheaderChange} 
 					placeholder={props.subheader} 
-					value={subheader}/>
+					value={subheader}
+				/>
 			</CardContent>
 			<CardContent 
-				sx={{m: '5%'}}>
+				sx={{
+					m: '5%',
+				}}
+			>
 				<TextField 
-					sx={{width: '100%'}} 
+					sx={{
+						width: '100%',
+					}} 
 					required variant="outlined" 
 					multiline={true} 
 					label="Content" 
 					placeholder={props.content} 
 					onChange={handleContentChange} 
-					value={content}/>
+					value={content}
+				/>
 			</CardContent>
 			<CardActions 
-				sx={{display: 'flex', justifyContent: 'space-around'}}>
+				sx={{
+					display: 'flex', 
+					justifyContent: 'space-around'
+				}}
+			>
 				<IconButton 
 					size={"large"} 
 					aria-label='submit' 
-					onClick={handleSubmit}>
-					<CheckIcon color='success' fontSize={"large"}/>
+					onClick={handleSubmit}
+				>
+					<CheckIcon 
+						color='success' 
+						fontSize={"large"}
+					/>
 				</IconButton>
 				<IconButton 
 					size={"large"} 
 					aria-label='cancel' 
-					onClick={props.onFormClose}>
-					<CancelIcon color='error' fontSize={"large"}/>
+					onClick={props.onFormClose}
+				>
+					<CancelIcon 
+						color='error' 
+						fontSize={"large"}
+					/>
 				</IconButton>
 			</CardActions>
 		</Card>
-		);
+	);
 }
 
 function EditableDashboardItem(props: any)
 {
 	const [edit, setEdit] = useState(false);
 
+	const openForm = () => setEdit(true);
+	const closeForm = () => setEdit(false);
+
 	const handleCardEdit = () => openForm();
 	const handleFormClose = () => closeForm();
 
-	const handleSubmit = (item: any) => {
+	const handleSubmit = (item: IItem) => {
 		props.onFormSubmit(item);
 		closeForm();
 	};
-
-	const openForm = () => setEdit(true);
-	const closeForm = () => setEdit(false);
 
 	return (
 		edit 
@@ -248,13 +327,12 @@ function EditableDashboardItem(props: any)
 
 function DashboardListItem(props: any)
 {
-	const [items, setItems] = useState<any[]>(props.children);
+	const [items, setItems] = useState<IItem[]>(props.children);
 
-	useEffect(() => setItems(() => props.children), [props.children]);
-
+	useEffect(() => {setItems(props.children)}, [props.children]);
 	return (<Box component="div" sx={{border: '1px solid green', width: '95%', mx: 'auto', px: '2vw', py: '2vh'}}>
 		{
-			items.map((item) => (
+			items.map((item: IItem) => (
 			<EditableDashboardItem  
 				key={item.key}
 				colUid={props.uid}
@@ -263,7 +341,12 @@ function DashboardListItem(props: any)
 				subheader={item.subheader}
 				onFormSubmit={props.onFormSubmit}
 				onTrashClick={props.onTrashClick}
-				sx={{border: '1px solid purple', marginBottom: '5vh', height: 'auto'}}
+				sx={{
+					border: '7px dotted purple', 
+					marginBottom: '5vh', 
+					height: 'auto',
+					width: 'auto'
+				}}
 			>
 				{item.content}
 			</EditableDashboardItem>))
@@ -275,17 +358,10 @@ function ToggableDashboardCardForm(props: any)
 {
 	const [open, setOpen] = useState(false);
 
-	function handleItemOpen()
-	{
-		setOpen(true);
-	}
+	const handleItemOpen = () => setOpen(true);
+	const handleFormClose = () => setOpen(false);
 
-	function handleFormClose()
-	{
-		setOpen(false);
-	}
-
-	const handleFormSubmit = (item: any) => {
+	const handleFormSubmit = (item: IItem) => {
 		console.log("ToggableDashboardCardForm handleFormSubmit: ", item);
 		props.onFormSubmit(item);
 		setOpen(false);
@@ -301,7 +377,13 @@ function ToggableDashboardCardForm(props: any)
 					onFormSubmit={handleFormSubmit}
 					onFormClose={handleFormClose}
 					/> 
-				: <Fab aria-label='add-item' onClick={handleItemOpen} sx={{display: 'block', m: 'auto'}}>
+				: <Fab 
+					aria-label='add-item' 
+					onClick={handleItemOpen} 
+					sx={{
+						display: 'block', 
+						m: 'auto'
+					}}>
 					<AddIcon/>
 				</Fab>
 			}
@@ -312,44 +394,42 @@ function ToggableDashboardCardForm(props: any)
 // DashboardColumn
 function DashboardColumn(props: any)
 {
-	const [datas, setDatas] = useState(props.children);
+	const [datas, setDatas] = useState(props.children as Array<IItem>);
 
 	useEffect(() => {setDatas(props.children)}, [props.children]);
-	const handleCreateFormSubmit = (item: any) =>
+	
+	const handleCreateFormSubmit = (item: IItem) =>
 	{
 		console.log("DashboardColumn handleCreateFormSubmit", item, datas, props.uid);
 		props.onFormSubmit([...datas, item], props.uid);
 	};
 
-	const handleEditFormSubmit = (item: any) => {
-		updateItem(item);
-	};
+	const handleEditFormSubmit = (item: IItem) => updateItem(item);
 
-	const updateItem = (updatedDatas: any) => {
+	const updateItem = (updatedDatas: IItem) => {
 		console.log("DashboardColumn updateItem updatedDatas: ", updatedDatas);
-		props.onFormSubmit(datas.map((item: any) => {
+		props.onFormSubmit(datas.map((item: IItem) => {
 			if (updatedDatas.key === item.key)
 			{
-				return Object.assign({}, item, {title: updatedDatas.title, subheader: updatedDatas.subheader, content: updatedDatas.content});
+				return Object.assign({}, item, {
+					title: updatedDatas.title,
+				 	subheader: updatedDatas.subheader, 
+				 	content: updatedDatas.content,
+				 }) as IItem;
 			}
 			else
 				return item;
 		}), props.uid);
 	};
 
-	const handleTrashClick = (itemId: any) => {
-		deleteItem(itemId);
-	};
+	const handleTrashClick = (itemId: any) => deleteItem(itemId);
+	const deleteItem = (itemId: any) => props.onFormSubmit(datas.filter((item: any) => item.key !== itemId), props.uid, datas, itemId);
 
-	const deleteItem = (itemId: any) => {
-		props.onFormSubmit(datas.filter((item: any) => item.key !== itemId), props.uid, datas, itemId);
-	}
-
-	const lastItemId = (datas: any) => {return (datas[datas.length - 1].key || props.uid + 1);};
+	const lastItemId = (datas: any) => ((datas.length > 0) ? datas[datas.length - 1].key :  props.uid + '-item-' + 1);
 
 	//console.log(lastItemId(datas));
 	return (
-		<Grid container rowSpacing={1} xs={props.xs} sx={{border: '1px solid red', height: '100%'}}>
+		<Grid container rowSpacing={1} xs={parseInt(props.xs)} sx={{border: '1px solid red', height: '100%'}}>
 			{
 				<DashboardListItem
 					key={props.uid}
@@ -359,7 +439,7 @@ function DashboardColumn(props: any)
 					onTrashClick={handleTrashClick}/>
 			}
 			{
-				<ToggableDashboardCardForm colUid={props.uid} uid={lastItemId(datas) + 1} sx={{m: 'auto', width: '100%'}} onFormSubmit={handleCreateFormSubmit}/>
+				<ToggableDashboardCardForm colUid={props.uid} uid={props.uid + "-item-" + lastItemId(datas) + 1} sx={{m: 'auto', width: '100%'}} onFormSubmit={handleCreateFormSubmit}/>
 			}
 		</Grid>
 	);
@@ -368,56 +448,57 @@ function DashboardColumn(props: any)
 function DashboardColumnForm(props: any)
 {
 	// Menu deroulant ?
-	// https://mui.com/material-ui/react-text-field/
 
 	const [content, setContent] = useState(props.content || '');
 	const [title, setTitle] = useState(props.title || '');
 	const [subheader, setSubheader] = useState(props.subheader || '');
 	const [size, setSize] = useState(props.xs || 12);
 
-	const submitText = props.colUid ? 'Update' : 'Create';
+	const submitText = props.creation ? 'Create' : 'Update';
 
-	function handleContentChange(e: any)
-	{
-		setContent(e.target.value);
-	}
-
-	function handleTitleChange(e: any)
-	{
-		setTitle(e.target.value);
-	}
-
-	function handleSubheaderChange(e: any)
-	{
-		setSubheader(e.target.value);
-	}
-
-	function handleXsChange(e: any)
-	{
-		setSize(e.target.value);
-	}
+	const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContent(e.target.value);
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setTitle(e.target.value);
+	const handleSubheaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSubheader(e.target.value);
+	const handleXsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSize(e.target.value);
 
 	const handleSubmit = () => {
 		title.length !== 0 && subheader.length !== 0 && content.length !== 0 &&
 		props.onFormSubmit({
 			items: [
-			{
-				title: title,
-				subheader: subheader,
-				content: content,
-				customSx: {},
-				key: props.uid || title, // il faut changer ca
-			},],
+				{
+					title: title,
+					subheader: subheader,
+					content: content,
+					customSx: {},
+					key: props.uid
+				},
+			],
 			key: props.colUid,
 			xs: size,
 			sx: {},
-		});
+		} as IColumn);
 	};
 
 
 	return (
-		<Card key={props.uid} sx={{...props.sx, border: '15px solid pink', position: 'sticky', zIndex: 100, width: '60%', m: 'auto'}} variant={'elevation'} elevation={8}>
-			<CardHeader sx={{display: 'flex', flexFlow: 'column', justifyContent: 'center'}} title={submitText}/>
+		<Card 
+			key={props.uid} 
+			sx={{
+				...props.sx, 
+				border: '15px solid pink', 
+				position: 'absolute', 
+				zIndex: 100, 
+				width: '60%',
+				m: 'auto'}} 
+			variant={'elevation'} 
+			elevation={8}>
+			<CardHeader 
+				sx={{
+					display: 'flex', 
+					flexFlow: 'column', 
+					justifyContent: 'center'
+				}} 
+			title={submitText}/>
 
 			<CardContent 
 				sx={{m: '5%'}}>
@@ -484,17 +565,10 @@ function ToggableDashboardColumnForm(props: any)
 {
 	const [open, setOpen] = useState(false);
 
-	function handleItemOpen()
-	{
-		setOpen(true);
-	}
+	const handleItemOpen = () => setOpen(true);
+	const handleFormClose = () => setOpen(false);
 
-	function handleFormClose()
-	{
-		setOpen(false);
-	}
-
-	const handleFormSubmit = (item: any) => {
+	const handleFormSubmit = (item: IColumn) => {
 		console.log("ToggableDashboardColumnForm: ", item);
 		props.onFormSubmit(item);
 		setOpen(false);
@@ -507,6 +581,7 @@ function ToggableDashboardColumnForm(props: any)
 				? <DashboardColumnForm 
 					uid={props.uid}
 					colUid={props.colUid}
+					creation={props.creation}
 					onFormSubmit={handleFormSubmit}
 					onFormClose={handleFormClose}
 					sx={props.sx}
@@ -537,14 +612,15 @@ function Dashboard(props: {user: User})
 			subheader: '',
 			content: '',
 			customSx: {},
-			key: 0,
+			key: '',
 			}],
-		key: 0,
+		key: '',
 		xs: 0,
 		sx: {},
-	},]);
+	} as IColumn]);
 
 	const [datas, setDatas] = useState(emptyDatas());
+
 	// juste pour tester, datas a fetch
 	/*const [datas, setDatas] = useState([
 	{
@@ -684,32 +760,36 @@ function Dashboard(props: {user: User})
 	}, 
 	]); */// will change to the users datas but now not connected to bdd so simulate datas
 
-	const handleCreateColumnSubmit = (column: any) => {
-		console.log("create column event", column);
-		if (datas[0].key !== 0) {
-			datas.push(column);
+	const handleCreateColumnSubmit = (column: IColumn) => {
+		console.log("Dashboard handleCreateColumnSubmit", column);
+		if (datas[0].key.length !== 0) {
+			setDatas([...datas, column]);
 		}
 		else
-			datas[0] = column;
+			setDatas([column]);
+			//datas[0] = column;
 	};
 
 	useEffect(() => setUser(props.user), [props.user]);
 	useEffect(() => setDatas((datas) => [...datas]), []);
 	
-	const handleUpdateColumn = (item: any, uid: any) => {
+	const handleUpdateColumn = (item: Array<IItem>, colUid: String) => {
 
-		console.log("Dashboard handleUpdateColumn: ", uid, item);
-		datas.map((data) => {
-			if (uid === data.key)
+		console.log("Dashboard handleUpdateColumn: ", colUid, item);
+		datas.map((data: IColumn) => {
+			if (colUid === data.key)
 			{
 				data.items = item;
-				console.log("Dashboard handleUpdateColumn: ", data, item, uid);
+				if (item.length === 0)
+					data.xs = 0;
+				console.log("Dashboard handleUpdateColumn: ", data, item, colUid);
 			}
 			return item;
 		});
+		datas.filter((data: IColumn) => data.xs !== 0);
 	};
 
-	const lastColumnId = (datas: any) => {return (datas[datas.length - 1].key || 0);};
+	const lastColumnId = (datas: Array<IColumn>) => {return (datas[datas.length - 1].key || 0);};
 	return (
 		<Box component='div' sx={{width: '100%', height: '100%'}}>
 			<Box component="h2">Glad to see you, {user.name}!</Box>
@@ -719,14 +799,17 @@ function Dashboard(props: {user: User})
 				xs={12} 
 				sx={{border: '1px solid black', width: '100%'}}>
 				{
-					(datas.length > 0 && datas[0].key !== 0 && datas[0].key !== undefined)
-					&& datas.map((data: any) => 
+					(datas.length > 0 
+						&& datas[0].key.length !== 0 
+						&& datas[0].key !== undefined 
+						&& datas[0].key !== null)
+					&& datas.map((data: IColumn) => 
 					{
-						return (
+						return ( data.xs > 0 &&
 							<DashboardColumn 
 								key={data.key}
 								uid={data.key}
-								xs={parseInt(data.xs)} 
+								xs={data.xs} 
 								children={data.items}
 								sx={{
 									border: '1px solid pink'
@@ -738,9 +821,10 @@ function Dashboard(props: {user: User})
 				}
 			</Grid>
 			<ToggableDashboardColumnForm 
-				uid={lastColumnId(datas) + 101} 
-				colUid={lastColumnId(datas) + 100} 
+				uid={"col-"+ lastColumnId(datas) + 1+ "item-" + 1} 
+				colUid={"col-" + ((datas.length === 1 && datas[0].key.length === 0) ? 1 : datas.length + 1)} 
 				onFormSubmit={handleCreateColumnSubmit}
+				creation={true}
 				sx={{
 					position: 'relative',
 					top: '10%',
