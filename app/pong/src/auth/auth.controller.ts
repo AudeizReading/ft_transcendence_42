@@ -51,7 +51,7 @@ export class AuthController {
     </script>`;
   }
 
-  @Get('fake/:login') // TODO: Not in eval?
+  @Get('fake/:login')
   async fakeLogin(@Request() req, @Param() param: ParamLogin) {
     let user = await this.usersService.user({
       login: param.login,

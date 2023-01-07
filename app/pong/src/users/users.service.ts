@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { User, Image, Prisma } from '@prisma/client';
+import { User, PlayerGame, Game, MatchMaking, Image, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -8,7 +8,16 @@ export class UsersService {
 
   async user(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
+  ): Promise<User & {
+    games: (PlayerGame & {
+      game: Game & {
+        players: (PlayerGame & {
+          user: User;
+        })[];
+      };
+    })[];
+    mMaking: MatchMaking;
+  } | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
       include: {
@@ -17,7 +26,11 @@ export class UsersService {
           include: {
             game: {
               include: {
-                players: true,
+                players: {
+                  include: {
+                    user: true,
+                  }
+                },
               },
             },
           },

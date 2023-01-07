@@ -4,12 +4,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { User, MatchMaking, Game, PlayerGame } from '@prisma/client';
 
-type PlayerGameInclude = PlayerGame & {
-  game: (Game & ({
-    players: PlayerGame[]
-  }))
-}
-
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private usersService: UsersService) {
@@ -22,10 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { login: string, sessionid: string }) {
-    const user: User & {
-      mMaking?: MatchMaking[],
-      games?: PlayerGameInclude[]
-    } = await this.usersService.user({
+    const user = await this.usersService.user({
       login: payload.login,
     });
     if (!user || user.sessionid != payload.sessionid) {
@@ -41,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       avatar: user.avatar,
       mMaking: user.mMaking,
       isPlaying: user.games.length != 0,
-      playingAt: (user.games || [])[0] as PlayerGameInclude,
+      playingAt: (user.games || [])[0],
     };
   }
 }
