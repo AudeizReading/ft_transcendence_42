@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
-import { Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
+import { User, Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 
 export interface scoreType {
   id: number;
@@ -66,22 +66,33 @@ export class GameService {
 
   async game(
     gameWhereUniqueInput: Prisma.GameWhereUniqueInput,
-  ): Promise<Game | null> {
+  ): Promise<Game & { players: (PlayerGame & { user: User; })[]; }> {
     return this.prisma.game.findUnique({
       where: gameWhereUniqueInput,
+      include: {
+        players: {
+          include: {
+            user: true
+          },
+        },
+      },
     });
   }
 
   async updateGame(params: {
     where: Prisma.GameWhereUniqueInput;
     data: Prisma.GameUpdateInput;
-  }): Promise<Game & { players: PlayerGame[] }> {
+  }): Promise<Game & { players: (PlayerGame & { user: User; })[]; }> {
     const { where, data } = params;
     return this.prisma.game.update({
       data,
       where,
       include: {
-        players: true,
+        players: {
+          include: {
+            user: true
+          },
+        },
       },
     });
   }

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { v_dot, v_sub, v_scale, v_norm, pl_intersect, pl_time_to_vector, DataElement, DataGame, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
-import LogicGame, { getPlayerPosition } from './LogicGame';
+import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, DataGame, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
+import LogicGame, { getPlayerPosition, getBallPosition } from './LogicGame';
 
 function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, gameId: string | number) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -10,7 +10,7 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   context.fill();*/
 
   // Centre de terrain
-  context.strokeStyle = 'rgba(0,0,0,0.6)';
+  context.strokeStyle = 'black';
   context.lineWidth = 3;
   context.setLineDash([6, 4]);
   context.beginPath();
@@ -22,7 +22,11 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   context.font = 'small-caps bold 48px/1 sans-serif';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText('En attente', 200, 150);
+  if (data.ball.at === null) {
+    context.fillText('En attente', 200, 150);
+  } else if (data.ball.at > +new Date()) {
+    context.fillText(String(Math.ceil((data.ball.at - +new Date()) / 1000)), 200, 150);
+  }
 
   context.font = 'small-caps bold 12px/1 sans-serif';
   context.textAlign = 'right';
@@ -85,8 +89,9 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   }
 
   // Balle
-  const ballPos: Point = data.ball.pos as Point
+  const ballPos: Point = getBallPosition(data.ball);
   context.fillRect(ballPos.x - data.ball.size / 2, ballPos.y - data.ball.size / 2, data.ball.size, data.ball.size);
+  const dir: Point = data.ball.dir as Point;
 
   // const vec: Point = v_norm({
   //   x: pl.pos.x - 200,
@@ -103,14 +108,9 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   //   y: Math.sin(Math.PI/180 * -60)
   // };
 
-  const dir: Point = {
-    x: Math.cos(Math.PI/4 * (+new Date()/10)*0.004),
-    y: Math.sin(Math.PI/4 * (+new Date()/10)*0.004)
-  };
-
   // const dir: Point = {
-  //   x: .66,
-  //   y: .34
+  //   x: Math.cos(Math.PI/4 * (+new Date()/10)*0.004),
+  //   y: Math.sin(Math.PI/4 * (+new Date()/10)*0.004)
   // };
 
   const bt: Plane = {
@@ -133,15 +133,17 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
     pos: { x: 400, y: 0 }
   };
 
+  const start: Point = data.ball.pos as Point;
+
   //ballPos
   context.fillStyle = 'red';
-  context.fillRect(ballPos.x - 3, ballPos.y - 3, 6, 6);
-  context.strokeStyle = 'white';
+  context.fillRect(start.x - 3, start.y - 3, 6, 6);
+  context.strokeStyle = 'lightblue';
   context.lineWidth = 2;
 
   let planes: Plane[] = [pl, pr, bt, bb];
   let i = -1, a: Point, b: Point, ray: Point, time: number, point: Point | null = null, max: number = 0;
-  a = {...ballPos};
+  a = {...start};
   ray = {...dir};
   do {
     b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
@@ -184,7 +186,7 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   } while(time > -1 && point && 0 <= point.x && point.x <= 400 && ++max < 100)
 
   planes = [pl, pr, bl, br];
-  a = {...ballPos};
+  a = {...start};
   ray = {...dir};
   b = { x: a.x + 20 * ray.x, y: a.y + 20 * ray.y }
   time = -1;
@@ -205,17 +207,8 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
       break ;
     }
   }
-  point = pl_time_to_vector(a, b, time);
-
   if (time > -1) {
-    if (point && !(0 <= point.y && point.y <= 300)) {
-      point.y = Math.abs(point.y);
-      const pair = Math.floor(point.y / 300) % 2;
-      point.y = point.y % 300;
-      if (pair) 
-        point.y = 300 - point.y;
-    }
-    context.fillStyle = 'white';
+    context.fillStyle = 'lightblue';
     point && context.fillRect(point.x - 3, point.y - 3, 6, 6);
   }
 }
@@ -224,9 +217,11 @@ function CanvasGame(props: {
    playable?: boolean,
    border?: string,
    gameId: string | number,
+   userId: number,
   }) {
   const canvasEl: { current: HTMLElement | null } = useRef(null);
   const [data] = useState({
+    users: [],
     players: [
       { dir: 0, pos: 164, speed: 250, size: 40, at: null },
       { dir: 0, pos: 210, speed: 250, size: 40, at: null },
@@ -259,9 +254,11 @@ function CanvasGame(props: {
     <React.Fragment>
       <canvas id="canvas-game" width="400" height="300" style={{
         border: props.border,
-        margin: 20
+        margin: '20px auto',
+        maxWidth: 'calc(100% - 40px)',
+        display: 'block'
       }}></canvas>
-      <LogicGame data={data} gameId={props.gameId} playable={props.playable?true:false} />
+      <LogicGame data={data} userId={props.userId} gameId={props.gameId} playable={props.playable?true:false} />
     </React.Fragment>
   );
 }

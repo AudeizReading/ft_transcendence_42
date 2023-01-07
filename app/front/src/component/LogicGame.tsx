@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import socketIOClient, { Socket } from "socket.io-client";
+import { Point } from '../dep/minirt_functions'
 import { DataElement, DataGame } from '../dep/minirt_functions'
 
 import { fetch_opt } from '../dep/fetch'
@@ -15,9 +16,8 @@ interface pingpongData {
 export function getPlayerPosition(player: DataElement): number {
   if (player.at !== null && player.dir !== 0) {
     // https://stackoverflow.com/q/153507/
-    const time = (+player.at - +new Date()) / 1000;
+    const time = (+new Date() - +player.at) / 1000;
     const speed = player.speed * (player.dir as number);
-    //const delta = player.speed * player.dir * time;
     const delta = (1 / 2) * speed * (time * time);
     return Math.min(300 - player.size, Math.max(0, (player.pos as number) + delta));
   } else {
@@ -25,9 +25,36 @@ export function getPlayerPosition(player: DataElement): number {
   }
 }
 
+export function getBallPosition(ball: DataElement): Point {
+  const date = +new Date();
+  if (ball.at !== null && ball.at <= date) {
+    const time = (date - +ball.at) / 1000;
+    const speed: number = ball.speed;
+    const pos = ball.pos as Point;
+    const dir = ball.dir as Point;
+    //const pos: Point = ball.pos as Point;
+
+    let x = pos.x + speed * time * dir.x;
+    let y = pos.y + speed * time * dir.y;
+
+    if (!(0 <= y && y <= 300)) {
+      y = Math.abs(y);
+      const pair = Math.floor(y / 300) % 2;
+      y = y % 300;
+      if (pair)
+        y = 300 - y;
+    }
+
+    return { x: x, y: y } as Point;
+  } else {
+    return ball.pos as Point;
+  }
+}
+
 function LogicGame(props: {
    playable: boolean,
    gameId: string | number,
+   userId: number,
    data: DataGame,
   }) {
   const loaded = useRef(false);
@@ -39,31 +66,55 @@ function LogicGame(props: {
     '40': false
   });
 
-  const [data, setData] = useState(props.data)
+  const [playerId, setPlayerId] = useState(-1);
+  const [data, setData] = useState(props.data);
   if (!loaded.current) {
     setData(data);
     loaded.current = true;
   }
 
+  const diffTime = useRef(0);
+  const socketLatence = useRef(0);
+
+  const sync2server = useCallback((rawPlayer: DataElement) => {
+    const player = {...rawPlayer};
+    if (player.at)
+       player.at += (diffTime.current + socketLatence.current);
+    return player;
+  }, [diffTime, socketLatence]);
+
+  const sync2client = useCallback((rawPlayer: DataElement) => {
+    const player = {...rawPlayer};
+    if (player.at)
+      player.at -= (diffTime.current + socketLatence.current);
+    return player;
+  }, [diffTime, socketLatence]);
+
+  const move_callback = useCallback((server_lacente: number, client_latence: number) => {
+    socketLatence.current += server_lacente;
+    //console.log(server_lacente, client_latence, socketLatence.current);
+  }, [socketLatence]);
+
   const gameSocket = useRef(null as any);
   useEffect(() => {
     let socket: Socket;
     if (!gameSocket.current) {
-      let latence = 0
-      let diff_datetime = 0
       socket = socketIOClient('ws://' + window.location.hostname + ':8192/game?page=game&gameid=' + String(props.gameId), {
         extraHeaders: fetch_opt().headers
       });
       gameSocket.current = socket;
 
       socket.on('dataGame', (newData: DataGame) => {
-        data.players = newData.players;
-        data.ball = newData.ball;
+        data.users = newData.users;
+        data.players = newData.players.map(sync2client);
+        data.ball = sync2client(newData.ball);
         setData(data);
-        console.log(data);
+        const id = +(props.userId > data.users[0].id);
+        if (data.users[id].id === props.userId)
+          setPlayerId(id);
       })
 
-      setTimeout(() => {
+      const pingpong = () => {
         socket.emit('ping', {
           first: +new Date(), // client
           second: 0,
@@ -74,20 +125,33 @@ function LogicGame(props: {
           data.third = +new Date();
           socket.emit('pong', data, (data: pingpongData) => {
             data.fifth = +new Date();
-            latence = (data.fifth - data.first) / 2;
+            const latence = (data.fifth - data.first) / 2;
             const [a, b, c, d] = [data.second - data.first, data.third - data.second,
               data.fourth - data.third, data.fifth - data.fourth];
             const diffs = [a - latence, -(b - latence), c - latence, -(d - latence)];
-            const diff_datetime = diffs.reduce(function(a, b) { return a + b; }, 0) / diffs.length;
+            const diff_datetime = Math.round(diffs.reduce(function(a, b) { return a + b; }, 0) / diffs.length);
             console.info('latence', latence, 'diff_datetime', diff_datetime); // positif = navigateur en retard, négatif = server en retard
+            diffTime.current = diff_datetime;
+            socketLatence.current = latence / 2
             /*console.log(a, b, c, d, diff_datetime);
             console.log(a - diff_datetime, b + diff_datetime, c - diff_datetime, d + diff_datetime, a + b + c + d, data.fifth - data.first);
             console.log(data.third - data.first, data.fifth - data.third);
             console.log(data.fourth - data.second);
             console.log(diffs);*/
+            setTimeout(pingpong, 30000);
+            socket.emit('data');
           });
         });
-      }, 1000);
+      }
+      socket.on('disconnect', () => {
+        data.ball.at = null;
+        socket.disconnect();
+        setTimeout(() => {
+          socket.disconnect();
+          socket.connect();
+        }, 1000);
+      });
+      setTimeout(pingpong, 1000);
       /*socket.on('message', (data) => {
         console.log(data);
       });*/
@@ -96,25 +160,25 @@ function LogicGame(props: {
     }
 
     const handleKeyEvent = (event: KeyboardEvent) => {
-      if (event.repeat)
-        return ;
       if (!(event.keyCode === 87 || event.keyCode === 90 || event.keyCode === 83 // W - S
             || event.keyCode === 38 || event.keyCode === 40)) // arrow: ^ - v
         return ;
-      if (event.type === 'keydown') {
+      if (playerId < 0)
+        return ;
+      if (!event.repeat && event.type === 'keydown') {
         const target = event.target as HTMLElement;
         if (target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
               || target.contentEditable === 'TEXTAREA')) // On bloque à l'activation, on laisse désactiver la touche
           return ;
         keydowns.current[event.keyCode] = true;
-        const player = props.data.players[0];
+        const player = props.data.players[playerId];
         player.pos = Math.round(getPlayerPosition(player));
         player.dir = (event.keyCode === 87 || event.keyCode === 90 || event.keyCode === 38) ? -1 : +1; // if TOP -1 else +1
         player.at = +new Date();
-        socket.emit('move', player);
-      } else if (event.type === 'keyup') {
+        socket.emit('move', sync2server(player), (data: number) => move_callback(data, +new Date() - (player.at as number)));
+      } else if (!event.repeat && event.type === 'keyup') {
         keydowns.current[event.keyCode] = false;
-        const player = props.data.players[0];
+        const player = props.data.players[playerId];
         let nextdir = 0;
         // TODO: Ajout d'une queue sur les touches enfoncées ? Parce que le dessus à toujours l'avantage sur la touche du bas
         if (keydowns.current['87'] || keydowns.current['90'] || keydowns.current['38'])
@@ -125,7 +189,7 @@ function LogicGame(props: {
           player.pos = Math.round(getPlayerPosition(player));
           player.dir = nextdir;
           player.at = +new Date();
-          socket.emit('move', player);
+          socket.emit('move', sync2server(player), (data: number) => move_callback(data, +new Date() - (player.at as number)));
         }
       };
       event.stopPropagation();
@@ -133,16 +197,18 @@ function LogicGame(props: {
     };
 
     const handleFocus = (event: FocusEvent) => {
+      if (playerId < 0)
+        return ;
       keydowns.current['87'] = false;
       keydowns.current['90'] = false;
       keydowns.current['83'] = false;
       keydowns.current['38'] = false;
       keydowns.current['40'] = false;
-      const player = props.data.players[0];
+      const player = props.data.players[playerId];
       player.pos = Math.round(getPlayerPosition(player));
       player.dir = 0;
       player.at = +new Date();
-      socket.emit('move', player);
+      socket.emit('move', sync2server(player), (data: number) => move_callback(data, +new Date() - (player.at as number)));
     };
 
     if (props.playable) {
@@ -163,7 +229,8 @@ function LogicGame(props: {
         window.removeEventListener('blur', handleFocus);
       }
     }
-  }, [props.data, props.playable]);
+  }, [props.data, props.playable, props.gameId, props.userId,
+    data, playerId, diffTime, sync2client, sync2server, move_callback]);
 
   return (
     <React.Fragment>

@@ -1,3 +1,9 @@
+export interface DataUser {
+  id: number;
+  name: string;
+  avatar: string;
+}
+
 export interface DataElement {
   dir: number | Point;
   pos: number | Point;
@@ -7,6 +13,7 @@ export interface DataElement {
 }
 
 export interface DataGame {
+  users: DataUser[]
   players: DataElement[]
   ball: DataElement
 }

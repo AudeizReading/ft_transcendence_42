@@ -211,7 +211,7 @@ function Play(props: {
               opacity: 0.42,
               mixBlendMode: 'multiply'
             }}>
-             {props.loaded && <CanvasGame gameId="demo" />}
+             {props.loaded && <CanvasGame userId={user.id} gameId="demo" />}
             </Box>
           </Grid>
           <Grid item xs={12} md={4} sx={{

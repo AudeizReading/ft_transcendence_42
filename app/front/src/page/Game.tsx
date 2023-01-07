@@ -23,11 +23,12 @@ function Game(props: {
   }, [props, gameid, message]);
 
   return (
-    <Box component="main" style={{ backgroundColor: "blue", height:"400px", overflow:"hidden" }}>
+    <Box component="main" style={{ overflowY: "auto" }}>
       {props.loaded && (gameid
-        ? <CanvasGame gameId={gameid} playable border="3px solid black" />
+        ? <CanvasGame userId={props.user.id} gameId={gameid} playable border="3px solid black" />
         : <Box component="p">{message || 'loading…'}</Box>
       )}
+      <Box component="p" sx={{ maxWidth: 400, mx: 'auto' }}>Bonne chance !</Box>
     </Box>
   );
 }

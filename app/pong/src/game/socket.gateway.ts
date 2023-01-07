@@ -15,7 +15,8 @@ import { Socket, Server } from 'socket.io';
 import { fromAuthHeaderOAsBearerToken } from '../auth/jwt.strategy';
 import { GameService } from './game.service';
 import { User, Game, PlayerGame } from '@prisma/client';
-import { DataGame, DataElement } from './dep/minirt_functions'
+import { DataGame, DataElement, DataUser, Point, pl_intersect,
+         Plane, pl_time_to_vector, check_segment_collision, v_norm } from './dep/minirt_functions'
 
 interface Client {
   userId: number;
@@ -36,19 +37,34 @@ type SocketUserAuth = Socket & {
 };
 
 type PlayerGameInclude = PlayerGame & {
-  game: Game & {
-    players: PlayerGame[]
-  }
+  game: Game;
+  user: User;
+};
+
+type GameInclude = Game & {
+  players: PlayerGameInclude[];
 };
 
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
 
-
 interface PlayGame {
   pGame: Game;
   data: DataGame;
+  timeout: ReturnType<typeof setTimeout>;
   users: number[];
+}
+
+function getPlayerPosition(player: DataElement): number {
+  if (player.at !== null && player.dir !== 0) {
+    // https://stackoverflow.com/q/153507/
+    const time = (+new Date() - +player.at) / 1000;
+    const speed = player.speed * (player.dir as number);
+    const delta = (1 / 2) * speed * (time * time);
+    return Math.min(300 - player.size, Math.max(0, (player.pos as number) + delta));
+  } else {
+    return player.pos as number;
+  }
 }
 
 @WebSocketGateway(8192, {
@@ -90,6 +106,68 @@ export class GameSocketGateway
     })();
   }
 
+  refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number) {
+    game.data.ball.pos = pos;
+    game.data.ball.dir = { x: Math.cos(angle), y: Math.sin(angle) };
+    game.data.ball.at = +new Date() + (deltaTime || 0);
+
+    this.planeCollisionChecking(socket, game);
+    socket.to(`game-${game.pGame.id}`).emit('dataGame', game.data);
+    socket.emit('dataGame', game.data);
+  }
+
+  planeCollisionChecking(socket: Socket, game: PlayGame) {
+    if (game.data.ball.at === null)
+      return ;
+    const planes: Plane[] = [{
+      n: { x: 1, y: 0 },
+      pos: { x: 20, y: getPlayerPosition(game.data.players[0]) as number },
+      size: game.data.players[0].size
+    }, {
+      n: { x: -1, y: 0 },
+      pos: { x: 400 - 20, y: getPlayerPosition(game.data.players[1]) as number },
+      size: game.data.players[1].size
+    }];
+    const a: Point = game.data.ball.pos as Point;
+    const dir: Point = v_norm(game.data.ball.dir as Point);
+    const speed: number = game.data.ball.speed;
+    const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y }
+    let time: number = -1;
+
+    for (let i: number = 0; i < planes.length; i++) {
+      if ((time = pl_intersect(a, b, planes[i])) > -1) {
+        const ms: number = game.data.ball.at + time * 1000 - +new Date();
+        if (ms <= 0)
+          break;
+        clearTimeout(game.timeout);
+        game.timeout = setTimeout(() => {
+          const point: Point = pl_time_to_vector(a, b, time);
+          if (point && !(0 <= point.y && point.y <= 300)) {
+            point.y = Math.abs(point.y);
+            const pair: number = Math.floor(point.y / 300) % 2;
+            point.y = point.y % 300;
+            if (pair) 
+              point.y = 300 - point.y;
+          }
+          if (check_segment_collision(planes[i], point)) {
+            const size: number = (planes[i].size || 0);
+            let dist: number = (point.y - planes[i].pos.y + 3) / (size + 6) * 160; // 3 et 6 == rayon/diametre de la balle
+            if (Math.sign(planes[i].n.x) < 0)
+              dist = (160 - dist) - 180;
+            this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80));
+          }
+          else {
+            const angle: number = Math.PI / 180 * (Math.random() * 120 - 60) - ((i) ? 180 : 0);
+            setTimeout(() =>
+              this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
+            , 1000); // TODO: Calc real time remaning
+          }
+        }, ms);
+        break ;
+      }
+    }
+  }
+
   // @UseGuards(JwtAuthGuard) <== Not supported for handleConnection
   async handleConnection(socket: Socket) {
     const user = await this.getUserWithToken(socket);
@@ -122,11 +200,11 @@ export class GameSocketGateway
     });*/
 
     let logicState = '';
-    let pGame: Game & ({ players: PlayerGame[] }) | null = null; // Prisma
+    let pGame: Game & { players: (PlayerGame & { user: User; })[]; } | null = null; // Prisma
 
     // STEP 1: Try to connect
     if (socket.handshake?.query?.gameid == 'mygame' && user.playingAt) {
-      pGame = user.playingAt.game;
+      pGame = user.playingAt.game as GameInclude;
       client.gameId = pGame.id;
       console.log('Est-ce que la game peut commencer ?');
       if (pGame.state === 'WAITING') {
@@ -144,7 +222,7 @@ export class GameSocketGateway
           console.log('Il vous manque encore un opposant !', oppId);
         } else {
           console.log('oui');
-          user.playingAt.game = pGame = await this.gameService.updateGame({
+          pGame = await this.gameService.updateGame({
             data: {
               state: 'PLAYING',
             },
@@ -154,11 +232,16 @@ export class GameSocketGateway
           });
           logicState = 'STARTING';
         }
-        socket.to(`game-${client.gameId}`);
       } else {
         console.log('Elle a déjà commencé, tu es en retard !');
         logicState = 'PLAYING';
       }
+    } else if (!isNaN(parseInt(socket.handshake?.query?.gameid as string))) {
+      pGame = await this.gameService.game({
+        id: parseInt(socket.handshake?.query?.gameid as string)
+      });
+      client.gameId = pGame.id;
+      logicState = pGame.state;
     }
 
     if (!pGame || client.gameId < 0)
@@ -168,10 +251,18 @@ export class GameSocketGateway
     if (game) {
       game.users.push(user.id);
     } else {
-      const angle = Math.PI/180 * (Math.random() * 120 - 60)
+      const angle = Math.PI / 180 * (Math.random() * 120 - 60); //- 180 // TODO: Side random
       game = {
         pGame: pGame,
         data: {
+          users: pGame.players.map((player): DataUser => ({
+            id: player.user.id,
+            name: player.user.name,
+            avatar: user.avatar.replace(
+              '://<<host>>',
+              '://' + process.env.FRONT_HOST,
+            ),
+          })) as DataUser[],
           players: [
             { dir: 0, pos: 140, speed: 250, size: 40, at: null },
             { dir: 0, pos: 140, speed: 250, size: 40, at: null },
@@ -180,26 +271,29 @@ export class GameSocketGateway
             dir: {
               x: Math.cos(angle),
               y: Math.sin(angle)
-            }, pos: { x: 200, y: 150 }, speed: 250, size: 6, at: null
+            }, pos: { x: 200, y: 150 }, speed: 130, size: 6, at: null // TODO: Speed progressive ?
           }
         },
         users: [user.id],
-      }
+        timeout: 0 as any,
+      };
       this.games.set(client.gameId, game);
     }
+
+    if (logicState === 'STARTING' || logicState === 'PLAYING') {
+      if (game.data.ball.at === null) {
+        console.log('ball go!')
+        game.data.ball.at = +new Date() + 10000;
+      }
+    }
+
+    this.planeCollisionChecking(socket, game);
 
     socket.join(`game-${client.gameId}`);
     if (logicState === 'STARTING')
       socket.to(`game-${client.gameId}`).emit('dataGame', game.data);
     else if (logicState === 'PLAYING')
       socket.emit('dataGame', game.data);
-
-    //console.log(this.games);
-    return {
-      // not send ??
-      success: true,
-      gameid: client.gameId,
-    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -221,12 +315,29 @@ export class GameSocketGateway
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
+  @SubscribeMessage('data')
+  async data(
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
+    const client = this.clients.get(socket.id);
+    if (!client || !client.gameId)
+      return ;
+
+    const game = this.games.get(client.gameId);
+    if (!game || game.users.indexOf(client.userId) === -1)
+      return ;
+
+    return game.data;
+  }
+
+  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
   @SubscribeMessage('move')
   async move(
     @MessageBody() data: DataElement,
     @ConnectedSocket() socket: SocketUserAuth,
   ) {
+    const diff: number = +new Date() - data.at;
     const client = this.clients.get(socket.id);
     if (!client || !client.gameId)
       return ;
@@ -238,30 +349,21 @@ export class GameSocketGateway
     const pGame = game.pGame as Game & { players: PlayerGame[] };
     const playerId: number = +(client.userId > pGame.players[0].userId);
 
+    if (pGame.players[playerId].userId !== client.userId) {
+      console.log('tricheur?');
+      return ;
+    }
+
+    this.planeCollisionChecking(socket, game);
+
     //TODO: ANTICHEAT & CHECK DATA
     game.data.players[playerId] = data;
     socket.to(`game-${client.gameId}`).emit('dataGame', game.data);
 
     console.log('move player', playerId, data);
+
+    return diff
   }
-
-  /*private getUserInfoBySId(sessionId: string) {
-    let sender: string;
-    let roomName: string;
-    this.roomMap.forEach((room, key) => {
-      room.forEach(user => {
-        if (user.sessionId === sessionId) {
-          sender = user.userName;
-          roomName = key;
-        }
-      });
-    });
-
-    return {
-      sender,
-      roomName,
-    };
-  }*/
 
   // @UseGuards(JwtAuthGuard)
   @SubscribeMessage('ping')
@@ -282,53 +384,4 @@ export class GameSocketGateway
     data.fourth = +new Date();
     return data;
   }
-
-  /*@SubscribeMessage('login')
-  handlerLogin(
-    socket: Socket,
-    payload: { login: string, sessionid: string },
-  )/*: { success: boolean; isPublisher?: boolean }* / {
-    console.log('??')
-    /*const [userName, roomName] = payload;
-    try {
-      socket.join(roomName);
-      const sessionId = socket.id;
-      const userRoom = this.roomMap.get(roomName);
-      let isListener = true;
-
-      // 去重
-      if (Array.isArray(userRoom)) {
-        userRoom.forEach((u , i) => {
-          if (u.userName === userName) {
-            userRoom.splice(i, 1);
-          }
-        });
-      }
-      isListener = Array.isArray(userRoom) && userRoom.length > 0;
-      const room = this.roomMap.get(roomName);
-      const user: UserInfo = {
-        sessionId,
-        userName,
-        roomName,
-      };
-      if (room) {
-        room.push(user);
-      } else {
-        this.roomMap.set(roomName, [user]);
-      }
-      return { success: true, isPublisher: !isListener };
-    } catch (e) {
-      console.error(e);
-      return { success: false };
-    }* /
-  }*/
-
-  /*@SubscribeMessage('chat')
-  handlerChat(socket: Socket, msg: string) {
-    const { sender, roomName } = this.getUserInfoBySId(socket.id);
-
-    if (!sender) return;
-    socket.to(roomName).emit('chat', msg);
-    return msg;
-  }*/
 }
