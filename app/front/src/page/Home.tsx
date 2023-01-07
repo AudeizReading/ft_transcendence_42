@@ -70,7 +70,7 @@ function Home(props: {
   }, [time])
 
   const gridNotLogged = (
-      <UnstableGrid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'}, background: 'white' }}>
+      <UnstableGrid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'} }}>
         <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center'}}>
           <DateTime component="h2" time={time}/>
         </UnstableGrid>
@@ -78,7 +78,7 @@ function Home(props: {
         <UnstableGrid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
           <UnstableGrid xs={12} md={5} mdOffset={7} sx={{position: 'relative', display: 'flex', flexFlow: 'column', alignItems: 'center'}}>
             <AnalogicClock stress={true} time={time}/>
-            <UnstableGrid xs={12} mdOffset={0} sx={{position: 'absolute', top: '62%', width: '100%', textAlign: 'center', zIndex: 10}}>
+            <UnstableGrid xs={12} mdOffset={0} sx={{position: 'absolute', top: '62%', width: '100%', textAlign: 'center', zIndex: 10, color: 'black' }}>
               <Clock component="h6" time={time}/>
             </UnstableGrid>
           </UnstableGrid>
@@ -93,7 +93,7 @@ function Home(props: {
   );
 
   return (
-    <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: isLogged === false ? 'white' : 'transparent', color: 'black' }}>
+    <Box component="main" sx={{ height: '100vh', overflow: 'auto' }}>
       {isLogged === false ?
         <Fade in={true} timeout={400}>{gridNotLogged}</Fade>
         :
