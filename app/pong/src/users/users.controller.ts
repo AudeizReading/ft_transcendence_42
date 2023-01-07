@@ -45,6 +45,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async user_info(@Request() req) {
     // console.log(req.user) // <== check avalaible data served by ../auth/jwt.strategy.ts:validate
+    this.usersService.updateUser({
+      where: {
+        id: req.user.id
+      },
+      data: {
+        lastFetch: new Date
+      }
+    });
     return {
       connected: true,
       user: {

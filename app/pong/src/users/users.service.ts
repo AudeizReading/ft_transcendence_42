@@ -84,7 +84,7 @@ export class UsersService {
 
   async getUserStatus(user: User): Promise<"offline" | "online" | "playing">
   {
-    if (!user.sessionid /* || user.lastFetch > 10sec */) {
+    if (!user.sessionid || Date.now() - user.lastFetch.getTime() > 10_000) {
       return "offline";
     }
     const isPlaying = !!await this.prisma.playerGame.count({

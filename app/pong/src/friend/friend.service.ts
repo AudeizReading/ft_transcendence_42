@@ -161,7 +161,7 @@ export class FriendService {
     }
 
     const getUserStatus = (user: any, games: PlayerGame & {game: Game}[]) => {
-      if (!user.sessionid /* || user.lastFetch > 10sec */) {
+      if (!user.sessionid || Date.now() - user.lastFetch.getTime() > 10_000) {
         return "offline";
       }
       const isPlaying = games.findIndex(x => x.game.state !== "ENDED") !== -1;

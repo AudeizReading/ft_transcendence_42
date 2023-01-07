@@ -13,6 +13,7 @@ import EditableName from '../component/EditableName';
 import ProfileActionButtons from '../component/ProfileActionButtons';
 
 // TODO: Get a "User not found" page instead of a blank thing
+// FIXME: User's status isn't updated live for some reason
 function Profile(props: { 
     fetch_userinfo: Function,
     user: User
