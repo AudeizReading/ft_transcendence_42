@@ -86,6 +86,15 @@ function Profile(props: {
 
   const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
 
+  const getStatusColor = (status: string) => {
+    if (status === "online")
+      return "#44b700";
+    else if (status === "playing")
+      return "#1976d2";
+    else
+      return "#7f7f7f";
+  }
+
   return (
     <Box component="main" sx={{ textAlign: 'center' }}>
     {loaded &&
@@ -111,7 +120,7 @@ function Profile(props: {
             <Avatar
               alt={user.name}
               src={user.avatar}
-              sx={{ width: '100%', height: '100%' }}
+              sx={{ width: '100%', height: '100%', border: `5px solid ${getStatusColor(user.status)}` }}
             />
             {
               isOwnProfile &&
