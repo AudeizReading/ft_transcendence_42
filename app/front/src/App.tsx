@@ -9,7 +9,6 @@ import Profile from './page/Profile';
 import Auth from './page/Auth';
 import Friends from './page/Friends';
 
-
 import TopBar from './component/TopBar';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -225,7 +224,7 @@ function App() {
       <BrowserRouter>
         {isNotAuth && <TopBar fetch_userinfo={fetch_userinfo} user={user} loaded={loaded} alreadyOpen={alreadyOpen} />}
         <Routes>
-          <Route index path="/" element={<Home user={user}/>} />
+          <Route index path="/" element={<Home fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/play" element={<Play fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/game/:gameid" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/game/" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />

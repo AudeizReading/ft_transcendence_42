@@ -17,8 +17,9 @@ function Auth() {
   },[]);
 
   return (
-    <Box component="main">
-      Connexion OK. Vous pouvez fermer cette page :) {html}
+    <Box component="main" sx={{ height: '100%', background: 'white' }}>
+      <Box component="p" sx={{ color: 'black', textAlign: 'center' }}
+        >Connexion OK. Vous pouvez fermer cette page :) {html}</Box>
     </Box>
   );
 }

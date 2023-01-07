@@ -185,8 +185,8 @@ function TopBar(props: {
   );
 
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl">
+    <AppBar position="static" sx={(window.location.pathname === "/") ? { background: 'transparent', boxShadow: 'none' } : {}}>
+      <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ flexWrap: 'wrap' }}>
           <SportsSoccer sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
           <Typography
@@ -387,7 +387,10 @@ function TopBar(props: {
 
             <Tooltip title="Ouvrir le menu utilisateur">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt={user.name} src={user.avatar} />
+                <Avatar alt={user.name} src={user.avatar} /> 
+                <Typography variant="h6" noWrap component="div" sx={{ m: 0, color: 'white', ml: 2, display: { xs: 'none', sm: 'inherit' } }}>
+                  {user.name}
+                </Typography>
               </IconButton>
             </Tooltip>
             <Menu
@@ -429,7 +432,7 @@ function TopBar(props: {
                 component={RouterLink}
                 to={'/user/' + user.id}
               >
-                <Avatar alt={user.name} src={user.avatar} /> Profil
+                <Avatar alt={user.name} src={user.avatar} /> {user.name}
               </MenuItem>
               <Divider />
               <MenuItem key="Amis" onClick={handleCloseUserMenu}

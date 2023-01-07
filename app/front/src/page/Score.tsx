@@ -74,7 +74,7 @@ function Score() {
   }
 
   return (
-    <Box component="main" sx={{mt: 1, mb: 1}}>
+    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
       <Box
         sx={{
           minHeight: 300,

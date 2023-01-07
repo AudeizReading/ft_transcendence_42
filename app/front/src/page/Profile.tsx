@@ -13,7 +13,7 @@ import EditableName from '../component/EditableName';
 import ProfileActionButtons from '../component/ProfileActionButtons';
 
 // TODO: Get a "User not found" page instead of a blank thing
-function Profile(props: { 
+function Profile(props: {
     fetch_userinfo: Function,
     user: User
   }) {
@@ -85,7 +85,7 @@ function Profile(props: {
   const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
 
   return (
-    <Box component="main" sx={{ textAlign: 'center' }}>
+    <Box component="main" sx={{ textAlign: 'center', height: '100vh', overflow: 'auto', background: 'white', }}>
     {loaded &&
       <Grid container>
         <Grid xs={12} item alignItems="center">

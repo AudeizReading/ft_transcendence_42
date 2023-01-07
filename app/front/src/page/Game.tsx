@@ -23,7 +23,7 @@ function Game(props: {
   }, [props, gameid, message]);
 
   return (
-    <Box component="main" style={{ overflowY: "auto" }}>
+    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
       {props.loaded && (gameid
         ? <CanvasGame userId={props.user.id} gameId={gameid} playable border="3px solid black" />
         : <Box component="p">{message || 'loading…'}</Box>

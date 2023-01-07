@@ -7,6 +7,7 @@ import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { keyframes } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
 
 import { fetch_opt } from '../dep/fetch'
@@ -163,12 +164,17 @@ function Play(props: {
 
   const xs_button_height_container = 90;
 
+  const floating = keyframes`
+    0%   { transform: translateY(0);    }
+    50%  { transform: translateY(-4px); }
+    100% { transform: translateY(0);    }
+  `;
+
   return (
-    <Box component="main">
+    <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: '#dcf2f6', }}>
       <Box>
         <Grid container sx={{
           display: 'flex',
-          background: '#dcf2f6',
           height: { xs: 400 + xs_button_height_container, md: 'inherit' }
         }}>
           <Grid item xs={12} md={8} style={{
@@ -182,6 +188,8 @@ function Play(props: {
             height: 400,
             minWidth: 400,
             position: 'relative',
+            animation: floating + ' 10s infinite ease-in-out',
+            mb: '10px',
             '&:before': {
               content: '" "',
               height: '100%',
