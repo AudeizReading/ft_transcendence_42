@@ -46,6 +46,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async user_info(@Request() req) {
     // console.log(req.user) // <== check avalaible data served by ../auth/jwt.strategy.ts:validate
+    this.usersService.updateUser({
+      where: {
+        id: req.user.id
+      },
+      data: {
+        lastFetch: new Date
+      }
+    });
     return {
       connected: true,
       user: {
@@ -65,6 +73,7 @@ export class UsersController {
       ...(await this.notifService.objectForFront(req.user.id)),
       friends: await this.friendService.objectForFront(req.user.id),
       matchmaking_users: await this.gameService.listTenMatchMakings(), // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
+      lastFetch: Date.now(),
     };
   }
 
@@ -86,6 +95,7 @@ export class UsersController {
         '://' + process.env.FRONT_HOST,
       ),
       ...(await this.usersService.getScore(user.id)),
+      status: await this.usersService.getUserStatus(user),
     };
   }
 

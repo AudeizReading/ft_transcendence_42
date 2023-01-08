@@ -25,7 +25,8 @@ function Profile(props: {
     name: '',
     avatar: '',
     wins: 0,
-    loses: 0
+    loses: 0,
+    status: "offline",
   });
 
   const [loaded, setLoaded] = useState(false);
@@ -45,6 +46,7 @@ function Profile(props: {
             avatar: result.avatar,
             wins: result.wins,
             loses: result.loses,
+            status: result.status,
           })
         },
         (error) => {
@@ -53,9 +55,10 @@ function Profile(props: {
       )
   }, [navigate]);
 
+  // Updates whenever profile changes, or every X seconds with the rest of the logged user's info
   useEffect(() => {
     fetch_user(Number(userid));
-  }, [fetch_user, userid]);
+  }, [fetch_user, userid, props.user]);
 
   const handleCapture = ({ target }: any) => {
     var data = new FormData()
@@ -85,6 +88,15 @@ function Profile(props: {
 
   const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
 
+  const getStatusColor = (status: string) => {
+    if (status === "online")
+      return "#44b700";
+    else if (status === "playing")
+      return "#1976d2";
+    else
+      return "#7f7f7f";
+  }
+
   return (
     <Box component="main" sx={{ textAlign: 'center', my: 1, display: "flex", flexDirection: "column" }}>
 
@@ -110,7 +122,7 @@ function Profile(props: {
         <Avatar
           alt={user.name}
           src={user.avatar}
-          sx={{ width: '100%', height: '100%' }}
+          sx={{ width: '100%', height: '100%', border: `5px solid ${getStatusColor(user.status)}` }}
         />
         {
           isOwnProfile &&

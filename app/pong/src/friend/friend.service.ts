@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { Friend, User, Game, Prisma } from '@prisma/client';
+import { Friend, User, Game, Prisma, PlayerGame } from '@prisma/client';
 import { NotifService } from 'src/notif/notif.service';
+import { UsersService } from 'src/users/users.service';
 
 export interface FriendForFront {
   id: number,
@@ -18,6 +19,7 @@ export class FriendService {
   constructor(
     private prisma: PrismaService,
     private notif: NotifService,
+    private usersService: UsersService,
   ) {}
 
   async createFriend(userA_name: string, userAId: number, userBId: number): Promise<Friend>
@@ -109,9 +111,18 @@ export class FriendService {
     });
   }
 
-  async objectForFront(userId: number): Promise<FriendForFront[]> {
-    // const friends: FriendForFront[] = [];
-    const data = await this.friends({
+  async objectForFront(userId: number): Promise<FriendForFront[]>
+  {
+    // Yes, this is horrifying. But it's gotta be there. Read this with the schema next to it.
+    // So, this type represents a Friend, containing both userA and B.
+    // Each of them include the "games" PlayerGame array, and each item of the array also contains
+    // the Game "game" type. You don't get it ? Too bad.
+    type dataType = Friend & {
+      userA: User & { games: PlayerGame & {game: Game}[] },
+      userB: User & { games: PlayerGame & {game: Game}[] }
+    };
+
+    const data: dataType[] = await this.friends({
       where: {
         OR: [
           { userAId: userId },
@@ -124,16 +135,24 @@ export class FriendService {
       include: {
         userA: {
           include: {
-            games: true
+            games: {
+              include: {
+                game: true,
+              }
+            }
           }
         },
         userB: {
           include: {
-            games: true
+            games: {
+              include: {
+                game: true,
+              }
+            }
           }
         },
       },
-    });
+    }) as dataType[];
 
     const getFriendStatus = (fromId: number, state: string) => {
       if (fromId === userId && state === 'WAITING')
@@ -141,10 +160,15 @@ export class FriendService {
       return (state === 'WAITING' ? "pending" : "accepted");
     }
 
-    const friends = data.map((item: Friend & {
-        userA: User & { games: Game[] },
-        userB: User & { games: Game[] }
-      }) => {
+    const getUserStatus = (user: any, games: PlayerGame & {game: Game}[]) => {
+      if (!user.sessionid || Date.now() - user.lastFetch.getTime() > 10_000) {
+        return "offline";
+      }
+      const isPlaying = games.findIndex(x => x.game.state !== "ENDED") !== -1;
+      return isPlaying ? "playing" : "online";
+    }
+
+    const friends = data.map((item) => {
         const user = (item.userA.id !== userId) ? item.userA : item.userB;
         return {
           id: user.id,
@@ -153,10 +177,10 @@ export class FriendService {
                 '://<<host>>',
                 '://' + process.env.FRONT_HOST,
               ),
-          status: 'offline', // TODO: "offline" | "online" | "playing"
+          status: getUserStatus(user, user.games),
           friend_status: getFriendStatus(item.userAId, item.state),
           games_played: user.games.length,
-          games_won: user.games.filter((game: Game) => game.winnerId === user.id).length,
+          games_won: user.games.filter((playerGame) => playerGame.game.winnerId === user.id).length,
         } as FriendForFront;
       })
       .sort((a, b) => { // Sorts in the order described in the array
