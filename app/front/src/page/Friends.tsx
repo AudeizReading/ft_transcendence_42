@@ -46,8 +46,10 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
       field: "win-ratio",
       headerName: "Rapport Victoires/Défaites",
       width: 200,
-      valueGetter: (params: GridValueGetterParams) =>
-        ((params.row.games_won / params.row.games_played) || 0).toFixed(2),
+      valueGetter: (params: GridValueGetterParams) => {
+        const gamesLost = params.row.games_played - params.row.games_won;
+        return (params.row.games_won / (gamesLost || 1)).toFixed(2);
+      }
     },
     {
       field: "buttons",
