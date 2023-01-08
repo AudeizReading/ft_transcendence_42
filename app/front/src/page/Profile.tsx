@@ -98,7 +98,7 @@ function Profile(props: {
   }
 
   return (
-    <Box component="main" sx={{ textAlign: 'center', my: 1, display: "flex", flexDirection: "column" }}>
+    <Box component="main" sx={{ textAlign: 'center', py: 1, display: "flex", flexDirection: "column", background: "white" }}>
 
       <Box sx={{
         width: 250,
