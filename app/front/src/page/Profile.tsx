@@ -50,7 +50,7 @@ function Profile(props: {
           })
         },
         (error) => {
-          navigate('/not-foud');
+          navigate('/not-found');
         }
       )
   }, [navigate]);
@@ -98,16 +98,17 @@ function Profile(props: {
   }
 
   return (
-    <Box component="main" sx={{ textAlign: 'center', py: 1, display: "flex", flexDirection: "column", background: "white" }}>
+    <Box component="main" sx={{ textAlign: 'center', p: 1, display: "flex", flexDirection: "column", background: "white" }}>
 
       <Box sx={{
         width: 250,
         minWidth: 250,
         height: 250,
         minHeight: 250,
-        my: 1,
+        pb: 2,
         mx: 'auto',
         display: 'flex',
+        justifyContent: 'center',
         position: 'relative',
         '&:hover > .editIcon': {
           visibility: 'visible',
@@ -138,10 +139,7 @@ function Profile(props: {
         }
       </Box>
 
-      <Box display="flex" alignItems="center"
-        sx={{
-          mx: 'auto',
-        }}>
+      <Box display="flex" alignItems="center" sx={{ mx: 'auto' }}>
         <EditableName
           editable={isOwnProfile}
           name={user.name}
@@ -149,7 +147,7 @@ function Profile(props: {
         />
       </Box>
 
-      <Box display="flex" alignItems="center" sx={{mx: 'auto', my: 1.5}}>
+      <Box display="flex" alignItems="center" sx={{mx: 'auto', my: isOwnProfile ? 0 : 1}}>
         <ProfileActionButtons
           disabled={isOwnProfile}
           fetch_userinfo={props.fetch_userinfo}
