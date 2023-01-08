@@ -37,7 +37,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const normalUser = (
     <Box component="span">
-      <Button variant="contained" color="success" sx={{m: 1}} startIcon={<PersonAddAlt1Icon/>}
+      <Button variant="contained" color="success" sx={{mx: 1}} startIcon={<PersonAddAlt1Icon/>}
         onClick={() => callFriendController(props.profileUser.name, "request")}
       >
         Ajouter en ami
@@ -47,7 +47,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const requestedUser = (
     <Box component="span">
-      <Button variant="contained" color="error" sx={{m: 1}} startIcon={<CloseIcon/>}
+      <Button variant="contained" color="error" sx={{mx: 1}} startIcon={<CloseIcon/>}
         onClick={() => callFriendController(props.profileUser.id, "cancelrequest")}
       >
         Annuler la demande d'ami
@@ -57,12 +57,12 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const pendingUser = (
     <Box component="span">
-      <Button variant="contained" color="success" sx={{m: 1}} startIcon={<CheckIcon/>}
+      <Button variant="contained" color="success" sx={{mx: 1}} startIcon={<CheckIcon/>}
         onClick={() => callFriendController(props.profileUser.id, "accept")}
       >
         Accepter l'ami
       </Button>
-      <Button variant="contained" color="error" sx={{m: 1}} startIcon={<CloseIcon/>}
+      <Button variant="contained" color="error" sx={{mx: 1}} startIcon={<CloseIcon/>}
         onClick={() => callFriendController(props.profileUser.id, "refuse")}
       >
         Refuser l'ami
@@ -72,23 +72,16 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const friendUser = (
     <Box component="span">
-      <Button variant="contained" color="success" sx={{m: 1}} startIcon={<VideogameAssetIcon/>} >
+      <Button variant="contained" color="success" sx={{mx: 1}} startIcon={<VideogameAssetIcon/>} >
         Inviter à jouer
       </Button>
-      <Button variant="contained" color="primary" sx={{m: 1}} startIcon={<MessageIcon/>} >
+      <Button variant="contained" color="primary" sx={{mx: 1}} startIcon={<MessageIcon/>} >
         Envoyer un message
       </Button>
-      <Button variant="contained" color="error" sx={{m: 1}} startIcon={<DeleteForeverIcon/>}
+      <Button variant="contained" color="error" sx={{mx: 1}} startIcon={<DeleteForeverIcon/>}
         onClick={() => callFriendController(props.profileUser.id, "remove")}
       >
         Supprimer l'ami
-      </Button>
-      <Button variant="outlined" color="primary" sx={{m: 1}}
-        onClick={async () => {
-          await fetch(`http://${window.location.hostname}:8190/user/${props.profileUser.id}/games`, fetch_opt());
-        }}
-      >
-        DEBUG: Fetch games
       </Button>
     </Box>
   );

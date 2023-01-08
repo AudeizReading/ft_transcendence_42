@@ -137,7 +137,7 @@ function Profile(props: {
         />
       </Box>
 
-      <Box display="flex" alignItems="center" sx={{mx: 'auto', my: 1}}>
+      <Box display="flex" alignItems="center" sx={{mx: 'auto', my: 1.5}}>
         <ProfileActionButtons
           disabled={isOwnProfile}
           fetch_userinfo={props.fetch_userinfo}
@@ -180,7 +180,7 @@ function Profile(props: {
       <Box display="flex" alignItems="center"
         sx={{
           mx: 'auto',
-          my: 1,
+          mt: 1,
           minHeight: 200,
           height: '100%',
           maxWidth: 800,
