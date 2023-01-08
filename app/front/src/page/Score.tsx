@@ -63,7 +63,7 @@ function Score() {
   }
 
   return (
-    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
+    <Box component="main" sx={{ p: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
       <Box
         sx={{
           minHeight: 300,
@@ -76,8 +76,6 @@ function Score() {
         <DataGrid
           rows={rows}
           columns={columns}
-          // pageSize={50}
-          // rowsPerPageOptions={[]}
           autoPageSize
           disableSelectionOnClick
           disableColumnSelector

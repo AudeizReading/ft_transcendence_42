@@ -73,7 +73,7 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
   );
 
   return (
-    <Box component="main" sx={{ py: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', }} >
+    <Box component="main" sx={{ p: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', }} >
       <AddFriendDialog
         fetch_userinfo={props.fetch_userinfo}
         addingFriend={addingFriend}
@@ -118,8 +118,6 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
         <DataGrid
           rows={gridRows}
           columns={gridColums}
-          // pageSize={50}
-          // rowsPerPageOptions={[]}
           autoPageSize
           disableSelectionOnClick
           disableColumnSelector

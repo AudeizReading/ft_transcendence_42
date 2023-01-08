@@ -66,8 +66,6 @@ export default function MatchHistory(props: MatchHistoryProps)
     <DataGrid
       rows={rows}
       columns={columns}
-      // pageSize={50}
-      // rowsPerPageOptions={[]}
       autoPageSize
       disableSelectionOnClick
       disableColumnSelector
