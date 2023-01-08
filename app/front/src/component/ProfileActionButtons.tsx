@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Box, Button } from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
@@ -10,6 +10,8 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { fetch_opt } from '../dep/fetch';
 import Friend from '../interface/Friend';
+import GameConfigDialog from './GameConfigDialog';
+import GameSettingsInterface from '../interface/GameSettingsInterface';
 
 interface ProfileActionButtonsProps {
   disabled?: boolean,
@@ -31,6 +33,13 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
     await fetch(`http://${window.location.hostname}:8190/friend/${user}/${action}`, fetch_opt());
     props.fetch_userinfo();
   }
+
+  async function sendInvite(settings: GameSettingsInterface) {
+    alert(`Sent invite:\n${settings.pointsToWin}, ${settings.timeLimit}, ${settings.ballSpeed}`);
+    // TODO
+  }
+
+  const [isGameConfigOpen, setGameConfigOpen] = useState(false);
 
   const friend_status = props.currentUserFriends
     .find(friend => friend.id === props.profileUser.id)
@@ -73,8 +82,13 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
   const friendUser = (
     <Box component="span">
+
+      <GameConfigDialog open={isGameConfigOpen} setOpen={setGameConfigOpen} sendInvite={sendInvite}/>
+
       <Button variant="contained" color="success" sx={{mx: 1}} startIcon={<VideogameAssetIcon/>}
-        disabled={props.profileUser.status !== "online"}>
+        disabled={props.profileUser.status !== "online"}
+        onClick={() => setGameConfigOpen(true)}
+      >
         Inviter à jouer
       </Button>
       <Button variant="contained" color="primary" sx={{mx: 1}} startIcon={<MessageIcon/>} >
