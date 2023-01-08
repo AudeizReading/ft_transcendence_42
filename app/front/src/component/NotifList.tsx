@@ -36,12 +36,14 @@ export default function NotifList(props: NotifListProps)
       key={index}
       sx={{ p: 0, m: 0 }}
       divider={index < props.notifs.arr.length - 1}
-      onClick={props.handleCloseNotifMenu}
-      // Make this a RouterLink only if there's a URL in the notif
-      { ...(notif.url ? {component: RouterLink, to: notif.url} : {}) }
       secondaryAction={getDeleteNotifButton(notif.id)}
     >
-      <ListItemButton sx={{ display: 'block', pt: 1, pb:0 }}>
+      <ListItemButton
+        sx={{ display: 'block', pt: 1, pb:0 }}
+        onClick={props.handleCloseNotifMenu}
+        // Make this a RouterLink only if there's a URL in the notif
+        { ...(notif.url ? {component: RouterLink, to: notif.url} : {}) }
+      >
         <Box sx={{color: notif.read ? 'grey' : 'text.primary', whiteSpace: 'normal'}} >
           {notif.text}
         </Box>
