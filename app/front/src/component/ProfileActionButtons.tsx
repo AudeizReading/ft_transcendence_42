@@ -93,7 +93,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
     </Box>
   );
 
-  if (!!props.disabled)
+  if (!!props.disabled || !friend_status)
     return null;
   else if (friend_status === "requested")
     return requestedUser;
