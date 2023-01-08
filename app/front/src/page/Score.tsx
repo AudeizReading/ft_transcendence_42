@@ -53,13 +53,20 @@ function Score() {
   const fetching = useRef(0);
 
   useEffect(() => {
-    if (fetching.current + 4000 > +new Date())
-      return ;
-    fetching.current = +new Date();
-    fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
-      .then(res => res.json())
-      .then(result => setRows(result))
-      .catch(() => {});
+    const refresh = () => {
+      if (fetching.current + 5000 > +new Date())
+        return ;
+      fetching.current = +new Date();
+      fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
+        .then(res => res.json())
+        .then(result => setRows(result))
+        .catch(() => {});
+    };
+    const refreshInterval = setInterval(refresh, 5000);
+    refresh();
+    return () => {
+      clearInterval(refreshInterval);
+    }
   });
 
   return (
