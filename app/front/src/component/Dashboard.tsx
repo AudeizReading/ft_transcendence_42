@@ -21,10 +21,14 @@ import CheckIcon from '@mui/icons-material/Check';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteForeverTwoToneIcon from '@mui/icons-material/DeleteForeverTwoTone';
 
 import { User } from '../interface/User';
 
+
+import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 
 interface IItem {
 	title: String,
@@ -84,7 +88,7 @@ function DashboardCard(props: any)
 			setSxCardContent({
 				...sxCardContent,
 				overflow: 'hidden',
-				height: '2vh',
+				height: '2%',
 			});
 		}
 		else
@@ -114,8 +118,7 @@ function DashboardCard(props: any)
 			variant={'elevation'} 
 			elevation={8} 
 			sx={{
-				...props.sx, 
-				px: '2%',
+				width: '100%',
 			}}
 		>
 			<CardHeader 
@@ -135,6 +138,12 @@ function DashboardCard(props: any)
 					}
 					title={props.title}
 					subheader={props.subheader}
+					style={{
+						px: '5%',
+		width: '90%',
+		overflowWrap: 'break-word',
+		transition: 'height ease 4ms',
+					}}
 			/>
 			<CardContent 
 				sx={sxCardContent}
@@ -189,9 +198,15 @@ function DashboardCardForm(props: any)
 			sx={{
 				...props.sx, 
 				overflow: 'scroll', 
-				height: '50vh', 
+				height: 'auto', 
 				width: '50vw', 
-				m: 'auto'
+				m: 'auto',
+				position: 'absolute',
+				zIndex: 2000,
+				top: '20vh',
+				bottom: '10vh',
+				left: '25vw',
+				transition: 'position ease-in-out 4ms, height ease-in-out 4ms, margin ease-in-out 4ms'
 			}} 
 			variant={'elevation'} 
 			elevation={8}
@@ -207,51 +222,70 @@ function DashboardCardForm(props: any)
 
 			<CardContent 
 				sx={{
-					m: '5%',
+					mx: '2%',
 				}}
 			>
 				<TextField 
-					sx={{
-						width: '100%',
-					}}
-					required variant="outlined" 
-					label="Title" 
-					onChange={handleTitleChange} 
+					required
+					variant="outlined" 
+					label="Title"
+					autoFocus={true}
+					error={true}
+					fullWidth={true}
+					margin="dense"
+					color="primary"
+					name="title"
+					size="medium"
+					helperText="the title of the event"
+					id={props.uid + "-input-text-title"}
 					placeholder={props.title} 
-					value={title}
+					value={title} 
+					onChange={handleTitleChange}
 				/>
 			</CardContent>
 			<CardContent 
 				sx={{
-					m: '5%',
+					mx: '2%',
 				}}
 			>
 				<TextField 
-					sx={{
-						width: '100%',
-					}}
 					required variant="outlined" 
 					label="Subheader" 
-					onChange={handleSubheaderChange} 
+					autoFocus={false}
+					error={true}
+					fullWidth={true}
+					margin="dense"
+					color="primary"
+					name="subheader"
+					size="medium"
+					helperText="the subheader of the event"
+					id={props.uid + "-input-text-subheader"}
 					placeholder={props.subheader} 
 					value={subheader}
+					onChange={handleSubheaderChange} 
 				/>
 			</CardContent>
 			<CardContent 
 				sx={{
-					m: '5%',
+					mx: '2%',
 				}}
 			>
-				<TextField 
-					sx={{
-						width: '100%',
-					}} 
+				<TextField
 					required variant="outlined" 
 					multiline={true} 
-					label="Content" 
+					label="Content"  
+					autoFocus={false}
+					error={true}
+					fullWidth={true}
+					margin="dense"
+					color="primary"
+					name="subheader"
+					size="medium"
+					helperText="the subheader of the event"
+					id={props.uid + "-input-text-subheader"}
 					placeholder={props.content} 
-					onChange={handleContentChange} 
 					value={content}
+					onChange={handleContentChange} 
 				/>
 			</CardContent>
 			<CardActions 
@@ -300,8 +334,8 @@ function EditableDashboardItem(props: any)
 		closeForm();
 	};
 
-	return (
-		edit 
+	return (<Grid xs={12}  sx={{border: '1px solid yellow', minHeight: '15vh', maxHeight: '25vh',}}>
+		{edit 
 			? <DashboardCardForm 
 				title={props.title}
 				subheader={props.subheader} 
@@ -310,7 +344,7 @@ function EditableDashboardItem(props: any)
 				colUid={props.colUid}
 				onFormSubmit={handleSubmit} 
 				onFormClose={handleFormClose}
-				sx={{...props.sx}}
+				sx={{}}
 			/> 
 			: <DashboardCard  
 				title={props.title} 
@@ -320,9 +354,9 @@ function EditableDashboardItem(props: any)
 				colUid={props.colUid}
 				onEditClick={handleCardEdit}
 				onTrashClick={props.onTrashClick}
-				sx={{...props.sx}}
+				sx={{}}
 			/>
-	);
+	}</Grid>);
 }
 
 function DashboardListItem(props: any)
@@ -330,7 +364,9 @@ function DashboardListItem(props: any)
 	const [items, setItems] = useState<IItem[]>(props.children);
 
 	useEffect(() => {setItems(props.children)}, [props.children]);
-	return (<Box component="div" sx={{border: '1px solid green', width: '95%', mx: 'auto', px: '2vw', py: '2vh'}}>
+	return (<Grid xs={12} sx={{
+		border: '1px solid green',
+		}}>
 		{
 			items.map((item: IItem) => (
 			<EditableDashboardItem  
@@ -342,16 +378,14 @@ function DashboardListItem(props: any)
 				onFormSubmit={props.onFormSubmit}
 				onTrashClick={props.onTrashClick}
 				sx={{
-					border: '7px dotted purple', 
-					marginBottom: '5vh', 
-					height: 'auto',
-					width: 'auto'
+					border: '1px dotted purple',
+					marginBottom: '5vh',
 				}}
 			>
 				{item.content}
 			</EditableDashboardItem>))
 		}
-	</Box>);
+	</Grid>);
 }
 
 function ToggableDashboardCardForm(props: any)
@@ -361,6 +395,7 @@ function ToggableDashboardCardForm(props: any)
 	const handleItemOpen = () => setOpen(true);
 	const handleFormClose = () => setOpen(false);
 
+	const handleColumnDelete = () => props.onColumnDelete(props.colUid)
 	const handleFormSubmit = (item: IItem) => {
 		console.log("ToggableDashboardCardForm handleFormSubmit: ", item);
 		props.onFormSubmit(item);
@@ -368,7 +403,7 @@ function ToggableDashboardCardForm(props: any)
 	}
 
 	return (
-		<Grid xs={12} sx={props.sx}>
+		<Grid xs={12} sx={{...props.sx, border: '5px solid cyan',}}>
 			{ 
 				open
 				? <DashboardCardForm 
@@ -376,16 +411,27 @@ function ToggableDashboardCardForm(props: any)
 					colUid={props.colUid}
 					onFormSubmit={handleFormSubmit}
 					onFormClose={handleFormClose}
-					/> 
-				: <Fab 
-					aria-label='add-item' 
-					onClick={handleItemOpen} 
-					sx={{
-						display: 'block', 
-						m: 'auto'
-					}}>
-					<AddIcon/>
-				</Fab>
+				/> 
+				: <Grid xs={12} sx={{display: 'flex', justifyContent: 'space-around'}}>
+					<Fab 
+						aria-label='add-item' 
+						variant="circular"
+						onClick={handleItemOpen} 
+						color="primary"
+						sx={{
+						}}>
+						<AddIcon sx={{mr: '1%'}}/>
+					</Fab>
+					<Fab 
+						aria-label='add-item' 
+						variant="circular"
+						onClick={handleColumnDelete} 
+						color="primary"
+						sx={{
+						}}>
+						<DeleteForeverTwoToneIcon sx={{mr: '1%'}}/>
+					</Fab>
+				</Grid>
 			}
 		</Grid>
 	);
@@ -422,14 +468,21 @@ function DashboardColumn(props: any)
 		}), props.uid);
 	};
 
-	const handleTrashClick = (itemId: any) => deleteItem(itemId);
-	const deleteItem = (itemId: any) => props.onFormSubmit(datas.filter((item: any) => item.key !== itemId), props.uid, datas, itemId);
+	const handleTrashClick = (itemId: String) => deleteItem(itemId);
+	const deleteItem = (itemId: String) => props.onFormSubmit(datas.filter((item: IItem) => item.key !== itemId), props.uid, datas, itemId);
 
-	const lastItemId = (datas: any) => ((datas.length > 0) ? datas[datas.length - 1].key :  props.uid + '-item-' + 1);
+	const lastItemId = (datas: Array<IItem>) => ((datas.length > 0) ? datas[datas.length - 1].key :  props.uid + '-item-' + 1);
 
-	//console.log(lastItemId(datas));
+	const handleColumnDelete = (colUid: String) => props.onColumnDelete(colUid);
 	return (
-		<Grid container rowSpacing={1} xs={parseInt(props.xs)} sx={{border: '1px solid red', height: '100%'}}>
+		<Grid container xs={parseInt(props.xs)} sx={{
+			border: '1px solid red', 
+			display: 'flex', 
+			flexDirection: 'column-reverse', 
+			justifyContent: 'flex-end',
+			alignItems: 'center',
+			height: '100%',
+		}}>
 			{
 				<DashboardListItem
 					key={props.uid}
@@ -439,7 +492,14 @@ function DashboardColumn(props: any)
 					onTrashClick={handleTrashClick}/>
 			}
 			{
-				<ToggableDashboardCardForm colUid={props.uid} uid={props.uid + "-item-" + lastItemId(datas) + 1} sx={{m: 'auto', width: '100%'}} onFormSubmit={handleCreateFormSubmit}/>
+				<ToggableDashboardCardForm 
+					colUid={props.uid} 
+					uid={props.uid + "-item-" + lastItemId(datas) + 1} 
+					sx={{
+					}} 
+					onFormSubmit={handleCreateFormSubmit}
+					onColumnDelete={handleColumnDelete}
+				/>
 			}
 		</Grid>
 	);
@@ -452,14 +512,112 @@ function DashboardColumnForm(props: any)
 	const [content, setContent] = useState(props.content || '');
 	const [title, setTitle] = useState(props.title || '');
 	const [subheader, setSubheader] = useState(props.subheader || '');
-	const [size, setSize] = useState(props.xs || 12);
+	const [size, setSize] = useState(6);
+	const [label, setLabel] = useState('Subject')
 
-	const submitText = props.creation ? 'Create' : 'Update';
+
+	const [sizes] = useState([
+		{
+			value: 0,
+			label: 'none',
+		},
+		{
+			value: 3, 
+			label: 'small',
+		},
+		{
+			value: 4,
+			label: 'medium',
+		},
+		{
+			value: 6,
+			label: 'large',
+		},
+		{
+			value: 12,
+			label: 'extra large',
+		},
+	]);
+
+	const [subjects] = useState([
+		{
+			theme: "News",
+			mode: 'Recent'
+		},
+		{
+			theme: "News",
+			mode: 'Popular',
+		},
+		{
+			theme: "News",
+			mode: 'Standard',
+		},
+		{
+			theme: "Matches",
+			mode: 'Recent'
+		},
+		{
+			theme: "Matches",
+			mode: 'Won',
+		},
+		{
+			theme: "Matches",
+			mode: 'Lost',
+		},
+		{
+			theme: "Matches",
+			mode: 'Null',
+		},
+		{
+			theme: 'Matches',
+			mode: 'All',
+		},
+		{
+			theme: "Scores",
+			mode: 'Recent'
+		},
+		{
+			theme: "Scores",
+			mode: 'Won',
+		},
+		{
+			theme: "Scores",
+			mode: 'Lost',
+		},
+		{
+			theme: "Scores",
+			mode: 'Null',
+		},
+		{
+			theme: 'Scores',
+			mode: 'All',
+		},
+		{
+			theme: "Friends",
+			mode: 'Recent'
+		},
+		{
+			theme: "Friends",
+			mode: 'Connected',
+		},
+		{
+			theme: "Friends",
+			mode: 'Off-line',
+		},
+		{
+			theme: "Friends",
+			mode: 'WaitingList',
+		},
+		{
+			theme: 'Friends',
+			mode: 'All',
+		},
+	]); // etc... just for testing the select input
+
+	const submitText = props.title !== undefined ? 'Update' : 'Create';
 
 	const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContent(e.target.value);
-	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setTitle(e.target.value);
-	const handleSubheaderChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSubheader(e.target.value);
-	const handleXsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSize(e.target.value);
+	const handleXsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setSize(parseInt(e.target.value));
 
 	const handleSubmit = () => {
 		title.length !== 0 && subheader.length !== 0 && content.length !== 0 &&
@@ -478,18 +636,20 @@ function DashboardColumnForm(props: any)
 			sx: {},
 		} as IColumn);
 	};
-
-
+	
 	return (
 		<Card 
 			key={props.uid} 
 			sx={{
 				...props.sx, 
-				border: '15px solid pink', 
-				position: 'absolute', 
-				zIndex: 100, 
-				width: '60%',
-				m: 'auto'}} 
+				border: '5px dashed pink', 
+				overflow: 'scroll',
+				width: '50vw', 
+				m: 'auto',
+				position: 'absolute',
+				left: '25vw',
+				transition: 'position ease-in-out 4ms, height ease-in-out 4ms, margin ease-in-out 4ms'
+			}}
 			variant={'elevation'} 
 			elevation={8}>
 			<CardHeader 
@@ -502,46 +662,53 @@ function DashboardColumnForm(props: any)
 
 			<CardContent 
 				sx={{m: '5%'}}>
-				<TextField 
+				<Autocomplete 
+					id="subject"
+					disableClearable
+					options={subjects.sort()}
+					groupBy={(option) => option.theme}
+					getOptionLabel={(option) => (option.mode)}
+					onChange={(e: any, val: any) => {
+						console.log(val, val.theme, val.mode)
+						setTitle(val.theme);
+						setSubheader(val.mode);
+						setLabel(val.theme)
+					}}
 					sx={{width: '100%'}}
-					required variant="outlined" 
-					label="Title" 
-					onChange={handleTitleChange} 
-					placeholder={props.title} 
-					value={title}/>
-			</CardContent>
-			<CardContent 
-				sx={{m: '5%'}}>
-				<TextField 
-					sx={{width: '100%'}}
-					required variant="outlined" 
-					label="Subheader" 
-					onChange={handleSubheaderChange} 
-					placeholder={props.subheader} 
-					value={subheader}/>
+					renderInput={(params) => <TextField {...params} variant="outlined" label={label}/>}
+				 />
 			</CardContent>
 			<CardContent 
 				sx={{m: '5%'}}>
 				<TextField 
 					sx={{width: '100%'}} 
-					required variant="outlined" 
+					required 
+					variant="outlined" 
 					multiline={true} 
 					label="Content" 
 					placeholder={props.content} 
 					onChange={handleContentChange} 
 					value={content}/>
 			</CardContent>
+
 			<CardContent 
 				sx={{m: '5%'}}>
-				<TextField 
-					sx={{width: '100%'}} 
-					required variant="outlined" 
+				<TextField
+					sx={{width: '50%'}} 
+					required 
+					select
+					variant="outlined" 
 					multiline={true} 
-					label="Size" 
-					placeholder={props.xs} 
-					onChange={handleXsChange} 
-					value={size}/>
+					label="Size"
+					defaultValue={4}
+					onChange={handleXsChange}
+				>
+					{
+						sizes.map((size) => {return <MenuItem key={size.value} value={size.value}>{size.label}</MenuItem>})
+					}
+				</TextField>
 			</CardContent>
+
 			<CardActions 
 				sx={{display: 'flex', justifyContent: 'space-around'}}>
 				<IconButton 
@@ -575,24 +742,22 @@ function ToggableDashboardColumnForm(props: any)
 	}
 
 	return (
-		<Grid xs={12} sx={props.sx}>
+		<Grid xs={12} sx={{...props.sx, }}>
 			{ 
 				open
 				? <DashboardColumnForm 
 					uid={props.uid}
 					colUid={props.colUid}
-					creation={props.creation}
 					onFormSubmit={handleFormSubmit}
 					onFormClose={handleFormClose}
-					sx={props.sx}
+					sx={{}}
 					/> 
 				: <Fab 
-					aria-label='add-item' 
+					aria-label='add-column'
+					variant="circular"
 					color='secondary' 
 					onClick={handleItemOpen} 
 					sx={{
-						display: 'block',
-						m: 'auto'
 					}}
 				>
 					<AddIcon/>
@@ -767,7 +932,6 @@ function Dashboard(props: {user: User})
 		}
 		else
 			setDatas([column]);
-			//datas[0] = column;
 	};
 
 	useEffect(() => setUser(props.user), [props.user]);
@@ -786,49 +950,46 @@ function Dashboard(props: {user: User})
 			}
 			return item;
 		});
-		datas.filter((data: IColumn) => data.xs !== 0);
+		setDatas(datas.filter((data: IColumn) => data.xs !== 0));
 	};
+	const handleColumnDelete = (colUid: String) => setDatas(datas.filter((data) => data.key !== colUid));
 
-	const lastColumnId = (datas: Array<IColumn>) => {return (datas[datas.length - 1].key || 0);};
+	const lastColumnId = (datas: Array<IColumn>) => {return ((datas.length > 0) ? datas[datas.length - 1].key : 0);};
+	const hasDatas = (datas: Array<IColumn>) => datas.length > 0 && datas[0].key.length !== 0 && datas[0].key !== undefined && datas[0].key !== null
 	return (
 		<Box component='div' sx={{width: '100%', height: '100%'}}>
-			<Box component="h2">Glad to see you, {user.name}!</Box>
-			<Grid 
-				container 
-				rowSpacing={1} 
-				xs={12} 
-				sx={{border: '1px solid black', width: '100%'}}>
-				{
-					(datas.length > 0 
-						&& datas[0].key.length !== 0 
-						&& datas[0].key !== undefined 
-						&& datas[0].key !== null)
-					&& datas.map((data: IColumn) => 
+			<Box component="h2" sx={{}}>Glad to see you, {user.name}!</Box>
+			{
+				hasDatas(datas)	&&
+				(<Grid 
+					container 
+					xs={12} 
+					sx={{border: '1px solid black',}}>
 					{
-						return ( data.xs > 0 &&
-							<DashboardColumn 
-								key={data.key}
-								uid={data.key}
-								xs={data.xs} 
-								children={data.items}
-								sx={{
-									border: '1px solid pink'
-								}}
-								onFormSubmit={handleUpdateColumn} 
-							/>
-						)
-					})
-				}
-			</Grid>
+						datas.map((data: IColumn) => {
+							return ( data.xs > 0 &&
+								<DashboardColumn 
+									key={data.key}
+									uid={data.key}
+									xs={data.xs} 
+									children={data.items}
+									onFormSubmit={handleUpdateColumn}
+									onColumnDelete={handleColumnDelete}
+								/>
+							)
+						})
+					}
+				</Grid>)
+			}
 			<ToggableDashboardColumnForm 
-				uid={"col-"+ lastColumnId(datas) + 1+ "item-" + 1} 
+				uid={""+lastColumnId(datas) + 1+ "item-" + 1} 
 				colUid={"col-" + ((datas.length === 1 && datas[0].key.length === 0) ? 1 : datas.length + 1)} 
 				onFormSubmit={handleCreateColumnSubmit}
 				creation={true}
 				sx={{
-					position: 'relative',
-					top: '10%',
-					left: '0%',
+					display: 'flex',
+					position: 'absolute',
+					border: '2px solid teal',
 				}}
 			/>
 		</Box>
