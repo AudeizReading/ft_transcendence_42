@@ -20,6 +20,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
+import Box from '@mui/material/Box';
 import { TransitionProps } from '@mui/material/transitions';
 
 import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-dom";
@@ -245,9 +246,9 @@ export default App;
 
 function Error() {
   return (
-    <div style={{ backgroundColor: "red", height:"400px", overflow:"hidden" }}>
+    <Box component="main" sx={{ height: '100vh', background: 'white' }}>
       <h1>Oh non erreur 404 !</h1>
-      <RouterLink to="/">Revenir en arrière</RouterLink>
-    </div>
+      <RouterLink to="/">Revenir sur la page d'accueil</RouterLink>
+    </Box>
   );
 }

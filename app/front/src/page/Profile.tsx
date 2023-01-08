@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Fab from '@mui/material/Fab';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,7 +28,6 @@ function Profile(props: {
     status: "offline",
   });
 
-  const [loaded, setLoaded] = useState(false);
   const [user, setUser] = useState(emptyUser());
 
   const navigate = useNavigate();
@@ -39,7 +37,8 @@ function Profile(props: {
       .then(res => res.json())
       .then(
         (result) => {
-          setLoaded(true)
+          if (result.error)
+            return navigate('/not-found');
           setUser({
             id: result.id,
             name: result.name,
@@ -98,8 +97,8 @@ function Profile(props: {
   }
 
   return (
-    <Box component="main" sx={{ textAlign: 'center', p: 1, display: "flex", flexDirection: "column", background: "white" }}>
-
+    <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: "white", textAlign: 'center', p: 1, display: "flex", flexDirection: "column" }}>
+    {user.id && <React.Fragment>
       <Box sx={{
         width: 250,
         minWidth: 250,
@@ -199,7 +198,7 @@ function Profile(props: {
       >
         <MatchHistory userID={user.id} deps={[user.wins, user.loses]} />
       </Box>
-
+    </React.Fragment>}
     </Box>
   );
 }
