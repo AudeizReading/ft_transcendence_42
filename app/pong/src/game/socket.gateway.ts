@@ -48,6 +48,8 @@ type GameInclude = Game & {
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
 
+const DEFAULT_BALL_SPEED = 130;
+
 interface PlayGame {
   pGame: Game;
   data: DataGame;
@@ -106,7 +108,8 @@ export class GameSocketGateway
     })();
   }
 
-  refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number) {
+  refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number, speed?: number) {
+    game.data.ball.speed = (speed) ? speed : DEFAULT_BALL_SPEED;
     game.data.ball.pos = pos;
     game.data.ball.dir = { x: Math.cos(angle), y: Math.sin(angle) };
     game.data.ball.at = +new Date() + (deltaTime || 0);
@@ -137,6 +140,13 @@ export class GameSocketGateway
     for (let i: number = 0; i < planes.length; i++) {
       if ((time = pl_intersect(a, b, planes[i])) > -1) {
         const ms: number = game.data.ball.at + time * 1000 - +new Date();
+        if (time > 10) {
+          console.log('recalcul.');
+          const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((!i) ? 180 : 0));
+          this.refreshBall(socket, game, game.data.ball.pos as Point, angle,
+            Math.min(0, game.data.ball.at - +new Date()), game.data.ball.speed);
+          break;
+        }
         if (ms <= 0)
           break;
         clearTimeout(game.timeout);
@@ -154,16 +164,20 @@ export class GameSocketGateway
             let dist: number = (point.y - planes[i].pos.y + 3) / (size + 6) * 160; // 3 et 6 == rayon/diametre de la balle
             if (Math.sign(planes[i].n.x) < 0)
               dist = (160 - dist) - 180;
-            this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80));
+            this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80), 0, game.data.ball.speed + 10);
           }
           else {
-            const angle: number = Math.PI / 180 * (Math.random() * 120 - 60) - ((i) ? 180 : 0);
+            const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
             setTimeout(() =>
               this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
             , 1000); // TODO: Calc real time remaning
           }
         }, ms);
         break ;
+      } else if (time < 0 && i + 1 === planes.length) {
+        console.log('impossible!');
+        const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
+        this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000);
       }
     }
   }
@@ -251,7 +265,7 @@ export class GameSocketGateway
     if (game) {
       game.users.push(user.id);
     } else {
-      const angle = Math.PI / 180 * (Math.random() * 120 - 60); //- 180 // TODO: Side random
+      const angle = Math.PI / 180 * (Math.random() * 120 - 60 - 180); // TODO: Side random
       game = {
         pGame: pGame,
         data: {
@@ -271,7 +285,7 @@ export class GameSocketGateway
             dir: {
               x: Math.cos(angle),
               y: Math.sin(angle)
-            }, pos: { x: 200, y: 150 }, speed: 130, size: 6, at: null // TODO: Speed progressive ?
+            }, pos: { x: 200, y: 150 }, speed: DEFAULT_BALL_SPEED, size: 6, at: null
           }
         },
         users: [user.id],

@@ -158,8 +158,8 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
     }
 
     if (time > -1 && point) {
-      context.fillStyle = 'orange';
-      context.strokeStyle = 'orange';
+      context.fillStyle = 'rgba(255,165,0,0.1)';
+      context.strokeStyle = 'rgba(255,165,0,0.1)';
       context.beginPath();
       context.lineTo(a.x, a.y);
       context.lineTo(point.x, point.y);
