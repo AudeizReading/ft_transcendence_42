@@ -174,7 +174,7 @@ function DashboardCardForm(props: any)
 	const [content, setContent] = useState(props.content || '');
 	const [title, setTitle] = useState(props.title || '');
 	const [subheader, setSubheader] = useState(props.subheader || '');
-	const submitText = props.uid ? 'Update' : 'Create';
+	const submitText = props.content ? 'Update' : 'Create';
 	console.log(props.uid);
 
 	const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setContent(e.target.value);
@@ -982,7 +982,7 @@ function Dashboard(props: {user: User})
 				</Grid>)
 			}
 			<ToggableDashboardColumnForm 
-				uid={""+lastColumnId(datas) + 1+ "item-" + 1} 
+				uid={"item-" + 1 + lastColumnId(datas) + 1} 
 				colUid={"col-" + ((datas.length === 1 && datas[0].key.length === 0) ? 1 : datas.length + 1)} 
 				onFormSubmit={handleCreateColumnSubmit}
 				creation={true}
