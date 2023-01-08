@@ -11,6 +11,7 @@ import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
 import EditableName from '../component/EditableName';
 import ProfileActionButtons from '../component/ProfileActionButtons';
+import MatchHistory from '../component/MatchHistory';
 
 // TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: {
@@ -85,97 +86,110 @@ function Profile(props: {
   const isOwnProfile: boolean = user.id !== null && user.id === props.user.id;
 
   return (
-    <Box component="main" sx={{ textAlign: 'center', height: '100vh', overflow: 'auto', background: 'white', }}>
-    {loaded &&
-      <Grid container>
-        <Grid xs={12} item alignItems="center">
-          <Box sx={{
-            width: 250,
-            height: 250,
-            my: 2,
-            mx: 'auto',
-            display: 'block',
-            position: 'relative',
-            '&:hover > .editIcon': {
-              visibility: 'visible',
-              opacity: 1
-            },
-            '& > .editIcon': {
-              visibility: 'hidden',
-              opacity: 0,
-              transition: 'all 0.1s linear'
-            } }}
-          >
-            <Avatar
-              alt={user.name}
-              src={user.avatar}
-              sx={{ width: '100%', height: '100%' }}
-            />
-            {
-              isOwnProfile &&
-                <Fab
-                  className="editIcon"
-                  color="primary"
-                  component="label"
-                  sx={{ position: 'absolute', top: '190px', right: '10px' }}
-                >
-                  <input hidden accept="image/*" type="file" onChange={handleCapture} />
-                  <EditIcon />
-                </Fab>
-            }
-          </Box>
+    <Box component="main" sx={{ textAlign: 'center', my: 1, display: "flex", flexDirection: "column" }}>
 
-          <Box>
-            <EditableName
-              editable={isOwnProfile}
-              name={user.name}
-              fetch_userinfo={props.fetch_userinfo}
-            />
-          </Box>
+      <Box sx={{
+        width: 250,
+        minWidth: 250,
+        height: 250,
+        minHeight: 250,
+        my: 1,
+        mx: 'auto',
+        display: 'flex',
+        position: 'relative',
+        '&:hover > .editIcon': {
+          visibility: 'visible',
+          opacity: 1
+        },
+        '& > .editIcon': {
+          visibility: 'hidden',
+          opacity: 0,
+          transition: 'all 0.1s linear'
+        } }}
+      >
+        <Avatar
+          alt={user.name}
+          src={user.avatar}
+          sx={{ width: '100%', height: '100%' }}
+        />
+        {
+          isOwnProfile &&
+            <Fab
+              className="editIcon"
+              color="primary"
+              component="label"
+              sx={{ position: 'absolute', top: '190px', right: '10px' }}
+            >
+              <input hidden accept="image/*" type="file" onChange={handleCapture} />
+              <EditIcon />
+            </Fab>
+        }
+      </Box>
 
-        </Grid>
-        <Grid xs={12} item alignItems="center">
-          <Box sx={{m: 1}}>
-            <ProfileActionButtons
-              disabled={isOwnProfile}
-              fetch_userinfo={props.fetch_userinfo}
-              currentUserFriends={props.user.friends}
-              profileUser={user}
-            />
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              '& > :not(style)': {
-                p: '15px',
-                mx: '10px',
-                width: 64,
-                height: 64,
-              }
-            }}
-          >
-            <Paper variant="outlined">
-              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Victoires</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.wins}</p>
-            </Paper>
-            <Paper variant="outlined">
-              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
-            </Paper>
-            <Paper variant="outlined" sx={{p: 0, m: 0}}>
-              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 0, top: 0, padding: 0 }}>Parties jouées</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.loses}</p>
-            </Paper>
-            <Paper variant="outlined">
-              <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
-              <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{((user.wins / (user.loses || 1))).toFixed(2)}</p>
-            </Paper>
-          </Box>
-        </Grid>
-      </Grid>
-    }
+      <Box display="flex" alignItems="center"
+        sx={{
+          mx: 'auto',
+        }}>
+        <EditableName
+          editable={isOwnProfile}
+          name={user.name}
+          fetch_userinfo={props.fetch_userinfo}
+        />
+      </Box>
+
+      <Box display="flex" alignItems="center" sx={{mx: 'auto', my: 1.5}}>
+        <ProfileActionButtons
+          disabled={isOwnProfile}
+          fetch_userinfo={props.fetch_userinfo}
+          currentUserFriends={props.user.friends}
+          profileUser={user}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          '& > :not(style)': {
+            p: '15px',
+            m: '5px',
+            width: 64,
+            height: 64,
+          }
+        }}
+      >
+        <Paper variant="outlined">
+          <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Victoires</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.wins}</p>
+        </Paper>
+        <Paper variant="outlined">
+          <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
+        </Paper>
+        <Paper variant="outlined" sx={{p: 0, m: 0}}>
+          <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 0, top: 0, padding: 0 }}>Parties jouées</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.loses}</p>
+        </Paper>
+        <Paper variant="outlined">
+          <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{((user.wins / (user.loses || 1))).toFixed(2)}</p>
+        </Paper>
+      </Box>
+
+      <Box display="flex" alignItems="center"
+        sx={{
+          mx: 'auto',
+          mt: 1,
+          minHeight: 200,
+          height: '100%',
+          maxWidth: 800,
+          width: '100%',
+        }}
+      >
+        <MatchHistory userID={user.id} />
+      </Box>
+
     </Box>
   );
 }

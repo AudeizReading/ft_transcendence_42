@@ -3,16 +3,17 @@ import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
 import { User, Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 
-export interface scoreType {
+// For frontend. Represents a game that has already ended.
+export interface GameInterface {
   id: number;
+  winnerId: number;
+  winnedAt: Date;
+  scores: number[];
   players: {
     id: number;
     name: string;
     avatar: string;
   }[];
-  scores: number[];
-  winnerId: number;
-  winnedAt: Date;
 }
 
 @Injectable()
@@ -23,9 +24,9 @@ export class GameService {
   ) {}
 
   async scoreForFront(/*take: number, pagination: number*/): Promise<
-    scoreType[]
+    GameInterface[]
   > {
-    const scores: scoreType[] = [];
+    const scores: GameInterface[] = [];
     const data = await this.prisma.game.findMany({
       /*skip: take * pagination,
       take: take,*/
@@ -55,10 +56,10 @@ export class GameService {
       });
       scores.push({
         id: item.id,
-        players: [parsePlayer(0), parsePlayer(1)],
-        scores: [item.scoreA, item.scoreB],
         winnerId: item.winnerId,
         winnedAt: item.winnedAt,
+        scores: [item.scoreA, item.scoreB],
+        players: [parsePlayer(0), parsePlayer(1)],
       });
     });
     return scores;

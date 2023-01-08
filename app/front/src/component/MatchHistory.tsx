@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import Box from '@mui/material/Box';
+import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
 import { fetch_opt } from '../dep/fetch'
@@ -48,42 +47,30 @@ const columns: GridColDef[] = [
   },
 ];
 
-function Score() {
+interface MatchHistoryProps {
+  userID: number,
+}
+
+export default function MatchHistory(props: MatchHistoryProps)
+{
   const [rows, setRows] = useState([] as GameInterface[]);
 
-  if (rows.length === 0) {
-    fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
+  useEffect( () => {
+    fetch(`http://${window.location.hostname}:8190/user/${props.userID}/games`, fetch_opt())
       .then(res => res.json())
-      .then(
-        (result) => {
-          setRows(result)
-        },
-        (error) => { }
-      );
-  }
+      .then(res => setRows(res))
+      .catch(() => {});
+  }, [props.userID]);
 
   return (
-    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
-      <Box
-        sx={{
-          minHeight: 300,
-          height: '100%',
-          maxWidth: 800,
-          width: '100%',
-          mx: 'auto',
-        }}
-      >
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          // pageSize={50}
-          // rowsPerPageOptions={[]}
-          autoPageSize
-          disableSelectionOnClick
-          disableColumnSelector
-        />
-      </Box>
-    </Box>
+    <DataGrid
+      rows={rows}
+      columns={columns}
+      // pageSize={50}
+      // rowsPerPageOptions={[]}
+      autoPageSize
+      disableSelectionOnClick
+      disableColumnSelector
+    />
   );
 }
-export default Score;

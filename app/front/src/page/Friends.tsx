@@ -80,31 +80,31 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
         setAddingFriend={setAddingFriend}
       />
 
-        <Box display="flex" alignItems="center"
-          sx={{
-            maxWidth: 800,
-            width: '100%',
-            mx: 'auto',
-            my: 1
-          }}
+      <Box display="flex" alignItems="center"
+        sx={{
+          maxWidth: 800,
+          width: '100%',
+          mx: 'auto',
+          my: 1
+        }}
+      >
+        <TextField
+          id="search-friend"
+          label="Rechercher un ami"
+          variant="outlined"
+          fullWidth
+          type="search"
+          value={search}
+          onChange={ (e : any) => setSearch(e.target.value) }
+        />
+        <Button
+          variant="contained"
+          sx={{ml: 1, height: 55, width: '25%'}}
+          onClick={(e: any) => setAddingFriend(true)}
         >
-          <TextField
-            id="search-friend"
-            label="Rechercher un ami"
-            variant="outlined"
-            fullWidth
-            type="search"
-            value={search}
-            onChange={ (e : any) => setSearch(e.target.value) }
-          />
-          <Button
-            variant="contained"
-            sx={{ml: 1, height: 55, width: '25%'}}
-            onClick={(e: any) => setAddingFriend(true)}
-          >
-            Ajouter un ami
-          </Button>
-        </Box>
+          Ajouter un ami
+        </Button>
+      </Box>
 
       <Box
         sx={{
@@ -118,8 +118,9 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
         <DataGrid
           rows={gridRows}
           columns={gridColums}
-          pageSize={50}
-          rowsPerPageOptions={[]}
+          // pageSize={50}
+          // rowsPerPageOptions={[]}
+          autoPageSize
           disableSelectionOnClick
           disableColumnSelector
           disableColumnMenu
