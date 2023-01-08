@@ -197,7 +197,7 @@ function Profile(props: {
           width: '100%',
         }}
       >
-        <MatchHistory userID={user.id} />
+        <MatchHistory userID={user.id} deps={[user.wins, user.loses]} />
       </Box>
 
     </Box>

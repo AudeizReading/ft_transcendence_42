@@ -47,8 +47,11 @@ const columns: GridColDef[] = [
   },
 ];
 
+// "deps" corresponds to the React useEffect dependancies. You can add some more
+// to trigger re-renders, or leave it empty.
 interface MatchHistoryProps {
   userID: number,
+  deps: any[],
 }
 
 export default function MatchHistory(props: MatchHistoryProps)
@@ -60,7 +63,7 @@ export default function MatchHistory(props: MatchHistoryProps)
       .then(res => res.json())
       .then(res => setRows(res))
       .catch(() => {});
-  }, [props.userID]);
+  }, [props.userID, ...props.deps]);
 
   return (
     <DataGrid
