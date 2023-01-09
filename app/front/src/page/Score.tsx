@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
@@ -50,17 +50,17 @@ const columns: GridColDef[] = [
 
 function Score() {
   const [rows, setRows] = useState([] as GameInterface[]);
+  const fetching = useRef(0);
 
-  if (rows.length === 0) {
+  useEffect(() => {
+    if (fetching.current + 4000 > +new Date())
+      return ;
+    fetching.current = +new Date();
     fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
       .then(res => res.json())
-      .then(
-        (result) => {
-          setRows(result)
-        },
-        (error) => { }
-      );
-  }
+      .then(result => setRows(result))
+      .catch(() => {});
+  });
 
   return (
     <Box component="main" sx={{ p: 1, height: '100vh', overflow: 'auto', background: 'white', }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
 import { fetch_opt } from '../dep/fetch'
@@ -51,19 +51,23 @@ const columns: GridColDef[] = [
 // to trigger re-renders, or leave it empty.
 interface MatchHistoryProps {
   userID: number,
-  deps: any[],
+  deps: number[],
 }
 
 export default function MatchHistory(props: MatchHistoryProps)
 {
   const [rows, setRows] = useState([] as GameInterface[]);
+  const fetching = useRef(0);
 
-  useEffect( () => {
+  useEffect(() => {
+    if (fetching.current + 4000 > +new Date())
+      return ;
+    fetching.current = +new Date();
     fetch(`http://${window.location.hostname}:8190/user/${props.userID}/games`, fetch_opt())
       .then(res => res.json())
       .then(res => setRows(res))
       .catch(() => {});
-  }, [props.userID, ...props.deps]);
+  }, [props.userID, props.deps]);
 
   return (
     <DataGrid
