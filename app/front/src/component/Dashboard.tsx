@@ -22,6 +22,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverTwoToneIcon from '@mui/icons-material/DeleteForeverTwoTone';
+import SettingsTwoToneIcon from '@mui/icons-material/SettingsTwoTone';
 
 import { User } from '../interface/User';
 
@@ -88,7 +89,7 @@ function DashboardCard(props: any)
 			setSxCardContent({
 				...sxCardContent,
 				overflow: 'hidden',
-				height: '2%',
+				height: '2vh',
 			});
 		}
 		else
@@ -101,7 +102,7 @@ function DashboardCard(props: any)
 			setSxCardContent({
 				...sxCardContent,
 				overflow: 'visible',
-				height: 'auto',
+				height: 'auto%',
 			});
 		}
 	};
@@ -118,7 +119,8 @@ function DashboardCard(props: any)
 			variant={'elevation'} 
 			elevation={8} 
 			sx={{
-				width: '100%',
+				width: '99%',
+				m: 'auto',
 			}}
 		>
 			<CardHeader 
@@ -138,12 +140,6 @@ function DashboardCard(props: any)
 					}
 					title={props.title}
 					subheader={props.subheader}
-					style={{
-						px: '5%',
-		width: '90%',
-		overflowWrap: 'break-word',
-		transition: 'height ease 4ms',
-					}}
 			/>
 			<CardContent 
 				sx={sxCardContent}
@@ -364,9 +360,7 @@ function DashboardListItem(props: any)
 	const [items, setItems] = useState<IItem[]>(props.children);
 
 	useEffect(() => {setItems(props.children)}, [props.children]);
-	return (<Grid xs={12} sx={{
-		border: '1px solid green',
-		}}>
+	return (<React.Fragment>
 		{
 			items.map((item: IItem) => (
 			<EditableDashboardItem  
@@ -385,7 +379,7 @@ function DashboardListItem(props: any)
 				{item.content}
 			</EditableDashboardItem>))
 		}
-	</Grid>);
+	</React.Fragment>);
 }
 
 function ToggableDashboardCardForm(props: any)
@@ -402,6 +396,7 @@ function ToggableDashboardCardForm(props: any)
 		setOpen(false);
 	}
 
+	const handleColumnUpdate = () => console.log("C'est pas encore geré")
 	return (
 		<Grid xs={12} sx={{...props.sx, border: '5px solid cyan',}}>
 			{ 
@@ -420,7 +415,7 @@ function ToggableDashboardCardForm(props: any)
 						color="primary"
 						sx={{
 						}}>
-						<AddIcon sx={{mr: '1%'}}/>
+						<AddIcon/>
 					</Fab>
 					<Fab 
 						aria-label='add-item' 
@@ -429,7 +424,16 @@ function ToggableDashboardCardForm(props: any)
 						color="primary"
 						sx={{
 						}}>
-						<DeleteForeverTwoToneIcon sx={{mr: '1%'}}/>
+						<DeleteForeverTwoToneIcon />
+					</Fab>
+					<Fab 
+						aria-label='add-item' 
+						variant="circular"
+						onClick={handleColumnUpdate} 
+						color="primary"
+						sx={{
+						}}>
+						<SettingsTwoToneIcon/>
 					</Fab>
 				</Grid>
 			}
@@ -437,6 +441,7 @@ function ToggableDashboardCardForm(props: any)
 	);
 }
 
+//function
 // DashboardColumn
 function DashboardColumn(props: any)
 {
@@ -741,6 +746,8 @@ function ToggableDashboardColumnForm(props: any)
 		setOpen(false);
 	}
 
+	const handleDashboardSettings = () => console.log("pas encore geré");
+
 	return (
 		<Grid xs={12} sx={{...props.sx, }}>
 			{ 
@@ -752,7 +759,9 @@ function ToggableDashboardColumnForm(props: any)
 					onFormClose={handleFormClose}
 					sx={{}}
 					/> 
-				: <Fab 
+				: 
+				<React.Fragment>
+				<Fab 
 					aria-label='add-column'
 					variant="circular"
 					color='secondary' 
@@ -762,6 +771,16 @@ function ToggableDashboardColumnForm(props: any)
 				>
 					<AddIcon/>
 				</Fab>
+				<Fab 
+					aria-label='add-item' 
+					variant="circular"
+					onClick={handleDashboardSettings} 
+					color="secondary"
+					sx={{
+					}}
+				>
+					<SettingsTwoToneIcon/>
+				</Fab></React.Fragment>
 			}
 		</Grid>
 	);
@@ -959,13 +978,10 @@ function Dashboard(props: {user: User})
 	return (
 		<Box component='div' sx={{width: '100%', height: '100%'}}>
 			<Box component="h2" sx={{}}>Glad to see you, {user.name}!</Box>
+			<Grid container xs={12} sx={{border: '1px solid black', display: 'flex', flexDirection: 'column-reverse'}}>
 			{
 				hasDatas(datas)	&&
-				(<Grid 
-					container 
-					xs={12} 
-					sx={{border: '1px solid black',}}>
-					{
+				(
 						datas.map((data: IColumn) => {
 							return ( data.xs > 0 &&
 								<DashboardColumn 
@@ -978,8 +994,7 @@ function Dashboard(props: {user: User})
 								/>
 							)
 						})
-					}
-				</Grid>)
+				)
 			}
 			<ToggableDashboardColumnForm 
 				uid={"item-" + 1 + lastColumnId(datas) + 1} 
@@ -987,11 +1002,13 @@ function Dashboard(props: {user: User})
 				onFormSubmit={handleCreateColumnSubmit}
 				creation={true}
 				sx={{
+					border: '7px solid teal',
+					zIndex: 1000,
 					display: 'flex',
-					position: 'absolute',
-					border: '2px solid teal',
+					justifyContent: 'space-around',
 				}}
 			/>
+			</Grid>
 		</Box>
 	);
 }
