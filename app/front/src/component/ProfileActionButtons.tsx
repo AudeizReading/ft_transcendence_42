@@ -16,6 +16,7 @@ import GameSettingsInterface from '../interface/GameSettingsInterface';
 interface ProfileActionButtonsProps {
   disabled?: boolean,
   fetch_userinfo: Function,
+  currentUserID: number,
   currentUserFriends: Friend[],
   profileUser: {
     id: number,
@@ -33,10 +34,22 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
     await fetch(`http://${window.location.hostname}:8190/friend/${user}/${action}`, fetch_opt());
     props.fetch_userinfo();
   }
-
+  
   async function sendInvite(settings: GameSettingsInterface) {
-    alert(`Sent invite:\n${settings.pointsToWin}, ${settings.timeLimit}, ${settings.ballSpeed}`);
-    // TODO
+    const inviteData = {
+      fromID: props.currentUserID,
+      toID: props.profileUser.id,
+      settings,
+    }
+    await fetch(`http://${window.location.hostname}:8190/invite/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(fetch_opt().headers),
+        },
+        body: JSON.stringify(inviteData),
+    });
+    // TODO: Error handling
   }
 
   const [isGameConfigOpen, setGameConfigOpen] = useState(false);

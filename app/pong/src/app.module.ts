@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { GameMatchMaking } from './game/game.matchmaking';
+import { InviteModule } from './invite/invites.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { GameMatchMaking } from './game/game.matchmaking';
     FriendModule,
     UsersModule,
     NotifModule,
+    InviteModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],

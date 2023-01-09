@@ -150,6 +150,7 @@ function Profile(props: {
         <ProfileActionButtons
           disabled={isOwnProfile}
           fetch_userinfo={props.fetch_userinfo}
+          currentUserID={props.user.id}
           currentUserFriends={props.user.friends}
           profileUser={user}
         />
