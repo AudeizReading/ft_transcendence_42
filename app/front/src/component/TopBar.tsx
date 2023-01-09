@@ -149,11 +149,11 @@ function TopBar(props: {
       }
     }
     const isOnGamePage = (window.location.pathname.indexOf('/game/') === 0);
-    if (props.user.is_playing)
-      if (!isOnGamePage && props.loaded && !props.alreadyOpen) {
+    if (props.user.is_playing && isOnGamePage) {
+      if (props.loaded && !props.alreadyOpen) {
         //navigate('/game/');
       }
-    else
+    } else
       doAction();
 
     // cleanup this component
