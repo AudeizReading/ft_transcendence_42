@@ -28,6 +28,9 @@ model User {
 
   friendsA   Friend[]     @relation("UserA")
   friendsB   Friend[]     @relation("UserB")
+
+  invitesFrom Invite[]     @relation("from")
+  invitesTo   Invite[]     @relation("to")
 }
 
 model Notif {
@@ -114,4 +117,14 @@ model Image {
   id         Int     @default(autoincrement()) @id
   name       String  @unique
   content    Bytes
+}
+
+model Invite {
+  from      User      @relation("from", fields: [userAId], references: [id])
+  userAId   Int
+  to        User      @relation("to", fields: [userBId], references: [id])
+  userBId   Int
+  settings  String
+  createdAt DateTime  @default(now())
+  @@id([userAId, userBId, settings])
 }
