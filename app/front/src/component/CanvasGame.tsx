@@ -40,8 +40,8 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   context.font = '70px "Qahiri"';
   context.textAlign = 'center';
   context.textBaseline = 'top';
-  context.fillText('0',       80, 40);
-  context.fillText('0', 400 - 80, 40);
+  context.fillText(String(data.points[0]),       80, 40);
+  context.fillText(String(data.points[1]), 400 - 80, 40);
 
   // Joueurs
   const pl: Plane = {
@@ -222,6 +222,7 @@ function CanvasGame(props: {
   const canvasEl: { current: HTMLElement | null } = useRef(null);
   const [data] = useState({
     users: [],
+    points: [0, 0],
     players: [
       { dir: 0, pos: 164, speed: 250, size: 40, at: null },
       { dir: 0, pos: 210, speed: 250, size: 40, at: null },

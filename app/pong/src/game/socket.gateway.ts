@@ -168,9 +168,31 @@ export class GameSocketGateway
           }
           else {
             const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
+
+            game.data.points[i]++; // TODO: Update database
+            this.gameService.updateGame({
+              data: {
+                scoreA: game.data.points[0],
+                scoreB: game.data.points[1]
+              },
+              where: {
+                id: game.pGame.id
+              }
+            }).then((pGame) => {
+              game.pGame = pGame;
+            });
+
+            // Calc time distance between player and goal (x: 20 -> 0 || x: 380 -> 400)
+            const a: Point = point;
+            const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y };
+            const plane: Plane = planes[i];
+            plane.pos.x = (i) ? 400 : 0;
+            const time: number = pl_intersect(a, b, planes[i]);
+            const real_ms = Math.min(2.4, time) * 1000;
+
             setTimeout(() =>
               this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
-            , 1000); // TODO: Calc real time remaning
+            , real_ms);
           }
         }, ms);
         break ;
@@ -277,6 +299,7 @@ export class GameSocketGateway
               '://' + process.env.FRONT_HOST,
             ),
           })) as DataUser[],
+          points: [pGame.scoreA, pGame.scoreB],
           players: [
             { dir: 0, pos: 140, speed: 250, size: 40, at: null },
             { dir: 0, pos: 140, speed: 250, size: 40, at: null },

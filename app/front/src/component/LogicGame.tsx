@@ -110,6 +110,7 @@ function LogicGame(props: {
 
       socket.on('dataGame', (newData: DataGame) => {
         data.users = newData.users;
+        data.points = newData.points;
         data.players = newData.players.map(sync2client);
         data.ball = sync2client(newData.ball);
         setData(data);

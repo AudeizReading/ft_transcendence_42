@@ -13,9 +13,10 @@ export interface DataElement {
 }
 
 export interface DataGame {
-  users: DataUser[]
-  players: DataElement[]
-  ball: DataElement
+  users: DataUser[];
+  points: number[];
+  players: DataElement[];
+  ball: DataElement;
 }
 
 export interface Point {
