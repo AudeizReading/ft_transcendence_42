@@ -1,17 +1,10 @@
 import {useState, useEffect} from 'react'
 import Box from '@mui/material/Box'
 
-<<<<<<< HEAD
 function AnalogicClock(props: {
   stress: boolean,
   time: Date
 })
-=======
-import {TimeContext} from '../contexts/TimeContext';
-import useInterval from '../hooks/useInterval';
-
-function AnalogicClock(props: any)
->>>>>>> Home: fix height props with the css related instead js
 {
   const [pressure, setPressure] = useState(props.stress);
 
@@ -24,11 +17,7 @@ function AnalogicClock(props: any)
     ...styleNeutral,
   };
 
-<<<<<<< HEAD
   const [styleWrap] = useState({
-=======
-  const styleWrap = {
->>>>>>> Home: fix height props with the css related instead js
     position: 'relative',
     borderRadius: '50%',
     backgroundColor: '#fff',
@@ -37,7 +26,6 @@ function AnalogicClock(props: any)
     borderTop: '5px solid #eee',
     borderRight: '5px solid #dee',
     boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
-<<<<<<< HEAD
     width: '33vh',
     height: '33vh',
     maxWidth: 351,
@@ -48,14 +36,6 @@ function AnalogicClock(props: any)
     transition: 'height 0.15s ease-in-out, width 0.15s ease-in-out',
     m: 'auto'
   } as any);
-=======
-    width: 'calc(100vh / 3)',
-    height: 'calc(100vh / 3)',
-    display: {xs: 'none', sm: 'block'},
-    transition: '',
-    m: 'auto'
-  };
->>>>>>> Home: fix height props with the css related instead js
 
   const [styleNeedles, setStyleNeedles] = useState({
     position: 'absolute',
@@ -67,7 +47,7 @@ function AnalogicClock(props: any)
     bottom: 0,
     right: 0,
     transformOrigin: 'bottom center',
-    transform: `rotate(${((hours % 12) + (minutes / 60)) * 30}deg)`,
+    transform: 'rotate(0deg)',
     boxShadow: '-3px -3px 18px 0px rgba(0, 0, 0, 0.4)',
     backgroundColor: 'black',
   });
@@ -80,7 +60,7 @@ function AnalogicClock(props: any)
     top: '-40%',
     left: 0,
     boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.4)',
-    transform: `rotate(${minutes * 6}deg)`
+    transform: 'rotate(90deg)'
   });
 
   const [styleNeedleSecond, setStyleNeedleSecond] = useState({
@@ -96,7 +76,7 @@ function AnalogicClock(props: any)
     backgroundColor: '#ff4b3e',
     transformOrigin: 'bottom center',
     boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.25)',
-    transform: `rotate(${seconds * 6}deg)`
+    transform: 'rotate(180deg)'
   });
 
   const styleCenterClock = {
@@ -120,10 +100,11 @@ function AnalogicClock(props: any)
       setTime(new Date());
       setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${time.getSeconds() * 6}deg)`})
       setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${time.getMinutes() * 6}deg)`})
-      setStyleNeedles({...styleNeedles, transform: `rotate(${time.getHours() * 30}deg)`})
+      setStyleNeedles({...styleNeedles, transform: `rotate(${((time.getHours() % 12) + (time.getMinutes() / 60)) * 30}deg)`})
     })
     return () => clearInterval(interval);
   }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles])
+
   const [styleTic, setStyleTic] = useState({
     display: {xs: 'none', sm: 'block'},
     position: 'absolute',
