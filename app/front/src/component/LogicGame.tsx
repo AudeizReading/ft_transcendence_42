@@ -99,10 +99,14 @@ function LogicGame(props: {
   useEffect(() => {
     let socket: Socket;
     if (!gameSocket.current) {
+      if ((window as any).gameSocket)
+        (window as any).gameSocket.disconnect();
+      console.log('connexion!');
       socket = socketIOClient('ws://' + window.location.hostname + ':8192/game?page=game&gameid=' + String(props.gameId), {
         extraHeaders: fetch_opt().headers
       });
       gameSocket.current = socket;
+      (window as any).gameSocket = socket;
 
       socket.on('dataGame', (newData: DataGame) => {
         data.users = newData.users;
@@ -143,12 +147,17 @@ function LogicGame(props: {
           });
         });
       }
-      socket.on('disconnect', () => {
+      socket.on('disconnect', (reason: string, desc) => {
+        console.log('disconnected!', reason, desc);
         data.ball.at = null;
-        socket.disconnect();
+        gameSocket.current = null;
+        (window as any).gameSocket = null;
         setTimeout(() => {
-          socket.disconnect();
-          socket.connect();
+          if (!gameSocket.current && !(window as any).gameSocket) {
+            socket.connect();
+            gameSocket.current = socket;
+            (window as any).gameSocket = socket;
+          }
         }, 1000);
       });
       setTimeout(pingpong, 1000);
