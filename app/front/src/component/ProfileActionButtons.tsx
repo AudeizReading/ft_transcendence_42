@@ -41,7 +41,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
       toID: props.profileUser.id,
       settings,
     }
-    await fetch(`http://${window.location.hostname}:8190/invite/send`, {
+    const result = await fetch(`http://${window.location.hostname}:8190/invite/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,6 +50,8 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
         body: JSON.stringify(inviteData),
     });
     // TODO: Error handling
+    if (!result.ok)
+      console.error(result); // where the fuck is the error message ?
   }
 
   const [isGameConfigOpen, setGameConfigOpen] = useState(false);

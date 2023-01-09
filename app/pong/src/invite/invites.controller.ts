@@ -7,6 +7,8 @@ import {
   Param,
 	Body,
 	BadRequestException,
+	Req,
+	HttpException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
 import { InviteService } from './invites.service';
@@ -17,7 +19,7 @@ export class GameSettingsInterface {
 	timeLimit: number | undefined;
 }
 
-export class SendInviteDTO {
+export class InviteDTO {
 	fromID: number;
 	toID: number;
 	settings: GameSettingsInterface;
@@ -30,12 +32,24 @@ export class InviteController
 		private inviteService: InviteService,
 	) {}
 
+	// TODO: have good error handling, bruv
+	// TODO: More guards?
 	@Post('send')
 	@UseGuards(JwtAuthGuard)
-	async send(@Body() invite: SendInviteDTO)
+	async send(@Req() req, @Body() invite: InviteDTO)
 	{
-		console.log("In controller: ", invite);
-		this.inviteService.sendInvite(invite);
-		return invite;
+		if (invite.toID === req.user.id) {
+			console.log("Cannot invite self");
+			throw new BadRequestException("Cannot invite self");
+		}
+		return this.inviteService.sendInvite(invite);
+	}
+
+	@Post('delete')
+	@UseGuards(JwtAuthGuard)
+	async delete(@Body() invite: InviteDTO)
+	{
+		console.log("Deleting invite");
+		return this.inviteService.sendInvite(invite);
 	}
 }

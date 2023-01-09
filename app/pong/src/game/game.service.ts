@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
 import { User, Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
+import { InviteDTO } from 'src/invite/invites.controller';
 
 // For frontend. Represents a game that has already ended.
 export interface GameInterface {
@@ -101,12 +102,11 @@ export class GameService {
   async createGame(
     userId1: number,
     userId2: number | null,
+    gameOptions?: InviteDTO,
   ): Promise<{ game: Game; players: PlayerGame[] }> {
     const game = await this.prisma.game.create({
       data: {
-        option: JSON.stringify({
-          // options :)
-        }),
+        option: gameOptions ? JSON.stringify(gameOptions) : "{}",
       },
     });
     const players = [];

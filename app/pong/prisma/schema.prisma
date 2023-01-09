@@ -12,36 +12,36 @@ datasource db {
 }
 
 model User {
-  id         Int          @default(autoincrement()) @id
-  email      String       @unique
-  login      String       @unique
-  name       String       @unique
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  login String @unique
+  name  String @unique
 
-  avatar     String?
-  sessionid  String?
-  lastFetch  DateTime     @updatedAt
+  avatar    String?
+  sessionid String?
+  lastFetch DateTime @updatedAt
 
-  notifs     Notif[]
-  wins       Game[]
-  games      PlayerGame[]
-  mMaking    MatchMaking?
+  notifs  Notif[]
+  wins    Game[]
+  games   PlayerGame[]
+  mMaking MatchMaking?
 
-  friendsA   Friend[]     @relation("UserA")
-  friendsB   Friend[]     @relation("UserB")
+  friendsA Friend[] @relation("UserA")
+  friendsB Friend[] @relation("UserB")
 
-  invitesFrom Invite[]     @relation("from")
-  invitesTo   Invite[]     @relation("to")
+  invitesFrom Invite[] @relation("from")
+  invitesTo   Invite[] @relation("to")
 }
 
 model Notif {
-  id         Int          @default(autoincrement()) @id
+  id Int @id @default(autoincrement())
 
-  user       User         @relation(fields: [userId], references: [id])
-  userId     Int
-  content    String
-  createdAt  DateTime     @default(now())
-  type       TypeNotif    @default(NOTIF)
-  read       Boolean      @default(false)
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  content   String
+  createdAt DateTime  @default(now())
+  type      TypeNotif @default(NOTIF)
+  read      Boolean   @default(false)
 }
 
 enum TypeNotif {
@@ -51,27 +51,28 @@ enum TypeNotif {
 }
 
 model Game {
-  id         Int          @default(autoincrement()) @id
+  id Int @id @default(autoincrement())
 
-  name       String?
-  option     String       @default("{}")
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  scoreA     Int          @default(0)
-  scoreB     Int          @default(0)
-  winner     User?        @relation(fields: [winnerId], references: [id])
-  winnerId   Int?
-  winnedAt   DateTime?
-  state      StateGame    @default(WAITING)
+  name      String?
+  option    String    @default("{}")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  scoreA    Int       @default(0)
+  scoreB    Int       @default(0)
+  winner    User?     @relation(fields: [winnerId], references: [id])
+  winnerId  Int?
+  winnedAt  DateTime?
+  state     StateGame @default(WAITING)
 
-  players    PlayerGame[]
+  players PlayerGame[]
 }
 
 model PlayerGame {
-  game       Game         @relation(fields: [gameId], references: [id])
-  gameId     Int
-  user       User         @relation(fields: [userId], references: [id])
-  userId     Int
+  game   Game @relation(fields: [gameId], references: [id])
+  gameId Int
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
   @@id([gameId, userId])
 }
 
@@ -83,12 +84,12 @@ enum StateGame {
 }
 
 model MatchMaking {
-  userId     Int              @unique
-  user       User             @relation(fields: [userId], references: [id])
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
 
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-  startedAt  DateTime?                          // <=== TODO: Est-il utile?
+  startedAt  DateTime? // <=== TODO: Est-il utile?
   state      StateMatchMaking @default(WAITING)
   preference String           @default("{}")
 }
@@ -100,31 +101,33 @@ enum StateMatchMaking {
 }
 
 model Friend {
-  userA      User            @relation("UserA", fields: [userAId], references: [id])
-  userAId    Int
-  userB      User            @relation("UserB", fields: [userBId], references: [id])
-  userBId    Int
-  state      StateFriend  @default(WAITING)
+  userA   User        @relation("UserA", fields: [userAId], references: [id])
+  userAId Int
+  userB   User        @relation("UserB", fields: [userBId], references: [id])
+  userBId Int
+  state   StateFriend @default(WAITING)
+
   @@id([userAId, userBId])
 }
 
-enum StateFriend { 
-  WAITING 
-  FRIEND 
+enum StateFriend {
+  WAITING
+  FRIEND
 }
 
 model Image {
-  id         Int     @default(autoincrement()) @id
-  name       String  @unique
-  content    Bytes
+  id      Int    @id @default(autoincrement())
+  name    String @unique
+  content Bytes
 }
 
 model Invite {
-  from      User      @relation("from", fields: [userAId], references: [id])
-  userAId   Int
-  to        User      @relation("to", fields: [userBId], references: [id])
-  userBId   Int
+  from      User     @relation("from", fields: [fromID], references: [id])
+  fromID    Int
+  to        User     @relation("to", fields: [toID], references: [id])
+  toID      Int
   settings  String
-  createdAt DateTime  @default(now())
-  @@id([userAId, userBId, settings])
+  createdAt DateTime @default(now())
+
+  @@id([fromID, toID, settings])
 }
