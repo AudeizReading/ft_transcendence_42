@@ -446,7 +446,7 @@ function TopBar(props: {
               </MenuItem>
               <MenuItem key="Options" onClick={handleCloseUserMenu}
                 component={RouterLink}
-                to={'/user/' + user.id}
+                to="/settings/"
               >
                 <ListItemIcon>
                   <Settings fontSize="small" />

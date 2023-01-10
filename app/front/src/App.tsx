@@ -8,6 +8,8 @@ import Score from './page/Score';
 import Profile from './page/Profile';
 import Auth from './page/Auth';
 import Friends from './page/Friends';
+import Settings from './page/Settings';
+import Footer from './page/Footer'
 
 import TopBar from './component/TopBar';
 import Backdrop from '@mui/material/Backdrop';
@@ -43,7 +45,7 @@ function App() {
   if (window.location.hostname === 'localhost')
     window.location.href = window.location.href.replace('localhost', '127.0.0.1');
 
-  const isNotAuth = (window.location.pathname !== '/auth');
+  const isNotAuth = (window.location.pathname !== '/auth' && window.location.pathname !== '/auth/');
 
   const fetched_firsttime = useRef(false);
   const timeout: any = useRef(0);
@@ -232,6 +234,7 @@ function App() {
           <Route path="/score" element={<Score />} />
           <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
+          <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} />} />
 
           <Route path="/auth" element={<Auth />} />
 
