@@ -169,7 +169,7 @@ export class GameSocketGateway
           else {
             const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
 
-            game.data.points[i]++; // TODO: Update database
+            game.data.points[+!i]++; // TODO: Update database
             this.gameService.updateGame({
               data: {
                 scoreA: game.data.points[0],
