@@ -37,7 +37,10 @@ export interface NotifContainerType {
 
 @Injectable()
 export class NotifService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    // private inviteService: InviteService, // FIXME: Dependencies :)
+  ) {}
 
   async createAction(
     userId: number,
@@ -159,6 +162,7 @@ export class NotifService {
         type: content['type'] || null,
       });
     });
+    // this.inviteService.deleteAllExpired() // FIXME: Uncomment me when these dependencies are fixed :)
     return {
       notifs: {
         num: notifs.length,

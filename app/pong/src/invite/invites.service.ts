@@ -108,4 +108,16 @@ export class InviteService
 		await this.notifService.createAction(inviteData.fromID, redirAction);
 		await this.notifService.createAction(inviteData.toID, redirAction);
 	}
+
+	async deleteAllExpired()
+	{
+		const res = await this.prisma.invite.deleteMany({
+			where: {
+				createdAt: {
+					lt: new Date(Date.now() - 1000 * 5)
+				}
+			}
+		});
+		return res.count;
+	}
 }
