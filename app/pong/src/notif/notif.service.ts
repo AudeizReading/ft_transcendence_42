@@ -24,7 +24,7 @@ export interface ActionRedirContent {
 export interface NotifDataType {
   id: number,
   text: string;
-  date: string;
+  date: Date;
   url?: string | null;
   read: boolean;
   type: string;
@@ -124,14 +124,49 @@ export class NotifService {
     });
   }
 
+  async deleteExpiredInviteNotifs()
+  {
+    const notifs = await this.prisma.notif.findMany({
+      where: {
+        type: 'NOTIF'
+      },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+      }
+    });
+
+    const deleteIDs = notifs.map( notif =>
+        ({
+          id: notif.id,
+          createdAt: notif.createdAt,
+          content: JSON.parse(notif.content) as NotifContent,
+        })
+      ).filter( parsedNotif => (parsedNotif.content.type === "GAMEINVITE"
+          && Date.now() - parsedNotif.createdAt.getTime() > 1000 * 10 * 1)
+      ).map(tgt => tgt.id);
+
+    return this.prisma.notif.deleteMany({
+      where: {
+        id: {
+          in: deleteIDs
+        }
+      }
+    });
+  }
+
   async objectForFront(userId: number): Promise<{
     notifs: NotifContainerType;
     msgs: NotifContainerType;
     actions: NotifContainerType;
-  }> {
-    const notifs = [];
-    const msgs = [];
-    const actions = [];
+  }>
+  {
+    const notifs: NotifDataType[] = [];
+    const msgs: NotifDataType[] = [];
+    const actions: NotifDataType[] = [];
+    this.deleteExpiredInviteNotifs();
+    // this.inviteService.deleteAllExpired() // FIXME: Uncomment me when these dependencies are fixed :)
     const data = await this.notifs({
       where: {
         userId,
@@ -162,7 +197,6 @@ export class NotifService {
         type: content['type'] || null,
       });
     });
-    // this.inviteService.deleteAllExpired() // FIXME: Uncomment me when these dependencies are fixed :)
     return {
       notifs: {
         num: notifs.length,
