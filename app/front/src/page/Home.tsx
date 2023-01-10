@@ -24,14 +24,16 @@ import Paper from '@mui/material/Paper';
 const BoxPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(0,0,0,0.5)',
   color: 'white',
-  textShadow: '1px -2px 3px #3F528C, 0 0 5px #3F528C',
+  textShadow: '0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 2px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C',
   minWidth: '14vw',
   minHeight: '14vw',
   maxWidth: '14vw',
   maxHeight: '14vw',
   ...theme.typography.body2,
   overflow: 'hidden',
-  borderRadius: 10,
+  borderRadius: '10%',
+  border: '1px solid #027368',
+  boxShadow: '1px -4px 12px #3F528C',
   '& > p': {
     margin: 0,
     padding: 0,
@@ -170,30 +172,29 @@ function Home(props: {
         <React.Fragment>
         <Box sx={{
           display: 'flex', 
+          height: '100%', 
+          p: 'auto',
           flexDirection: {
             xs: 'row', 
             md: 'column',
-          }
-          }}>
+          },
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+
         <Box sx={{ 
-          display: 'flex', 
-          border: '2px solid #027368', 
-          flexDirection: {
-            xs: 'column', 
-            md: 'row',
+          display: 'flex',  
+          flexFlow: {
+            xs: 'column wrap', 
+            md: 'row wrap',
           },
-          justifyContent: {
-            xs:'flex-start',
-            md: 'center',
-          },
-          minWidth: '14vw',
-          minHeight: '14vw',
-          maxWidth: {xs: '14vw', md: '100%'},
-          maxHeight: {xs: '100%', md: '14vw'},
-          mt: '10vh', 
-          mx: 10, 
+          flex: '0 1 auto',
+          width: 'auto',
+          height: 'auto',
+          my: '10vw',
+          mx: '10vw',
           gap: {
-            xs: '2vw', 
+            xs: '5vh', 
             lg: '2vw'
           } 
         }}>
@@ -203,8 +204,15 @@ function Home(props: {
             }
            
           </Box>
-          <Box component="div"sx={{ width: 200, display: 'flex', flexDirection: 'row', border: '2px solid #3F528C'}}>Futur Dashboard</Box>
-          </Box>
+          {  true 
+          && <Box component="div"sx={{ 
+            width: 'auto', 
+            display: 'flex', 
+            flexFlow: 'column wrap',
+            flex: '2 1 auto', 
+            border: '2px solid #3F528C'
+          }}>Futur Dashboard</Box>
+          }</Box>
         </React.Fragment>}
       {isLogged === false && <Footer />}
     </Box>
