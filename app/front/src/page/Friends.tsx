@@ -19,6 +19,8 @@ import Friend from '../interface/Friend';
 import UserButton from '../component/UserButton';
 import LoadingButton from '../component/LoadingButton';
 import { fetch_opt } from '../dep/fetch';
+import GameConfigDialog from '../component/GameConfigDialog';
+import GameSettingsInterface from '../interface/GameSettingsInterface';
 
 // ========================================================================== //
 // ========================================================================== //
@@ -137,7 +139,7 @@ function AddFriendDialog(props: {
   const {addingFriend, setAddingFriend} = props;
   const [friendName, setFriendName] = useState("");
   const [loading, setLoading] = useState(false); // Do I NEED a state for that?
-  const [status, setStatus] = useState("neutral") // "neutral" | "success" | "failure"
+  const [status, setStatus] = useState<'neutral' | 'success' | 'error'>("neutral");
   const textFieldRef = useRef<HTMLInputElement>(null); // Used to refocus on the text field
 
   function closeDialog() {
@@ -210,10 +212,31 @@ function FriendActionButtons(props: {
     friend_status: "requested" | "pending" | "accepted"
   })
 {
+  async function sendGameInvite(settings: GameSettingsInterface) {
+    const inviteData = {
+      fromID: props.user.id,
+      toID: props.id,
+      settings,
+    }
+    const result = await fetch(`http://${window.location.hostname}:8190/invite/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(fetch_opt().headers),
+        },
+        body: JSON.stringify(inviteData),
+    });
+    // TODO: Error handling
+    if (!result.ok)
+      console.error(result); // where the fuck is the error message ?
+  }
+
   async function callFriendController(action: string) {
     await fetch(`http://${window.location.hostname}:8190/friend/${props.id}/${action}`, fetch_opt());
     props.fetch_userinfo();
   }
+
+  const [isGameConfigOpen, setGameConfigOpen] = useState(false);
 
   const pendingFriend = (
     <Box component="span">
@@ -243,8 +266,9 @@ function FriendActionButtons(props: {
 
   const knownFriend = (
     <Box component="span">
+      <GameConfigDialog open={isGameConfigOpen} setOpen={setGameConfigOpen} sendInvite={sendGameInvite} />
       <Tooltip title="Inviter à jouer" arrow disableInteractive>
-        <IconButton color="success">
+        <IconButton color="success" onClick={() => setGameConfigOpen(true)}>
           <VideogameAssetIcon/>
         </IconButton>
       </Tooltip>
