@@ -23,14 +23,13 @@ function Footer(props: any)
 {
 	const sx_footer = {
 		position: 'relative',
-		color: 'primary.main',
-		backgroundColor: 'white',
+		color: 'white',
 		width: '100%',
 		maxHeight: '10%',
 		textAlign: "center",
 		m: 'auto',
 		p: 'auto',
-		display: {xs: 'none', sm: 'none', md: 'flex', lg: 'flex', xl: 'flex'},
+		display: {xs: 'none', sm: 'flex', md: 'flex', lg: 'flex', xl: 'flex'},
 		justifyContent: 'center',
 	};
 

@@ -119,7 +119,7 @@ function Home(props: {
             </BoxPaper>
           </Box>
         </React.Fragment>}
-      {false && <Footer />}
+      {isLogged === false && <Footer />}
     </Box>
   );
 }
