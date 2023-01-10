@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { InviteService } from '../invite/invite.service';
 import { Notif, Prisma } from '@prisma/client';
 
 interface MsgContent {
@@ -39,6 +40,8 @@ export interface NotifContainerType {
 export class NotifService {
   constructor(
     private prisma: PrismaService,
+    @Inject(forwardRef(() => InviteService))
+    private invite: InviteService,
     // private inviteService: InviteService, // FIXME: Dependencies :)
   ) {}
 

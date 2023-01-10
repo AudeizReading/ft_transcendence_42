@@ -1,4 +1,4 @@
-import { Module, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, Interval } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
 import { GameService } from './game.service';
@@ -7,9 +7,7 @@ import { MatchMaking, Prisma } from '@prisma/client';
 
 const MATCHMAKING_SECONDS = 25;
 
-@Module({
-  providers: [NotifService, PrismaService, GameService],
-})
+@Injectable()
 export class GameMatchMaking {
   private readonly logger = new Logger(GameMatchMaking.name);
 

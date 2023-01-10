@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, Injectable } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.authguard';
 import {
   SubscribeMessage,
@@ -69,6 +69,7 @@ function getPlayerPosition(player: DataElement): number {
   }
 }
 
+@Injectable()
 @WebSocketGateway(8192, {
   namespace: 'game',
   cors: {

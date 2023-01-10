@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { NotifService } from '../notif/notif.service';
 import { User, Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
-import { InviteDTO } from 'src/invite/invites.controller';
+import { InviteDTO } from 'src/invite/invite.controller';
 
 // For frontend. Represents a game that has already ended.
 export interface GameInterface {
@@ -21,6 +21,7 @@ export interface GameInterface {
 export class GameService {
   constructor(
     private prisma: PrismaService,
+    @Inject(forwardRef(() => NotifService))
     private notifService: NotifService,
   ) {}
 

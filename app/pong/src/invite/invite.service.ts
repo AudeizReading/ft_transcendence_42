@@ -1,19 +1,20 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Inject, forwardRef } from "@nestjs/common";
 import { Invite, prisma } from "@prisma/client";
 import { GameService } from "src/game/game.service";
 import { ActionRedirContent, NotifService } from "src/notif/notif.service";
 import { PrismaService } from "src/prisma.service";
 import { UsersService } from "src/users/users.service";
-import { InviteDTO } from "./invites.controller";
+import { InviteDTO } from "./invite.controller";
 
 @Injectable()
 export class InviteService
 {
 	constructor(
+		private prisma: PrismaService,
 		private usersService: UsersService,
+    	@Inject(forwardRef(() => NotifService))
 		private notifService: NotifService,
 		private gameService: GameService,
-		private prisma: PrismaService,
 	) {}
 
 	async isInvitePossible(inviteData: InviteDTO)

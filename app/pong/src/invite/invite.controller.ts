@@ -11,7 +11,7 @@ import {
 	HttpException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
-import { InviteService } from './invites.service';
+import { InviteService } from './invite.service';
 
 export class GameSettingsInterface {
 	pointsToWin: number;

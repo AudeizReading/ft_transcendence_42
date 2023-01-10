@@ -1,24 +1,26 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { GameService } from './game.service';
 import { PrismaService } from '../prisma.service';
 import { GameController } from './game.controller';
-import { UsersService } from '../users/users.service';
-import { NotifService } from '../notif/notif.service';
+import { GameMatchMaking } from './game.matchmaking';
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
+import { NotifModule } from '../notif/notif.module';
 import { GameSocketGateway } from './socket.gateway';
-import { JwtService } from '@nestjs/jwt';
-import { JwtStrategy } from '../auth/jwt.strategy';
 
 @Module({
+  imports: [
+    forwardRef(() => NotifModule),
+    forwardRef(() => UsersModule),
+    AuthModule,
+  ],
   providers: [
+    PrismaService,
     GameService,
     GameSocketGateway,
-    PrismaService,
-    NotifService,
-    UsersService,
-    JwtService,
-    JwtStrategy,
+    GameMatchMaking,
   ],
   controllers: [GameController],
-  exports: [GameService],
+  exports: [GameService, GameMatchMaking],
 })
 export class GameModule {}

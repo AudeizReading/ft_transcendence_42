@@ -1,11 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { NotifService } from './notif.service';
 import { PrismaService } from '../prisma.service';
 import { NotifController } from './notif.controller';
-import { UsersService } from '../users/users.service';
+import { UsersModule } from '../users/users.module';
+import { InviteModule } from '../invite/invite.module';
 
 @Module({
-  providers: [NotifService, PrismaService, UsersService],
+  imports: [
+    forwardRef(() => UsersModule),
+    forwardRef(() => InviteModule)
+  ],
+  providers: [PrismaService, NotifService],
   controllers: [NotifController],
   exports: [NotifService],
 })

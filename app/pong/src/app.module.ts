@@ -10,8 +10,7 @@ import { GameModule } from './game/game.module';
 import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { GameMatchMaking } from './game/game.matchmaking';
-import { InviteModule } from './invite/invites.module';
+import { InviteModule } from './invite/invite.module';
 
 @Module({
   imports: [
@@ -20,15 +19,14 @@ import { InviteModule } from './invite/invites.module';
       envFilePath: ['.env'],
     }),
     ScheduleModule.forRoot(),
-    GameMatchMaking,
+    NotifModule,
+    UsersModule,
     AuthModule,
     GameModule,
     FriendModule,
-    UsersModule,
-    NotifModule,
     InviteModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, JwtService],
+  providers: [AppService],
 })
 export class AppModule {}
