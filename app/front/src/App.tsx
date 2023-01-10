@@ -246,9 +246,22 @@ export default App;
 
 function Error() {
   return (
-    <Box component="main" sx={{ height: '100vh', background: 'white' }}>
-      <h1>Oh non erreur 404 !</h1>
-      <RouterLink to="/">Revenir sur la page d'accueil</RouterLink>
+    <Box component="main" sx={{ height: '100vh', background: 'lightblue', overflow: 'auto', color: 'black', textAlign: 'center' }}>
+      <Box sx={{ px: '8px', pb: '8px' }}>
+        <h1>404: Not Found</h1>
+        <p>The server can not find the requested resource.</p>
+        <RouterLink to="/">Revenir sur la page d'accueil</RouterLink>
+        <img src="/res/404.jpg" style={{ maxWidth: '100%', marginTop: '15px' }} />
+        {/* <style>{`body {
+          background: url('/res/404.jpg') center center;
+          background-size: 'cover';
+        }
+        header.MuiPaper-root {
+          background: rgba(25, 118, 210, 0.8);
+        }`}</style> */}
+        <p style={{ fontSize: '11px' }}>Webserv ❤️ : Un amour de coeur, on t'aimera toujours, avec ardeur, et sans aucun détour.</p>
+      </Box>
+      <Footer />
     </Box>
   );
 }
