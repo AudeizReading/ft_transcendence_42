@@ -20,12 +20,12 @@ function AnalogicClock(props: {
   const [styleWrap] = useState({
     position: 'relative',
     borderRadius: '50%',
-    backgroundColor: '#fff',
+    backgroundImage: 'radial-gradient(white 27%, #8493BF 90%, #3F528C)',
     borderBottom: '5px solid #def',
     borderLeft: '5px solid #eee',
     borderTop: '5px solid #eee',
     borderRight: '5px solid #dee',
-    boxShadow: 'inset 2px 3px 8px 3px rgba(0, 0, 0, 0.6)',
+    boxShadow: 'inset 2px 3px 8px 3px rgba(20, 39, 64, 0.25)',
     width: '33vh',
     height: '33vh',
     maxWidth: 351,
@@ -49,7 +49,7 @@ function AnalogicClock(props: {
     transformOrigin: 'bottom center',
     transform: 'rotate(0deg)',
     boxShadow: '-3px -3px 18px 0px rgba(0, 0, 0, 0.4)',
-    backgroundColor: 'black',
+    backgroundColor: '#142740',
   });
 
   const [styleNeedleMinute, setStyleNeedleMinute] = useState({
@@ -73,7 +73,7 @@ function AnalogicClock(props: {
     bottom: 0,
     right: 0,
     borderRadius: '1.4%',
-    backgroundColor: '#ff4b3e',
+    backgroundColor: '#027368',
     transformOrigin: 'bottom center',
     boxShadow: '-2px -2px 20px 1px rgba(0, 0, 0, 0.25)',
     transform: 'rotate(180deg)'
