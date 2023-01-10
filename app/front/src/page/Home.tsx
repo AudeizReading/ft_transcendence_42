@@ -52,6 +52,7 @@ function Home(props: {
   }) {
   const [user, setUser] = useState(props.user);
   const [isLogged, setIsLogged] = useState(user.connected);
+
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
@@ -110,6 +111,7 @@ function Home(props: {
       child: {sx: {},},
       name:'JOUER',
       url: '/play',
+      uid: 'play',
     },
     {
       sx: 
@@ -119,6 +121,7 @@ function Home(props: {
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
         transform: 'rotate3d(0, 1, 0, 180deg)',
+        boxShadow: '1px -4px 12px #3F528C',
       },
       child: {
         sx: {
@@ -127,6 +130,7 @@ function Home(props: {
       },
       name:'SCORE',
       url: '/score',
+      uid: 'score',
     },
     {
       sx: {
@@ -138,6 +142,7 @@ function Home(props: {
       child: {sx:{},},
       name: 'AMIS',
       url: '/friend',
+      uid: 'friend',
     },
     {
       sx: {
@@ -149,6 +154,7 @@ function Home(props: {
       child: {sx:{},},
       name: 'OPTIONS',
       url: '/',
+      uid: 'options',
     },
   ];
 
@@ -156,8 +162,12 @@ function Home(props: {
       datasBoxPaper.map((data) =>
         {
           return (
-          <BoxPaper sx={data.sx}>
-                <Box component="p" sx={data.child.sx}><Link to={data.url} component={RouterLink} color="inherit" underline="none">{data.name}</Link></Box>
+          <BoxPaper key={data.uid} sx={data.sx}>
+              <Box component="p" sx={data.child.sx}>
+                <Link to={data.url} component={RouterLink} color="inherit" underline="none">
+                  {data.name}
+                </Link>
+              </Box>
           </BoxPaper>
             
           )
@@ -182,37 +192,42 @@ function Home(props: {
           alignItems: 'center',
         }}>
 
-        <Box sx={{ 
-          display: 'flex',  
-          flexFlow: {
-            xs: 'column wrap', 
-            md: 'row wrap',
-          },
-          flex: '0 1 auto',
-          width: 'auto',
-          height: 'auto',
-          my: '10vw',
-          mx: '10vw',
-          gap: {
-            xs: '5vh', 
-            lg: '2vw'
-          } 
-        }}>
-              
+          <Box sx={{ 
+            display: 'flex',  
+            flexFlow: {
+              xs: 'column wrap', 
+              md: 'row wrap',
+            },
+            flex: '0 1 auto',
+            width: 'auto',
+            height: 'auto',
+            my: '10vw',
+            mx: '10vw',
+            gap: {
+              xs: '5vh', 
+              lg: '2vw'
+            } 
+          }}>            
             {
               LinkBox
             }
-           
           </Box>
-          {  true 
-          && <Box component="div"sx={{ 
-            width: 'auto', 
-            display: 'flex', 
-            flexFlow: 'column wrap',
-            flex: '2 1 auto', 
-            border: '2px solid #3F528C'
-          }}>Futur Dashboard</Box>
-          }</Box>
+          {  
+            true && 
+            <Box 
+              component="div"
+              sx={{ 
+                width: 'auto', 
+                display: 'flex', 
+                flexFlow: 'column wrap',
+                flex: '2 1 auto', 
+                border: '2px solid #3F528C'
+              }}
+            >
+              Futur Dashboard
+            </Box>
+          }
+          </Box>
         </React.Fragment>}
       {isLogged === false && <Footer />}
     </Box>
