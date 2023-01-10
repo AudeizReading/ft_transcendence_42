@@ -144,8 +144,16 @@ export class NotifService {
           content: JSON.parse(notif.content) as NotifContent,
         })
       ).filter( parsedNotif => (parsedNotif.content.type === "GAMEINVITE"
-          && Date.now() - parsedNotif.createdAt.getTime() > 1000 * 10 * 1)
+          && Date.now() - parsedNotif.createdAt.getTime() > 1000 * 60 * 2)
       ).map(tgt => tgt.id);
+    
+    await this.prisma.invite.deleteMany({
+      where: {
+        createdAt: {
+          lt: new Date(Date.now() - (1000 * 60 * 2))
+        }
+      }
+    });
 
     return this.prisma.notif.deleteMany({
       where: {
@@ -165,8 +173,7 @@ export class NotifService {
     const notifs: NotifDataType[] = [];
     const msgs: NotifDataType[] = [];
     const actions: NotifDataType[] = [];
-    this.deleteExpiredInviteNotifs();
-    // this.inviteService.deleteAllExpired() // FIXME: Uncomment me when these dependencies are fixed :)
+    await this.deleteExpiredInviteNotifs(); // await might slow things down, but it ensures no expired notif is served
     const data = await this.notifs({
       where: {
         userId,

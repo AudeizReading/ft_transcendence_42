@@ -114,7 +114,7 @@ export class InviteService
 		const res = await this.prisma.invite.deleteMany({
 			where: {
 				createdAt: {
-					lt: new Date(Date.now() - 1000 * 5)
+					lt: new Date(Date.now() - 1000 * 60 * 2)
 				}
 			}
 		});
