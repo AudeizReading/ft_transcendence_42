@@ -226,9 +226,7 @@ function FriendActionButtons(props: {
         },
         body: JSON.stringify(inviteData),
     });
-    // TODO: Error handling
-    if (!result.ok)
-      console.error(result); // where the fuck is the error message ?
+    return (result.ok);
   }
 
   async function callFriendController(action: string) {

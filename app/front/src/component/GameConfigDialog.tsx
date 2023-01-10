@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 
-import { Box, Dialog, Button, DialogTitle, DialogContent, TextField, Grid, Switch, Slider, DialogActions } from '@mui/material';
+import { Box, Dialog, Button, DialogTitle, DialogContent, TextField, Grid, Switch, Slider, DialogActions, Snackbar, Alert, AlertColor } from '@mui/material';
 import GameSettingsInterface from '../interface/GameSettingsInterface';
+import LoadingButton from './LoadingButton';
 
 interface GameConfigDialogProps {
-  sendInvite: (settings: GameSettingsInterface) => void,
+  sendInvite: (settings: GameSettingsInterface) => Promise<boolean>,
   open: boolean,
   setOpen: (open: boolean) => any,
 }
@@ -20,19 +21,39 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
   const handleClose = () => props.setOpen(false);
   const handleSwitch = (e: any) => setEnableTimeLimit(e.target.checked);
   const handleBallSlider = (e: any, newVal: number | number[]) => setBallSpeed(newVal as number);
-  const handleSend = () => props.sendInvite({
-      pointsToWin,
-      timeLimit: enableTimeLimit ? timeLimit : undefined,
-      ballSpeed
-  });
+  const handleSend = async () => {
+    setStatus("loading");
+    const success = await props.sendInvite({ pointsToWin, timeLimit: enableTimeLimit ? timeLimit : undefined, ballSpeed});
+    if (success)
+      setStatus("success");
+    else
+      setStatus("error");
+  }
 
   const [enableTimeLimit, setEnableTimeLimit] = useState(false);
   const [pointsToWin, setPointsToWin] = useState(11);
   const [timeLimit, setTimeLimit] = useState<number>(5);
   const [ballSpeed, setBallSpeed] = useState(25);
+  const [status, setStatus] = useState<'neutral' | 'loading' | 'success' | 'error'>("neutral");
 
   return (
     <Dialog open={props.open} onClose={handleClose} maxWidth="xs" fullWidth>
+      
+      <Snackbar open={status === "error"} autoHideDuration={3000}
+        onClose={() => setStatus("neutral")} anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+      >
+        <Alert severity="error" variant="filled" onClose={() => setStatus("neutral")}>
+          L'invitation n'a pas pu être envoyée
+        </Alert>
+      </Snackbar>
+      <Snackbar open={status === "success"} autoHideDuration={3000}
+        onClose={() => setStatus("neutral")} anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setStatus("neutral")}>
+          Invitation envoyée !
+        </Alert>
+      </Snackbar>
+
       <DialogTitle>Création de partie</DialogTitle>
 
       <DialogContent>
@@ -89,7 +110,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
 
       <DialogActions>
         <Button onClick={() => props.setOpen(false)} variant="text">Annuler</Button>
-        <Button onClick={handleSend} variant="contained">Inviter</Button>
+        <LoadingButton loading={status === "loading"} onClick={handleSend} variant="contained">Inviter</LoadingButton>
       </DialogActions>
 
     </Dialog>

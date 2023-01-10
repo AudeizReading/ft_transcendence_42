@@ -49,9 +49,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
         },
         body: JSON.stringify(inviteData),
     });
-    // TODO: Error handling
-    if (!result.ok)
-      console.error(result); // where the fuck is the error message ?
+    return (result.ok);
   }
 
   const [isGameConfigOpen, setGameConfigOpen] = useState(false);
