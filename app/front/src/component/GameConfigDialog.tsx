@@ -44,14 +44,14 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
       <Snackbar open={status === "error"} autoHideDuration={3000}
         onClose={() => setStatus("neutral")} anchorOrigin={{vertical: 'top', horizontal: 'center'}}
       >
-        <Alert severity="error" variant="filled" onClose={() => setStatus("neutral")}>
+        <Alert severity="error" variant="filled">
           L'invitation n'a pas pu être envoyée
         </Alert>
       </Snackbar>
       <Snackbar open={status === "success"} autoHideDuration={3000}
         onClose={() => setStatus("neutral")} anchorOrigin={{vertical: 'top', horizontal: 'center'}}
       >
-        <Alert severity="success" variant="filled" onClose={() => setStatus("neutral")}>
+        <Alert severity="success" variant="filled">
           Invitation envoyée !
         </Alert>
       </Snackbar>

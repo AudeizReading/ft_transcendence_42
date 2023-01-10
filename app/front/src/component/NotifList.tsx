@@ -75,19 +75,16 @@ function NotifListItemButton(props: {
 
 async function callInviteController(notifMetaData: any, action: "accept" | "refuse")
 {
-  const inviteData = notifMetaData.invite;
-  console.log(inviteData);
   const res = await fetch(`http://${window.location.hostname}:8190/invite/${action}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(fetch_opt().headers),
     },
-    body: JSON.stringify(inviteData),
+    body: JSON.stringify(notifMetaData.invite),
   });
   if (!res.ok) {
     // TODO: error handling
-    console.error(res);
   }
 }
 
@@ -113,7 +110,7 @@ function GameInviteNotifListButton(props: {
   function refuseInvite() {
     callInviteController(notifMetaData, "refuse");
     props.deleteNotif(props.notif.id);
-    props.handleCloseNotifMenu();
+    // props.handleCloseNotifMenu();
   }
 
   return (

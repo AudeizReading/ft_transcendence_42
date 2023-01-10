@@ -147,7 +147,7 @@ export class NotifService {
           && Date.now() - parsedNotif.createdAt.getTime() > 1000 * 60 * 2)
       ).map(tgt => tgt.id);
     
-    await this.prisma.invite.deleteMany({
+    this.prisma.invite.deleteMany({
       where: {
         createdAt: {
           lt: new Date(Date.now() - (1000 * 60 * 2))
@@ -173,7 +173,7 @@ export class NotifService {
     const notifs: NotifDataType[] = [];
     const msgs: NotifDataType[] = [];
     const actions: NotifDataType[] = [];
-    await this.deleteExpiredInviteNotifs(); // await might slow things down, but it ensures no expired notif is served
+    this.deleteExpiredInviteNotifs();
     const data = await this.notifs({
       where: {
         userId,
