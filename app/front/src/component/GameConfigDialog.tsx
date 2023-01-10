@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Box, Dialog, Button, DialogTitle, DialogContent, TextField, Grid, Switch, Slider, DialogActions, Snackbar, Alert, AlertColor } from '@mui/material';
+import { Box, Dialog, Button, DialogTitle, DialogContent, TextField, Grid, Switch, Slider, DialogActions, Snackbar, Alert, Divider } from '@mui/material';
 import GameSettingsInterface from '../interface/GameSettingsInterface';
 import LoadingButton from './LoadingButton';
 
@@ -18,6 +18,8 @@ interface GameConfigDialogProps {
 // the game. In other words, it's what will ultimately call the backend.
 export default function GameConfigDialog(props: GameConfigDialogProps)
 {
+  const DEFAULTS = { PTS_TO_WIN: 11, BALL_SPEED: 25 };
+
   const handleClose = () => props.setOpen(false);
   const handleSwitch = (e: any) => setEnableTimeLimit(e.target.checked);
   const handleBallSlider = (e: any, newVal: number | number[]) => setBallSpeed(newVal as number);
@@ -31,9 +33,9 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
   }
 
   const [enableTimeLimit, setEnableTimeLimit] = useState(false);
-  const [pointsToWin, setPointsToWin] = useState(11);
+  const [pointsToWin, setPointsToWin] = useState(DEFAULTS.PTS_TO_WIN);
   const [timeLimit, setTimeLimit] = useState<number>(5);
-  const [ballSpeed, setBallSpeed] = useState(25);
+  const [ballSpeed, setBallSpeed] = useState(DEFAULTS.BALL_SPEED);
   const [status, setStatus] = useState<'neutral' | 'loading' | 'success' | 'error'>("neutral");
 
   return (
@@ -90,7 +92,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
               />
             </Box>
           </Grid>
-          <Grid item xs>
+          <Grid item xs={12}>
             <p style={{textAlign: 'center', margin: 0, padding: 0}}>Vitesse de la balle</p>
             <Box display="flex" flexDirection="row" alignItems="center" sx={{my: 0, mx: 0.5, p: 0, gap: "10px"}} >
               🐢
@@ -105,8 +107,21 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
               🐇
             </Box>
           </Grid>
+          <Grid item xs={12}>
+            <Button variant="outlined" fullWidth
+              onClick={() => {
+                setBallSpeed(DEFAULTS.BALL_SPEED);
+                setEnableTimeLimit(false);
+                setPointsToWin(DEFAULTS.PTS_TO_WIN);
+              }}
+            >
+              Réglages par défaut
+            </Button>
+          </Grid>
         </Grid>
       </DialogContent>
+
+      <Divider variant="middle" />
 
       <DialogActions>
         <Button onClick={() => props.setOpen(false)} variant="text">Annuler</Button>
