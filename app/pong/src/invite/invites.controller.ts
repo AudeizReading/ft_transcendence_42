@@ -45,11 +45,19 @@ export class InviteController
 		return this.inviteService.sendInvite(invite);
 	}
 
-	@Post('delete')
+	@Post(['delete', 'refuse'])
 	@UseGuards(JwtAuthGuard)
 	async delete(@Body() invite: InviteDTO)
 	{
 		console.log("Deleting invite");
-		return this.inviteService.sendInvite(invite);
+		return this.inviteService.deleteInvite(invite);
+	}
+
+	@Post('accept')
+	@UseGuards(JwtAuthGuard)
+	async accept(@Body() invite: InviteDTO)
+	{
+		console.log("Accepting invite");
+		return this.inviteService.acceptInvite(invite);
 	}
 }

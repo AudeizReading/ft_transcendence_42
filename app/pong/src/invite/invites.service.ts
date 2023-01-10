@@ -57,11 +57,18 @@ export class InviteService
 				from: true
 			}
 		});
-		// TODO: Notif refactor for invite actions
+
+		// Put serialized JSON in the notif text. Frontend decodes it.
+		const notifMetadata = {
+			text: `${newInvite.from.name} vous invite à jouer à Pong !`,
+			invite: { ...inviteData },
+		};
 		await this.notifService.createNotif(inviteData.toID, {
-			text: `${newInvite.from.name} vous a invité à jouer à Pong !`
+			text: JSON.stringify(notifMetadata),
+			url: `/${newInvite.fromID}`,
+			type: "GAMEINVITE",
 		});
-		delete newInvite.from;
+		delete newInvite.from; // Remove that 'from' field we included.
 		return newInvite as Invite;
 	}
 
@@ -84,6 +91,7 @@ export class InviteService
 		const canAccept = await this.isInvitePossible(inviteData);
 		if (!canAccept)
 			throw new BadRequestException("Cannot accept invite");
+		console.log("DATA: ", inviteData);
 		const newGame = await this.gameService.createGame(inviteData.fromID, inviteData.toID, inviteData);
 		const deleted = await this.prisma.invite.deleteMany({
 			where: {

@@ -10,6 +10,10 @@ interface MsgContent {
 interface NotifContent {
   text: string;
   url?: string | null;
+  // When type is defined, the notif menu can use it to
+  // display a special interface for the notification.
+  // For example, GAMEINVITE displays accept/refuse buttons.
+  type?: 'GAMEINVITE';
 }
 
 export interface ActionRedirContent {
