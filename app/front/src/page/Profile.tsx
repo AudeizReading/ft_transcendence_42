@@ -11,6 +11,7 @@ import { User } from '../interface/User'
 import EditableName from '../component/EditableName';
 import ProfileActionButtons from '../component/ProfileActionButtons';
 import MatchHistory from '../component/MatchHistory';
+import StatusSnackbar from '../component/StatusSnackbar';
 
 // TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: {
@@ -29,6 +30,7 @@ function Profile(props: {
   });
 
   const [user, setUser] = useState(emptyUser());
+  const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | 'neutral'>("neutral");
 
   const navigate = useNavigate();
 
@@ -71,16 +73,18 @@ function Profile(props: {
       .then(res => res.json())
       .then(
         (result) => {
-          if (result.error)
-            return alert("Attention l'image n'est pas valide!"); // TODO: Use mui message element
+          if (result.error) {
+            setUploadStatus("error");
+            return;
+          }
           fetch_user(Number(userid));
           props.fetch_userinfo();
           if (result.upload)
-            alert("Reussi!"); // TODO: Use mui message element
+            setUploadStatus("success");
         },
         (error) => {
-          console.log(error)
-          alert("Attention l'image n'est pas valide! (Taille (<420ko)? Format ?)"); // TODO: Use mui message element
+          console.log(error);
+          setUploadStatus("error");
         }
       )
   };
@@ -102,6 +106,15 @@ function Profile(props: {
   return (
     <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: "white", textAlign: 'center', p: 1, display: "flex", flexDirection: "column" }}>
     {user.id && <React.Fragment>
+
+      <StatusSnackbar status={uploadStatus} errorText="Impossible d'accepter l'image" successText="Avatar uploadé !"
+        snackbarProps={{
+          autoHideDuration: 3000,
+          anchorOrigin: {vertical: 'top', horizontal: 'center'},
+          onClose: () => setUploadStatus("neutral"),
+        }}
+      />
+
       <Box sx={{
         width: 250,
         minWidth: 250,
