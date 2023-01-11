@@ -1,10 +1,14 @@
 import React from 'react';
-import Button from '@mui/material/Button';
+import Button, { ButtonProps } from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 
-export default function LoadingButton(props: any)
+interface LoadingButtonProps extends ButtonProps {
+  loading?: boolean
+}
+
+export default function LoadingButton(props: LoadingButtonProps)
 {
-  const disabled: boolean = props.loading;
+  const disabled: boolean = !!props.loading;
   const newProps = {...props};
 
   // Need to use this newProps thing to remove the "loading" prop, because it

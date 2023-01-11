@@ -199,4 +199,46 @@ export class UsersService {
       where: imageWhereUniqueInput,
     });
   }
+
+  // Don't get use status here, it shouldn't get called often
+  // TODO: Rate limit or we gonna blow things up
+  async getBestPlayers(limit: number)
+  {
+    const getScore = (wins: number, games: number) => {
+      const losses = games - wins;
+      const winLoseRatio = (wins / (losses || 1));
+      return (winLoseRatio * games) || 0;
+    }
+
+    const userList = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        wins: {
+          select: {
+            id: true,
+          }
+        },
+        games: {
+          select: {
+            gameId: true,
+          }
+        }
+      }
+    });
+
+    userList.sort( (a, b) =>
+      getScore(a.wins.length, a.games.length) - getScore(b.wins.length, b.games.length)
+    );
+
+    return userList.slice(0, limit)
+      .map(user => ({
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar.replace( '://<<host>>', '://' + process.env.FRONT_HOST ),
+        wins: user.wins.length,
+        losses: user.games.length - user.wins.length,
+      }));
+  }
 }

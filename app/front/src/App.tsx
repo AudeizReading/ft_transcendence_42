@@ -29,6 +29,7 @@ import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-d
 
 import { fetch_opt } from './dep/fetch'
 import { User } from './interface/User'
+import Ladder from './page/Ladder';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -237,6 +238,7 @@ function App() {
           <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} />} />
+          <Route path="/ladder" element={<Ladder users={[]} />} />
 
           <Route path="/auth" element={<Auth />} />
 

@@ -52,7 +52,8 @@ declare global {
 const drawerWidth = 240;
 const pages = [
   {name: 'Jouer', url: '/play'},
-  {name: 'Score', url: '/score'}
+  {name: 'Score', url: '/score'},
+  {name: 'Ladder', url: '/ladder'},
 ];
 
 function TopBar(props: { 

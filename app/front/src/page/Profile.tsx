@@ -96,6 +96,9 @@ function Profile(props: {
       return "#7f7f7f";
   }
 
+  const winLoseRatio = (user.wins / (user.loses || 1));
+  const ladderPoints = winLoseRatio * (user.wins + user.loses);
+
   return (
     <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: "white", textAlign: 'center', p: 1, display: "flex", flexDirection: "column" }}>
     {user.id && <React.Fragment>
@@ -183,7 +186,11 @@ function Profile(props: {
         </Paper>
         <Paper variant="outlined">
           <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
-          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{((user.wins / (user.loses || 1))).toFixed(2)}</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{winLoseRatio.toFixed(2)}</p>
+        </Paper>
+        <Paper variant="outlined">
+          <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Points</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{ ladderPoints >= 1e6 ? ladderPoints.toExponential() : ladderPoints.toFixed() }</p>
         </Paper>
       </Box>
 

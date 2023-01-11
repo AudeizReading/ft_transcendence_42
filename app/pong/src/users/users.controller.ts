@@ -35,6 +35,11 @@ export class ParamFileInPsql {
   filename: string;
 }
 
+class ParamBestUsersLimit {
+  @IsNumberString()
+  limit: number;
+}
+
 @Controller()
 export class UsersController {
   constructor(
@@ -179,5 +184,12 @@ export class UsersController {
       where: {id: req.user.id},
       data: {name: params.newname}
     }).then((user) => user.name);
+  }
+
+  @Get('user/best/:limit')
+  @UseGuards(JwtAuthGuard)
+  async get_best_players(@Param() params: ParamBestUsersLimit)
+  {
+    return this.usersService.getBestPlayers(+params.limit);
   }
 }
