@@ -52,7 +52,7 @@ declare global {
 const drawerWidth = 240;
 const pages = [
   {name: 'Jouer', url: '/play'},
-  {name: 'Score', url: '/score'},
+  {name: 'Dernier matches', url: '/score'},
   {name: 'Ladder', url: '/ladder'},
 ];
 

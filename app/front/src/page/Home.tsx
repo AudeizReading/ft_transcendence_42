@@ -153,7 +153,7 @@ function Home(props: {
           transform: 'rotate3d(0, 1, 0, 180deg)',
         },
       },
-      name:'SCORE',
+      name:'DERNIERS MATCHES',
       url: '/score',
       uid: 'score',
     },

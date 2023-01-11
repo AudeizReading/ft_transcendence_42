@@ -187,7 +187,6 @@ export class UsersController {
   }
 
   @Get('user/best/:limit')
-  @UseGuards(JwtAuthGuard)
   async get_best_players(@Param() params: ParamBestUsersLimit)
   {
     return this.usersService.getBestPlayers(+params.limit);
