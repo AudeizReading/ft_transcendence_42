@@ -6,6 +6,7 @@ import { fetch_opt } from '../dep/fetch'
 import UserButton from '../component/UserButton';
 import GameInterface from '../interface/GameInterface';
 import LoadingButton from '../component/LoadingButton';
+import StatusSnackbar from '../component/StatusSnackbar';
 
 const columns: GridColDef[] = [
   {
@@ -79,15 +80,42 @@ export default function Ladder(props: LadderProps)
   const [rows, setRows] = useState<UserInfo[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [error, setError] = useState(false);
 
-  function onRefresh() {
-    getTopPlayers(setRows, setRefreshing, setDisabled, ROW_LIMIT);
+  async function onRefresh() {
+    try {
+      setDisabled(true);
+      setRefreshing(true);
+      const res = await fetch(`http://${window.location.hostname}:8190/user/best/${ROW_LIMIT}`, fetch_opt());
+      if (!res.ok)
+        throw "yolo";
+      const data = await res.json();
+      setRows(data);
+    }
+    catch (error) {
+      setError(true);
+    }
+    finally {
+      setRefreshing(false);
+      setTimeout(() => {
+        setDisabled(false);
+      }, 5000);
+    }
   }
 
-  useEffect(onRefresh, []);
+  useEffect(() => {onRefresh()}, []);
 
   return (
     <Box component="main" sx={{ p: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', alignItems: 'center'}} >
+
+      <StatusSnackbar status={error ? "error" : ""} errorText="Impossible d'obtenir les meilleurs joueurs"
+        snackbarProps={{
+          autoHideDuration: 3000,
+          anchorOrigin: {vertical: 'top', horizontal: 'center'},
+          onClose: () => setError(false),
+        }}
+      />
+
       <p style={{textAlign: 'center', color: 'black', fontSize: '2em', fontWeight: 'bold', margin: 5}}>
         Meilleurs {ROW_LIMIT} joueurs
       </p>
@@ -116,25 +144,4 @@ export default function Ladder(props: LadderProps)
       </Box>
     </Box>
   );
-}
-
-async function getTopPlayers(setRows: Function, setRefresh: Function, setDisabled: Function, limit: number = 10)
-{
-  // Change this with a .then chain ?
-  try {
-    setDisabled(true);
-    setRefresh(true);
-    const res = await fetch(`http://${window.location.hostname}:8190/user/best/${limit}`, fetch_opt());
-    if (!res.ok)
-      throw "yolo";
-    const data = await res.json();
-    setRows(data);
-    setRefresh(false);
-    setTimeout(() => {
-      setDisabled(false);
-    }, 5000);
-  }
-  catch (error) {
-    // setRefresh(false);
-  }
 }
