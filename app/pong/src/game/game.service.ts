@@ -107,7 +107,7 @@ export class GameService {
   ): Promise<{ game: Game; players: PlayerGame[] }> {
     const game = await this.prisma.game.create({
       data: {
-        option: gameOptions ? JSON.stringify(gameOptions) : "{}",
+        option: gameOptions ? JSON.stringify(gameOptions.settings) : "{}",
       },
     });
     const players = [];
