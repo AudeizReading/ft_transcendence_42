@@ -34,10 +34,10 @@ export class InviteService
 			return false;
 
 		const notInMM = users.every(user => !user.mMaking || user.mMaking.userId !== user.id);
-		const areOnline = users.every(async (user) =>
-			await this.usersService.getUserStatus(user) === "online");
+		const firstOnline = await this.usersService.getUserStatus(users[0]) === "online";
+		const secondOnline = await this.usersService.getUserStatus(users[1]) === "online";
 
-		return (notInMM && areOnline);
+		return (notInMM && firstOnline && secondOnline);
 	}
 
 	// TODO: Check for blocked user

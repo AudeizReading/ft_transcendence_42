@@ -57,7 +57,12 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
       width: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams) =>
-        <FriendActionButtons user={props.user} fetch_userinfo={props.fetch_userinfo} {...params.row} />,
+        <FriendActionButtons
+          user={props.user}
+          fetch_userinfo={props.fetch_userinfo}
+          isOnline={params.row.status === "online"}
+          {...params.row}
+        />,
     },
   ];
 
@@ -207,7 +212,8 @@ function FriendActionButtons(props: {
     user: User,
     fetch_userinfo: Function,
     id: number,
-    friend_status: "requested" | "pending" | "accepted"
+    friend_status: "requested" | "pending" | "accepted",
+    isOnline: boolean
   })
 {
   async function sendGameInvite(settings: GameSettingsInterface) {
@@ -264,9 +270,11 @@ function FriendActionButtons(props: {
     <Box component="span">
       <GameConfigDialog open={isGameConfigOpen} setOpen={setGameConfigOpen} sendInvite={sendGameInvite} />
       <Tooltip title="Inviter à jouer" arrow disableInteractive>
-        <IconButton color="success" onClick={() => setGameConfigOpen(true)}>
-          <VideogameAssetIcon/>
-        </IconButton>
+        <span>
+          <IconButton color="success" disabled={!props.isOnline} onClick={() => setGameConfigOpen(true)}>
+            <VideogameAssetIcon/>
+          </IconButton>
+        </span>
       </Tooltip>
       <Tooltip title="Envoyer un message" arrow disableInteractive>
         <IconButton color="primary">
