@@ -41,7 +41,7 @@ export class NotifService {
   constructor(
     private prisma: PrismaService,
     @Inject(forwardRef(() => InviteService))
-    private invite: InviteService,
+    private inviteService: InviteService,
     // private inviteService: InviteService, // FIXME: Dependencies :)
   ) {}
 
@@ -149,14 +149,6 @@ export class NotifService {
       ).filter( parsedNotif => (parsedNotif.content.type === "GAMEINVITE"
           && Date.now() - parsedNotif.createdAt.getTime() > 1000 * 60 * 2)
       ).map(tgt => tgt.id);
-    
-    this.prisma.invite.deleteMany({
-      where: {
-        createdAt: {
-          lt: new Date(Date.now() - (1000 * 60 * 2))
-        }
-      }
-    });
 
     return this.prisma.notif.deleteMany({
       where: {
@@ -173,10 +165,15 @@ export class NotifService {
     actions: NotifContainerType;
   }>
   {
+    // Deletes expired invites and their notifs in the DB.
+    // Since this is called periodically by the frontend, it ensures they correctly expire.
+    // No need for await, an invite might expire between two refreshes.
+    this.deleteExpiredInviteNotifs();
+    this.inviteService.deleteAllExpired();
+
     const notifs: NotifDataType[] = [];
     const msgs: NotifDataType[] = [];
     const actions: NotifDataType[] = [];
-    this.deleteExpiredInviteNotifs();
     const data = await this.notifs({
       where: {
         userId,
