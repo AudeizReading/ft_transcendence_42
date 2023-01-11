@@ -17,6 +17,7 @@ import { UsersService } from '../users/users.service';
 import { Param } from '@nestjs/common';
 import { IsNumberString, IsString, IsAlpha } from 'class-validator';
 import * as crypto from 'crypto';
+import * as base32 from 'thirty-two';
 import { totp } from 'notp';
 
 // doc: https://blog.logrocket.com/social-logins-nestjs/
@@ -117,7 +118,7 @@ export class AuthController {
   {
     /*BACK : https://github.com/guyht/notp */
     console.log(data);
-    var login = totp.verify(data.code, data.twoFA);
+    const login = totp.verify(data.code, base32.decode(data.twoFA));
 
     console.log(login);
     if (!login) {
