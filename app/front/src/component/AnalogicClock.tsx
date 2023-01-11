@@ -10,7 +10,7 @@ function AnalogicClock(props: {
 
   const styleNeutral = {
     position: 'relative',
-    width: '100%'
+    width: '100%',
   };
 
   const styleClock = {
@@ -95,35 +95,63 @@ function AnalogicClock(props: {
 
   const [time, setTime] = useState(new Date());
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date());
-      setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${time.getSeconds() * 6}deg)`})
-      setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${time.getMinutes() * 6}deg)`})
-      setStyleNeedles({...styleNeedles, transform: `rotate(${((time.getHours() % 12) + (time.getMinutes() / 60)) * 30}deg)`})
-    })
-    return () => clearInterval(interval);
-  }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles])
-
   const [styleTic, setStyleTic] = useState({
+    background: 'url(/res/tic.png)', 
+    backgroundPosition: 'center 100%',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '100%, cover',
+    width: {xs: '37px', sm:'75px', lg: '112px'},
+    height: {xs: '25px', sm:'50px', lg: '75px'},
+    opacity: (time.getSeconds() % 2) === 1 ? '100%' : '0%',
     display: {xs: 'none', sm: 'block'},
     position: 'absolute',
     top: 0,
+    left: 0,
     transform: 'rotate(-45deg)',
     p: 'auto',
-    m: '10%'
+    m: {xs: '5%'},
+    zIndex: 20,
   });
 
   const [styleTac, setStyleTac] = useState({
+    background: 'url(/res/tac.png)', 
+    backgroundPosition: 'center 100%',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '100%, cover',
+    width: {xs: '37px', sm:'75px', lg: '112px'},
+    height: {xs: '25px', sm:'50px', lg: '75px'},
+    opacity: (time.getSeconds() % 2) === 0 ? '100%' : '0%',
     display: {xs: 'none', sm: 'block'},
     position: 'absolute',
     bottom: 0,
     right: '0%',
     transform: 'rotate(45deg)',
     p: 'auto',
-    m: '10%'
+    m: {xs: '5%'},
+    zIndex: 20,
   });
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date());
+      setStyleNeedleSecond({...styleNeedleSecond, transform: `rotate(${time.getSeconds() * 6}deg)`})
+      setStyleNeedleMinute({...styleNeedleMinute, transform: `rotate(${time.getMinutes() * 6}deg)`})
+      setStyleNeedles({...styleNeedles, transform: `rotate(${((time.getHours() % 12) + (time.getMinutes() / 60)) * 30}deg)`})
+      if (time.getSeconds() % 2 === 1)
+      {
+        setStyleTic({...styleTic, opacity: '100%'});
+        setStyleTac({...styleTac, opacity: '0%'});
+      }
+      else
+      {
+        setStyleTic({...styleTic, opacity: '0%'});
+        setStyleTac({...styleTac, opacity: '100%'});
+      }
+    })
+    return () => clearInterval(interval);
+  }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles, styleTic])
+
+ 
   // On peut choisir de mettre la pression au visiteur, dans ce cas un TIC TAC apparait a cote de l'horloge
   useEffect(() => {props.stress === true && setPressure(true)}, [props.stress]);
   useEffect(() => {
@@ -136,7 +164,7 @@ function AnalogicClock(props: {
   return (
     <Box component="div" sx={styleClock}>
       <Box component="div" sx={styleNeutral}>
-        <Box component="span" sx={styleTic}>{(time.getSeconds() % 2) === 1 && "TIC"}</Box>
+        <Box component="span" sx={styleTic}></Box>
       </Box>
       <Box component="div" sx={styleWrap}>
         <Box component="span" sx={styleNeedles}></Box> 
@@ -145,7 +173,7 @@ function AnalogicClock(props: {
         <Box component="span" sx={styleCenterClock}></Box>
       </Box>
       <Box component='div' sx={styleNeutral}>
-        <Box component="span" sx={styleTac}>{(time.getSeconds() % 2) === 0 && "TAC"}</Box>
+        <Box component="span" sx={styleTac}></Box>
       </Box>
     </Box>);
 }

@@ -17,6 +17,7 @@ import UnstableGrid from '@mui/system/Unstable_Grid';
 
 import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link';
+import { fetch_opt } from '../dep/fetch'
 
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
@@ -53,6 +54,10 @@ function Home(props: {
   const [user, setUser] = useState(props.user);
   const [isLogged, setIsLogged] = useState(user.connected);
 
+  const test = async () => {
+    await fetch('http://' + window.location.hostname + ':8190/user/' + user.id.toString(), fetch_opt()).then(result => console.log(result));
+  };
+  //test();
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
@@ -78,23 +83,43 @@ function Home(props: {
   }, [time])
 
   const gridNotLogged = (
-      <UnstableGrid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'} }}>
-        <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center'}}>
+      <UnstableGrid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'},}}>
+        <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center',}}>
           <DateTime component="h2" time={time}/>
         </UnstableGrid>
 
         <UnstableGrid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
-          <UnstableGrid xs={12} md={5} mdOffset={7} sx={{position: 'relative', display: 'flex', flexFlow: 'column', alignItems: 'center'}}>
-            <AnalogicClock stress={true} time={time}/>
-            <UnstableGrid xs={12} mdOffset={0} sx={{position: 'absolute', top: '62%', width: '100%', textAlign: 'center', zIndex: 10, color: '#024959' }}>
-              <Clock component="h6" time={time}/>
-            </UnstableGrid>
+          <UnstableGrid xs={8} sm={5} xsOffset={2} smOffset={7} 
+            sx={{
+              position: 'relative', 
+              display: 'flex', 
+              flexFlow: 'column', 
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <AnalogicClock stress={true} time={time}/>
+              <UnstableGrid xs={12} smOffset={0} 
+                sx={{
+                  position: 'absolute', 
+                  top: '6vh', 
+                  width: '100%', 
+                  textAlign: 'center', 
+                  zIndex: 10, 
+                  color: '#024959' 
+                }}>
+                <Clock component="h6" time={time}/>
+              </UnstableGrid>
           </UnstableGrid>
 
-          <UnstableGrid rowSpacing={{xs: 4, md: 2}} xs={6} md={4} xsOffset={3} mdOffset={1} sx={{position: {md: 'absolute'}, top: {md: 0}, textAlign: {xs: 'center', md: 'left'}}}>
-            <UnstableGrid>Hello Dear Visitor!</UnstableGrid>
-            <UnstableGrid>{randomizeMessages()}</UnstableGrid>
-            <UnstableGrid>Please Log In</UnstableGrid>
+          <UnstableGrid rowSpacing={{xs: 4, sm: 2}} xs={6} sm={7} xsOffset={3} smOffset='auto' 
+            sx={{
+              position: {sm: 'absolute'}, 
+              top: {sm: 0}, 
+              textAlign: {xs: 'center', sm: 'left'},
+            }}>
+            <UnstableGrid component='h1'>Hello Dear Visitor!</UnstableGrid>
+            <UnstableGrid component='blockquote' sx={{fontStyle: 'italic'}}>{randomizeMessages()}</UnstableGrid>
+            <UnstableGrid component='div' sx={{textAlign: {sm: 'right', md: 'left'}, fontWeight: 'bold', fontSize: '1.5em', textTransform: 'uppercase',}}>Please Log In</UnstableGrid>
           </UnstableGrid>
         </UnstableGrid>
       </UnstableGrid>
@@ -229,7 +254,7 @@ function Home(props: {
           }
           </Box>
         </React.Fragment>}
-      {isLogged === false && <Footer />}
+      {isLogged === false && window.outerHeight > 350 && <Footer />}
     </Box>
   );
 }
