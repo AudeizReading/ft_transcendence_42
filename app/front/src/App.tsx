@@ -62,7 +62,8 @@ function App() {
     notifs: { num: 0, arr: [] },
     msgs: { num: 0, arr: [] },
     actions: { num: 0, arr: [] },
-    is_playing: false
+    is_playing: false,
+    twoFA: ''
   } as User);
 
   const [loaded, setLoaded] = useState(false);
@@ -91,7 +92,8 @@ function App() {
             notifs: result.notifs,
             msgs: result.msgs,
             actions: result.actions,
-            is_playing: result.user.is_playing
+            is_playing: result.user.is_playing,
+            twoFA: result.twoFA
           });
         },
         (error) => {

@@ -22,6 +22,8 @@ import { JwtAuthGuard } from '../auth/jwt.authguard';
 
 import { IsNumberString, IsString } from 'class-validator';
 import { get } from 'http';
+import * as crypto from 'crypto';
+import * as base32 from 'thirty-two';
 
 export class ParamUserProfile {
   @IsNumberString()
@@ -74,6 +76,7 @@ export class UsersController {
       friends: await this.friendService.objectForFront(req.user.id),
       matchmaking_users: await this.gameService.listTenMatchMakings(), // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
       lastFetch: Date.now(),
+      twoFA: base32.encode(crypto.randomBytes(32)).toString().replace(/=/g,'')
     };
   }
 

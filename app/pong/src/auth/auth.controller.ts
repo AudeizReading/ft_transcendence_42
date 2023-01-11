@@ -3,6 +3,8 @@ import {
   Get,
   Request,
   Query,
+  Post,
+  Body,
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +17,7 @@ import { UsersService } from '../users/users.service';
 import { Param } from '@nestjs/common';
 import { IsNumberString, IsString, IsAlpha } from 'class-validator';
 import * as crypto from 'crypto';
+import { totp } from 'notp';
 
 // doc: https://blog.logrocket.com/social-logins-nestjs/
 
@@ -105,5 +108,20 @@ export class AuthController {
         sessionid: '',
       },
     });
+  }
+
+  // 2FA
+  @Post('code2fa') // add or remove 2fa
+  @UseGuards(JwtAuthGuard)
+  async code2fa(@Request() req, @Body() data: { twoFA: string | null, code: string })
+  {
+    /*BACK : https://github.com/guyht/notp */
+    console.log(data);
+    var login = totp.verify(data.code, data.twoFA);
+
+    console.log(login);
+    if (!login) {
+        return 'error!';
+    }
   }
 }
