@@ -12,27 +12,34 @@ const columns: GridColDef[] = [
     description: 'Le score du match',
     width: 100,
     valueGetter: (params: GridValueGetterParams) =>
-      `${params.row.scores[0]} - ${params.row.scores[1]}`
+      `${params.row.scores[0]} - ${params.row.scores[1]}`,
+    sortable: false,
+    align: 'center',
+    headerAlign: 'center',
   },
   {
     field: 'winner',
     headerName: 'Gagnant',
     description: 'Le gagnant du match',
     width: 150,
+    valueGetter(params: GridValueGetterParams<GameInterface, GameInterface>) {
+      const winner = params.row.players[0].id === params.row.winnerId ? params.row.players[0] : params.row.players[1];
+      return winner!.name;
+    },
     renderCell(params: GridRenderCellParams<GameInterface, GameInterface>) {
-      const winner = params.row.players.find(
-        (player) => player.id === params.row.winnerId
-      );
+      const winner = params.row.players[0].id === params.row.winnerId ? params.row.players[0] : params.row.players[1];
       return <UserButton noBadge {...winner!} />;
     },
+    sortable: false,
   },
   {
     field: 'winnedAt',
-    headerName: 'Le',
+    headerName: 'Remporté le',
     description: 'Date de la victoire',
     width: 175,
-    valueGetter: (params: GridValueGetterParams) =>
-      new Date(params.row.winnedAt).toLocaleString()
+    type: 'date',
+    valueGetter: (params: GridValueGetterParams) => params.row.winnedAt as Date,
+    valueFormatter: (params) => new Date(params.value).toLocaleString("fr-FR"),
   },
   {
     field: 'players',

@@ -36,13 +36,11 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
       headerName: "Nom",
       width: 240,
       renderCell: (params: GridRenderCellParams) => <UserButton {...params.row} />,
-      // renderCell: (params: GridRenderCellParams) => <UserChip {...params.row} />,
     },
     {
-      field: "games-played",
+      field: "games_played",
       headerName: "Nombre de parties",
       width: 150,
-      valueGetter: (params: GridValueGetterParams) => params.row.games_played,
     },
     {
       field: "win-ratio",

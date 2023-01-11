@@ -112,7 +112,7 @@ export class UsersService {
         ]
       } as GameInterface;
     });
-    return parsed;
+    return parsed.sort( (a, b) => b.winnedAt.getTime() - a.winnedAt.getTime() );
   }
 
   async getUserStatusFromID(userID: number): Promise<"offline" | "online" | "playing">
@@ -229,7 +229,7 @@ export class UsersService {
     });
 
     userList.sort( (a, b) =>
-      getScore(a.wins.length, a.games.length) - getScore(b.wins.length, b.games.length)
+      getScore(b.wins.length, b.games.length) - getScore(a.wins.length, a.games.length)
     );
 
     return userList.slice(0, limit)
