@@ -78,9 +78,10 @@ export default function Ladder(props: LadderProps)
   const ROW_LIMIT = 10;
   const [rows, setRows] = useState<UserInfo[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [disabled, setDisabled] = useState(false);
 
   function onRefresh() {
-    getTopPlayers(setRows, setRefreshing, ROW_LIMIT);
+    getTopPlayers(setRows, setRefreshing, setDisabled, ROW_LIMIT);
   }
 
   useEffect(onRefresh, []);
@@ -91,7 +92,9 @@ export default function Ladder(props: LadderProps)
         Meilleurs {ROW_LIMIT} joueurs
       </p>
       <Box display="flex">
-        <LoadingButton loading={refreshing} onClick={onRefresh} sx={{my: 1}}>Rafraîchir</LoadingButton>
+        <LoadingButton disabled={disabled} loading={refreshing} onClick={onRefresh} sx={{my: 1}}>
+          Rafraîchir
+        </LoadingButton>
       </Box>
       <Box
         sx={{
@@ -115,10 +118,11 @@ export default function Ladder(props: LadderProps)
   );
 }
 
-async function getTopPlayers(setRows: Function, setRefresh: Function, limit: number = 10)
+async function getTopPlayers(setRows: Function, setRefresh: Function, setDisabled: Function, limit: number = 10)
 {
   // Change this with a .then chain ?
   try {
+    setDisabled(true);
     setRefresh(true);
     const res = await fetch(`http://${window.location.hostname}:8190/user/best/${limit}`, fetch_opt());
     if (!res.ok)
@@ -126,6 +130,9 @@ async function getTopPlayers(setRows: Function, setRefresh: Function, limit: num
     const data = await res.json();
     setRows(data);
     setRefresh(false);
+    setTimeout(() => {
+      setDisabled(false);
+    }, 5000);
   }
   catch (error) {
     // setRefresh(false);

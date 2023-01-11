@@ -8,18 +8,17 @@ interface LoadingButtonProps extends ButtonProps {
 
 export default function LoadingButton(props: LoadingButtonProps)
 {
-  const disabled: boolean = !!props.loading;
-  const newProps = {...props};
-
-  // Need to use this newProps thing to remove the "loading" prop, because it
-  // musn't be passed to the button
-  if ("loading" in newProps) {
-    delete newProps.loading;
+  let loadingIcon: JSX.Element | undefined;
+  if (props.loading) {
+    loadingIcon = <CircularProgress color="info" size={16} sx={{ mr: 1, verticalAlign: 'middle', mt: '-2px' }}/>
   }
 
-  let loadingIcon: JSX.Element | undefined;
-  if (disabled) {
-    loadingIcon = <CircularProgress color="info" size={16} sx={{ mr: 1, verticalAlign: 'middle', mt: '-2px' }}/>
+  const disabled: boolean = !!props.loading || !!props.disabled;
+  // Need to use this newProps thing to remove the "loading" prop, because it
+  // musn't be passed to the button
+  const newProps = {...props};
+  if ("loading" in newProps) {
+    delete newProps.loading;
   }
 
   return (
