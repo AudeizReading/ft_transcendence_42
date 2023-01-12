@@ -178,7 +178,7 @@ function Home(props: {
       },
       child: {sx:{},},
       name: 'OPTIONS',
-      url: '/',
+      url: '/settings/',
       uid: 'options',
     },
   ];
