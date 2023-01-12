@@ -187,14 +187,13 @@ function Home(props: {
       datasBoxPaper.map((data) =>
         {
           return (
-          <BoxPaper key={data.uid} sx={data.sx}>
-              <Box component="p" sx={data.child.sx}>
-                <Link to={data.url} component={RouterLink} color="inherit" underline="none">
-                  {data.name}
-                </Link>
-              </Box>
-          </BoxPaper>
-            
+            <Link to={data.url} component={RouterLink} color="inherit" underline="none">
+              <BoxPaper key={data.uid} sx={data.sx}>
+                <Box component="p" sx={data.child.sx}>
+                    {data.name}
+                </Box>
+              </BoxPaper>
+            </Link>
           )
         }
   ));
