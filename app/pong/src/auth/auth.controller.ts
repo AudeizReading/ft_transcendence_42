@@ -94,7 +94,7 @@ export class AuthController {
 
   @Get()
   @UseGuards(Api42AuthGuard)
-  async login() {
+  login() {
     /* enable http://localhost/auth/ */
   }
 
@@ -103,7 +103,7 @@ export class AuthController {
   async logout(@Request() req) {
     await this.usersService.updateUser({
       where: {
-        login: req.user.login,
+        id: req.user.id,
       },
       data: {
         sessionid: '',
@@ -114,15 +114,23 @@ export class AuthController {
   // 2FA
   @Post('code2fa') // add or remove 2fa
   @UseGuards(JwtAuthGuard)
-  async code2fa(@Request() req, @Body() data: { twoFA: string | null, code: string })
+  async code2fa(@Request() req, @Body() data: { doubleFA: string | null, code: string }): Promise <{ success: boolean }>
   {
     /*BACK : https://github.com/guyht/notp */
-    console.log(data);
-    const login = totp.verify(data.code, base32.decode(data.twoFA));
-
-    console.log(login);
-    if (!login) {
-        return 'error!';
+    const activate = !(!req.user.doubleFA || req.user.doubleFA === '');
+    const key = (activate) ? req.user.doubleFA : data.doubleFA;
+    const login = totp.verify(data.code, base32.decode(key));
+    if (!key || !login || Math.abs(login.delta) > 2 || (activate && base32.decode(key).length < 32)) {
+      return { success: false };
     }
+    await this.usersService.updateUser({
+      where: {
+        id: req.user.id,
+      },
+      data: {
+        doubleFA: (activate) ? '' : key,
+      },
+    });
+    return { success: true };
   }
 }

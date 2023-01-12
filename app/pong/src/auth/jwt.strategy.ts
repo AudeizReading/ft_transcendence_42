@@ -29,6 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       login: payload.login,
       name: user.name,
       sessionid: payload.sessionid,
+      doubleFA: user.doubleFA,
       avatar: user.avatar,
       mMaking: user.mMaking,
       isPlaying: user.games.length != 0,

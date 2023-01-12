@@ -81,7 +81,8 @@ export class UsersController {
       friends: await this.friendService.objectForFront(req.user.id),
       matchmaking_users: await this.gameService.listTenMatchMakings(), // pas opti de le faire à chaque fois mais ok pour les besoins de l'eval
       lastFetch: Date.now(),
-      twoFA: base32.encode(crypto.randomBytes(32)).toString().replace(/=/g,'')
+      doubleFA: (!req.user.doubleFA || req.user.doubleFA === '')
+        ? base32.encode(crypto.randomBytes(32)).toString().replace(/=/g,'') : null // remove padding
     };
   }
 

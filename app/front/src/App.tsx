@@ -64,7 +64,7 @@ function App() {
     msgs: { num: 0, arr: [] },
     actions: { num: 0, arr: [] },
     is_playing: false,
-    twoFA: ''
+    doubleFA: ''
   } as User);
 
   const [loaded, setLoaded] = useState(false);
@@ -94,7 +94,7 @@ function App() {
             msgs: result.msgs,
             actions: result.actions,
             is_playing: result.user.is_playing,
-            twoFA: result.twoFA
+            doubleFA: result.doubleFA
           });
         },
         (error) => {

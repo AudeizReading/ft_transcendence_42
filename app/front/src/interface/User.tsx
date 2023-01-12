@@ -33,5 +33,5 @@ export interface User {
   msgs: NotifContainerType;
   actions: NotifContainerType;
   is_playing: boolean;
-  twoFA: string | null;
+  doubleFA: string | null;
 }
