@@ -76,15 +76,6 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
     context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y);
     context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0));
     context.stroke();
-    context.strokeStyle = 'green';
-    context.beginPath();
-    context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y);
-    context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0) / 3);
-    context.stroke();
-    context.beginPath();
-    context.moveTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0) / 3 * 2);
-    context.lineTo(players[i].pos.x - 2 * players[i].n.x, players[i].pos.y + (players[i].size || 0));
-    context.stroke();
     context.strokeStyle = 'black';
   }
 
