@@ -166,7 +166,7 @@ function Home(props: {
       },
       child: {sx:{},},
       name: 'AMIS',
-      url: '/friend',
+      url: '/myfriends',
       uid: 'friend',
     },
     {
