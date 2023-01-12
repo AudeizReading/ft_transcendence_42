@@ -136,10 +136,11 @@ export default function Ladder(props: LadderProps)
         <DataGrid
           rows={rows}
           columns={columns}
-          autoPageSize
+          autoHeight={true}
           disableSelectionOnClick
           disableColumnSelector
           disableColumnMenu
+          sx={{ '.MuiDataGrid-footerContainer': { display: 'none' } }}
         />
       </Box>
     </Box>
