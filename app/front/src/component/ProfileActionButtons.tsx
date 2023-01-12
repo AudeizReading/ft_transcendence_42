@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { Box, Button } from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
@@ -12,20 +13,14 @@ import { fetch_opt } from '../dep/fetch';
 import Friend from '../interface/Friend';
 import GameConfigDialog from './GameConfigDialog';
 import GameSettingsInterface from '../interface/GameSettingsInterface';
+import { ProfileUserInterface } from '../page/Profile';
 
 interface ProfileActionButtonsProps {
   disabled?: boolean,
   fetch_userinfo: Function,
   currentUserID: number,
   currentUserFriends: Friend[],
-  profileUser: {
-    id: number,
-    name: string,
-    avatar: string,
-    wins: number,
-    loses: number,
-    status: string,
-  },
+  profileUser: ProfileUserInterface,
 }
 
 export default function ProfileActionButtons(props: ProfileActionButtonsProps)
@@ -98,12 +93,21 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 
       <GameConfigDialog open={isGameConfigOpen} setOpen={setGameConfigOpen} sendInvite={sendInvite}/>
 
-      <Button variant="contained" color="success" sx={{mx: 1, mb: 1}} startIcon={<VideogameAssetIcon/>}
-        disabled={props.profileUser.status !== "online"}
-        onClick={() => setGameConfigOpen(true)}
-      >
-        Inviter à jouer
-      </Button>
+      {props.profileUser.status !== "playing" ?
+        <Button variant="contained" color="success" sx={{mx: 1, mb: 1}} startIcon={<VideogameAssetIcon/>}
+          disabled={props.profileUser.status !== "online"}
+          onClick={() => setGameConfigOpen(true)}
+        >
+          Inviter à jouer
+        </Button>
+      :
+        <Button variant="contained" color="info" sx={{mx: 1, mb: 1}} startIcon={<VideogameAssetIcon/>}
+          component={RouterLink} to={`/game/${props.profileUser.gameID || ""}`}
+        >
+          Regarder la partie
+        </Button>
+      }
+
       <Button variant="contained" color="primary" sx={{mx: 1, mb: 1}} startIcon={<MessageIcon/>} >
         Envoyer un message
       </Button>

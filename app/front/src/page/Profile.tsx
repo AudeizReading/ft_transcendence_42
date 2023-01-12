@@ -13,6 +13,16 @@ import ProfileActionButtons from '../component/ProfileActionButtons';
 import MatchHistory from '../component/MatchHistory';
 import StatusSnackbar from '../component/StatusSnackbar';
 
+export interface ProfileUserInterface {
+  id: number,
+  name: string,
+  avatar: string,
+  wins: number,
+  loses: number,
+  status: "offline" | "online" | "playing",
+  gameID?: number,
+}
+
 // TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: {
     fetch_userinfo: Function,
@@ -20,16 +30,16 @@ function Profile(props: {
   }) {
   const { userid } = useParams();
 
-  const emptyUser = () => ({
+  const emptyUser = {
     id: 0,
     name: '',
     avatar: '',
     wins: 0,
     loses: 0,
     status: "offline",
-  });
+  } as ProfileUserInterface;
 
-  const [user, setUser] = useState(emptyUser());
+  const [user, setUser] = useState<ProfileUserInterface>(emptyUser);
   const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | 'neutral'>("neutral");
 
   const navigate = useNavigate();
@@ -41,14 +51,16 @@ function Profile(props: {
         (result) => {
           if (result.error)
             return navigate('/not-found');
-          setUser({
-            id: result.id,
-            name: result.name,
-            avatar: result.avatar,
-            wins: result.wins,
-            loses: result.loses,
-            status: result.status,
-          })
+          setUser({...result})
+          // setUser({
+          //   id: result.id,
+          //   name: result.name,
+          //   avatar: result.avatar,
+          //   wins: result.wins,
+          //   loses: result.loses,
+          //   status: result.status,
+          //   gameID: result.gameID
+          // })
         },
         (error) => {
           navigate('/not-found');

@@ -105,6 +105,7 @@ export class UsersController {
       ),
       ...(await this.usersService.getScore(user.id)),
       status: await this.usersService.getUserStatus(user),
+      gameID: user.games[0] ? user.games[0].gameId : undefined, // usersService.user only returns games not ended
     };
   }
 
