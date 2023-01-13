@@ -45,22 +45,13 @@ function Profile(props: {
   const navigate = useNavigate();
 
   const fetch_user = useCallback((userid: number) => {
-    fetch('http://' + window.location.hostname + ':8190/user/' + userid.toString(), fetch_opt())
+    fetch(`http://${window.location.hostname}:8190/user/${userid.toString()}`, fetch_opt())
       .then(res => res.json())
       .then(
         (result) => {
           if (result.error)
             return navigate('/not-found');
           setUser({...result})
-          // setUser({
-          //   id: result.id,
-          //   name: result.name,
-          //   avatar: result.avatar,
-          //   wins: result.wins,
-          //   loses: result.loses,
-          //   status: result.status,
-          //   gameID: result.gameID
-          // })
         },
         (error) => {
           navigate('/not-found');

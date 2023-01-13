@@ -8,6 +8,7 @@ import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import { fetch_opt } from '../dep/fetch';
 import Friend from '../interface/Friend';
@@ -101,7 +102,7 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
           Inviter à jouer
         </Button>
       :
-        <Button variant="contained" color="info" sx={{mx: 1, mb: 1}} startIcon={<VideogameAssetIcon/>}
+        <Button variant="contained" color="info" sx={{mx: 1, mb: 1}} startIcon={<VisibilityIcon/>}
           component={RouterLink} to={`/game/${props.profileUser.gameID || ""}`}
         >
           Regarder la partie

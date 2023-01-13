@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
@@ -13,6 +14,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import CheckIcon from '@mui/icons-material/Check';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import { User } from '../interface/User';
 import Friend from '../interface/Friend';
@@ -56,11 +58,10 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
       headerName: "",
       width: 200,
       sortable: false,
-      renderCell: (params: GridRenderCellParams) =>
+      renderCell: (params: GridRenderCellParams<Friend, Friend>) =>
         <FriendActionButtons
           user={props.user}
           fetch_userinfo={props.fetch_userinfo}
-          isOnline={params.row.status === "online"}
           {...params.row}
         />,
     },
@@ -213,7 +214,8 @@ function FriendActionButtons(props: {
     fetch_userinfo: Function,
     id: number,
     friend_status: "requested" | "pending" | "accepted",
-    isOnline: boolean
+    status: "offline" | "online" | "playing",
+    gameID?: number,
   })
 {
   async function sendGameInvite(settings: GameSettingsInterface) {
@@ -269,13 +271,23 @@ function FriendActionButtons(props: {
   const knownFriend = (
     <Box component="span">
       <GameConfigDialog open={isGameConfigOpen} setOpen={setGameConfigOpen} sendInvite={sendGameInvite} />
-      <Tooltip title="Inviter à jouer" arrow disableInteractive>
-        <span>
-          <IconButton color="success" disabled={!props.isOnline} onClick={() => setGameConfigOpen(true)}>
-            <VideogameAssetIcon/>
-          </IconButton>
-        </span>
-      </Tooltip>
+      
+      { props.status !== "playing" ?
+        <Tooltip title="Inviter à jouer" arrow disableInteractive>
+          <span>
+            <IconButton color="success" disabled={props.status !== "online"} onClick={() => setGameConfigOpen(true)}>
+              <VideogameAssetIcon/>
+            </IconButton>
+          </span>
+        </Tooltip>
+      :
+        <Tooltip title="Regarder la partie" arrow disableInteractive>
+            <IconButton color="info" component={RouterLink} to={`/game/${props.gameID ? props.gameID : ""}`}>
+              <VisibilityIcon/>
+            </IconButton>
+        </Tooltip>
+      }
+      
       <Tooltip title="Envoyer un message" arrow disableInteractive>
         <IconButton color="primary">
           <MessageIcon/>

@@ -12,6 +12,7 @@ export interface FriendForFront {
   friend_status: 'requested' | 'pending' | 'accepted',
   games_played: number,
   games_won: number,
+  gameID?: number, // Optional. Is set when the user is playing.
 }
 
 @Injectable()
@@ -112,32 +113,21 @@ export class FriendService {
   }
 
   async objectForFront(userId: number): Promise<FriendForFront[]>
-  {
-    // Yes, this is horrifying. But it's gotta be there. Read this with the schema next to it.
-    // So, this type represents a Friend, containing both userA and B.
-    // Each of them include the "games" PlayerGame array, and each item of the array also contains
-    // the Game "game" type. You don't get it ? Too bad.
-    type dataType = Friend & {
-      userA: User & { games: PlayerGame & {game: Game}[] },
-      userB: User & { games: PlayerGame & {game: Game}[] }
-    };
-
-    const data: dataType[] = await this.friends({
+{
+    const data = await this.prisma.friend.findMany({
       where: {
         OR: [
           { userAId: userId },
           { userBId: userId },
         ],
       },
-      orderBy: {
-        state: 'asc' // WAITING first
-      },
       include: {
         userA: {
           include: {
             games: {
-              include: {
+              select: {
                 game: true,
+                gameId: true,
               }
             }
           }
@@ -145,14 +135,15 @@ export class FriendService {
         userB: {
           include: {
             games: {
-              include: {
+              select: {
                 game: true,
+                gameId: true,
               }
             }
           }
         },
       },
-    }) as dataType[];
+    });
 
     const getFriendStatus = (fromId: number, state: string) => {
       if (fromId === userId && state === 'WAITING')
@@ -160,12 +151,17 @@ export class FriendService {
       return (state === 'WAITING' ? "pending" : "accepted");
     }
 
-    const getUserStatus = (user: any, games: PlayerGame & {game: Game}[]) => {
+    const getUserStatus = (user: any, games: ({game: Game; gameId: number})[]) => {
       if (!user.sessionid || Date.now() - user.lastFetch.getTime() > 10_000) {
         return "offline";
       }
       const isPlaying = games.findIndex(x => x.game.state !== "ENDED") !== -1;
       return isPlaying ? "playing" : "online";
+    }
+
+    const getGameID = (games: ({game: Game; gameId: number})[]) => {
+      const game = games.find(game => game.game.state !== "ENDED");
+      return (game ? game.gameId : undefined)
     }
 
     const friends = data.map((item) => {
@@ -181,6 +177,7 @@ export class FriendService {
           friend_status: getFriendStatus(item.userAId, item.state),
           games_played: user.games.length,
           games_won: user.games.filter((playerGame) => playerGame.game.winnerId === user.id).length,
+          gameID: getGameID(user.games),
         } as FriendForFront;
       })
       .sort((a, b) => { // Sorts in the order described in the array

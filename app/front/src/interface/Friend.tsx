@@ -6,4 +6,5 @@ export default interface Friend {
   friend_status: "requested" | "pending" | "accepted",
   games_played: number,
   games_won: number,
+  gameID?: number,
 }
