@@ -11,7 +11,10 @@ import {
 import { AuthService } from './auth.service';
 import { encode } from 'html-entities';
 import { Api42AuthGuard } from './api42.authguard';
+import { JwtService } from '@nestjs/jwt';
+import { JwtStrategy } from '../auth/jwt.strategy';
 import { JwtAuthGuard } from './jwt.authguard';
+import { fromAuthHeaderOAsBearerToken } from '../auth/jwt.strategy';
 import { UsersService } from '../users/users.service';
 
 import { Param } from '@nestjs/common';
@@ -30,30 +33,11 @@ export class ParamLogin {
 @Controller('auth')
 export class AuthController {
   constructor(
+    private jwtService: JwtService,
+    private jwtStrategy: JwtStrategy,
     private authService: AuthService,
     private usersService: UsersService,
   ) {}
-
-  /*@Get('callback')
-  @HttpCode(401)
-  async authCallback_error(@Request() req,
-    @Query('error') error: string,
-    @Query('error_description') error_description: string) {
-    return `<h1>${encode(error)}</h1><p>${encode(error_description)}</p>
-      <p style=text-align:right;>This windows will close in 10sec</p>
-      <script>setTimeout(() => window.close(), 10000);</script>`;
-  }*/
-
-  @Get('callback')
-  @UseGuards(Api42AuthGuard)
-  async authCallback(@Request() req) {
-    console.log('You are the king'); // TODO: Remove this line
-    const user = req.user;
-    return `<script>
-      location = 'http://' + window.location.hostname + ':3000/auth'
-        + '#bearer=${this.authService.getToken(user.login, user.sessionid)}';
-    </script>`;
-  }
 
   @Get('fake/:login')
   async fakeLogin(@Request() req, @Param() param: ParamLogin) {
@@ -92,9 +76,59 @@ export class AuthController {
     </script>`;
   }
 
+  @Get('callback')
+  @UseGuards(Api42AuthGuard)
+  async authCallback(@Request() req) {
+    console.log('You are the king'); // TODO: Remove this line
+    const user = req.user;
+    const doubleFA = (await this.usersService.user({
+      login: user.login,
+    })).doubleFA;
+    if (!doubleFA || doubleFA === '') {
+      return `
+      <script>
+        location = 'http://' + window.location.hostname + ':3000/auth'
+          + '#bearer=${this.authService.getToken(user.login, user.sessionid)}';
+      </script>`;
+    }
+    else
+      return `
+      <script>
+        location = 'http://' + window.location.hostname + ':3000/auth'
+          + '#surrogate=${this.authService.getSurrogate(user.login, user.sessionid)}';
+      </script>`;
+  }
+
+  /*
+
+      */
+
+  @Post('login2fa')
+  async login2fa(@Request() req, @Body() data: { code: string }) {
+    try {
+      const token = fromAuthHeaderOAsBearerToken(req);
+      const payload: any = await this.jwtService.decode(token);
+      const user = await this.jwtStrategy.validate({
+        login: payload.sLogin,
+        sessionid: payload.sSessionid
+      });
+      const login = user && totp.verify(data.code, base32.decode(user.doubleFA));
+      if (!login || Math.abs(login.delta) > 2) {
+        return { success: false };
+      }
+      return {
+        success: true,
+        bearer: this.authService.getToken(user.login, user.sessionid),
+      }
+    } catch (e) {
+      if (e.name !== 'JsonWebTokenError') console.error(e); // show other error
+      return { success: false };
+    }
+  }
+
   @Get()
   @UseGuards(Api42AuthGuard)
-  login() {
+  async login() {
     /* enable http://localhost/auth/ */
   }
 

@@ -10,6 +10,11 @@ export class AuthService {
     return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
   }
 
+  getSurrogate(login: string, sessionid: string) {
+    const payload = { sLogin: login, sSessionid: sessionid };
+    return this.jwtService.sign(payload, { secret: process.env.JWT_SECRET });
+  }
+
   /*getUser() {
     return this.jwtService.decode()
   }*/

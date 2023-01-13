@@ -16,6 +16,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { login: string, sessionid: string }) {
+    if (!payload.login) {
+      console.error('Malformed payload');
+      return false;
+    }
     const user = await this.usersService.user({
       login: payload.login,
     });

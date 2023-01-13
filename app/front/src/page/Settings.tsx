@@ -14,16 +14,19 @@ function Settings(props: {
     user: User
   }) {
 
+
   const [doubleFA, setDoubleFA] = useState(props.user.doubleFA);
+  const [key2FA, setKey2FA] = useState(props.user.doubleFA);
   const [error, setError] = useState(false);
   const [activated, setActivated] = useState(!props.user.doubleFA);
 
   const refDoubleFA = React.createRef();
 
   useEffect(() => {
+    setDoubleFA(props.user.doubleFA);
+    setActivated(!props.user.doubleFA);
     if ((!!props.user.doubleFA) !== (!!doubleFA)) {
-      setDoubleFA(props.user.doubleFA);
-      setActivated(!!props.user.doubleFA);
+      setKey2FA(props.user.doubleFA);
     }
   }, [props.user, doubleFA]);
 
@@ -34,7 +37,7 @@ function Settings(props: {
         'Content-Type': 'application/json',
         ...(fetch_opt().headers),
       },
-      body: JSON.stringify({ doubleFA: doubleFA, code: (refDoubleFA.current as HTMLInputElement).value }),
+      body: JSON.stringify({ doubleFA: key2FA, code: (refDoubleFA.current as HTMLInputElement).value }),
     }).then(res => res.json())
       .then(
         (result) => {
@@ -54,7 +57,7 @@ function Settings(props: {
       <Box component="p">
         Pour effectuer {!activated ? "l'activation" : 'la désactivation'} de la double authentification validez le code.
       </Box>
-      {!activated && doubleFA
+      {!activated && key2FA
        && <Box sx={{ my: 2 }}>
             <QRCodeSVG
               size={256}
@@ -65,7 +68,7 @@ function Settings(props: {
                 width: 100
               }}
               level="H"
-              value={`otpauth://totp/iceberg?secret=${encodeURIComponent(doubleFA)}`}
+              value={`otpauth://totp/iceberg?secret=${encodeURIComponent(key2FA)}`}
             />
           </Box>}
       <Stack spacing={2} direction="row" justifyContent="center" sx={{ mb: '36px' }}>
