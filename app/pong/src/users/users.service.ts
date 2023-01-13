@@ -52,7 +52,7 @@ export class UsersService {
 
   async getScore(userId: number): Promise<{
     wins: number;
-    loses: number;
+    losses: number;
   }> {
     const wins = await this.prisma.game.count({
       where: {
@@ -69,7 +69,7 @@ export class UsersService {
     });
     return {
       wins: wins,
-      loses: total - wins,
+      losses: total - wins,
     };
   }
 

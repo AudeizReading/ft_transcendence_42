@@ -12,13 +12,16 @@ import EditableName from '../component/EditableName';
 import ProfileActionButtons from '../component/ProfileActionButtons';
 import MatchHistory from '../component/MatchHistory';
 import StatusSnackbar from '../component/StatusSnackbar';
+import { Button } from '@mui/material';
+import { EmojiEvents } from '@mui/icons-material';
+import AchievementListDialog from '../component/AchievemenListDialog';
 
 export interface ProfileUserInterface {
   id: number,
   name: string,
   avatar: string,
   wins: number,
-  loses: number,
+  losses: number,
   status: "offline" | "online" | "playing",
   gameID?: number,
 }
@@ -35,12 +38,13 @@ function Profile(props: {
     name: '',
     avatar: '',
     wins: 0,
-    loses: 0,
+    losses: 0,
     status: "offline",
   } as ProfileUserInterface;
 
   const [user, setUser] = useState<ProfileUserInterface>(emptyUser);
   const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | 'neutral'>("neutral");
+  const [openAchievements, setOpenAchievements] = useState(false);
 
   const navigate = useNavigate();
 
@@ -103,8 +107,8 @@ function Profile(props: {
       return "#7f7f7f";
   }
 
-  const winLoseRatio = (user.wins / (user.loses || 1));
-  const ladderPoints = winLoseRatio * (user.wins + user.loses);
+  const winLoseRatio = (user.wins / (user.losses || 1));
+  const ladderPoints = winLoseRatio * (user.wins + user.losses);
 
   return (
     <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: "white", textAlign: 'center', p: 1, display: "flex", flexDirection: "column" }}>
@@ -117,6 +121,8 @@ function Profile(props: {
           onClose: () => setUploadStatus("neutral"),
         }}
       />
+
+      <AchievementListDialog open={openAchievements} setOpen={setOpenAchievements} profileUser={user} />
 
       <Box sx={{
         width: 250,
@@ -194,11 +200,11 @@ function Profile(props: {
         </Paper>
         <Paper variant="outlined">
           <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Défaites</p>
-          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.loses}</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{user.losses}</p>
         </Paper>
         <Paper variant="outlined" sx={{p: 0, m: 0}}>
           <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 0, top: 0, padding: 0 }}>Parties jouées</p>
-          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.loses}</p>
+          <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0, marginTop: '15%' }}>{user.wins + user.losses}</p>
         </Paper>
         <Paper variant="outlined">
           <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Ratio V/D</p>
@@ -207,6 +213,11 @@ function Profile(props: {
         <Paper variant="outlined">
           <p style={{ fontSize: 12, color: 'light-grey', fontWeight: 500, margin: 3 }}>Points</p>
           <p style={{ fontSize: 20, lineHeight: '20px', fontWeight: 'bold', marginBottom: 0 }}>{ ladderPoints >= 1e6 ? ladderPoints.toExponential() : ladderPoints.toFixed() }</p>
+        </Paper>
+        <Paper elevation={0} sx={{m: 0, p: 0}}>
+          <Button variant="contained" color="warning" sx={{width: '100%', height: '100%'}} onClick={() => setOpenAchievements(true)}>
+            <EmojiEvents />
+          </Button>
         </Paper>
       </Box>
 
@@ -220,7 +231,7 @@ function Profile(props: {
           width: '100%',
         }}
       >
-        <MatchHistory userID={user.id} deps={[user.wins, user.loses]} />
+        <MatchHistory userID={user.id} deps={[user.wins, user.losses]} />
       </Box>
     </React.Fragment>}
     </Box>
