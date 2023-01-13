@@ -4,8 +4,6 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
-import { fetch_opt } from '../dep/fetch'
-
 function Auth() {
   const [html, setHtml] = useState('');
   const [error, setError] = useState(false);
