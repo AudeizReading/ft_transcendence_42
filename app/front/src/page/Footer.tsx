@@ -29,8 +29,9 @@ function Footer(props: any)
 		textAlign: "center",
 		m: 'auto',
 		p: 'auto',
-		display: {xs: 'none', sm: 'flex', md: 'flex', lg: 'flex', xl: 'flex'},
+		display: {xs: 'none', sm: 'none', md: 'flex', lg: 'flex', xl: 'flex'},
 		justifyContent: 'center',
+		alignItems: 'flex-end',
 	};
 
 	return (

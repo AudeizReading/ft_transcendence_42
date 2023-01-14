@@ -18,8 +18,6 @@ import UnstableGrid from '@mui/system/Unstable_Grid';
 import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link';
 
-import { fetch_opt } from '../dep/fetch'
-
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 
@@ -41,6 +39,38 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
     textAlign: 'center'
   }
 }));
+
+const RandomMessagesBox = styled(Paper)(({ theme }) => ({
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  color: 'white',
+  ...theme.typography.body2,
+  width: '100%',
+  borderRadius: 20,
+  p: 'auto',
+  border: '1px solid #027368',
+  boxShadow: '1px -4px 12px #3F528C',
+  '& > div': {
+    margin: '5%',
+    padding: '5%',
+    fontSize: '2.5vi',
+    fontWeight: 700,
+    display: 'flex',
+  },
+  '& > h1': {
+    marginLeft: '2.5%',
+    paddingLeft: '5%',
+    fontSize: '3vi',
+    fontWeight: 700,
+    display: 'block',
+  },
+  '& > blockquote': {
+    margin: '5%',
+    paddingLeft: '10%',
+    fontSize: '1.67vi',
+    fontWeight: 700,
+    display: 'block',
+  }
+})) as typeof Paper;
 
 function Home(props: {
     loaded: boolean,
@@ -102,16 +132,22 @@ function Home(props: {
               </UnstableGrid>
           </UnstableGrid>
 
-          <UnstableGrid rowSpacing={{xs: 4, sm: 2}} xs={6} sm={7} xsOffset={3} smOffset='auto' lgOffset={2}
+          
+           
+            <UnstableGrid rowSpacing={{xs: 4, sm: 8}} xs={6} md={5} xsOffset={3} smOffset='auto' lgOffset={1}
             sx={{
               position: {sm: 'absolute'}, 
               top: {sm: 0}, 
               textAlign: {xs: 'center', sm: 'left'},
-            }}>
+              minHeight: '50vh',
+            }}> 
+              <RandomMessagesBox>
             <UnstableGrid component='h1'>Hello Dear Visitor!</UnstableGrid>
             <UnstableGrid component='blockquote' sx={{fontStyle: 'italic'}}>{randomizeMessages()}</UnstableGrid>
             <UnstableGrid component='div' sx={{textAlign: {sm: 'right', md: 'left'}, fontWeight: 'bold', fontSize: '1.5em', textTransform: 'uppercase',}}>Please Log In</UnstableGrid>
+              </RandomMessagesBox>
           </UnstableGrid>
+          
         </UnstableGrid>
       </UnstableGrid>
   );
@@ -259,7 +295,7 @@ function Home(props: {
             }
           </Box>
           {  
-            <Dashboard user={user} visible={false} fetch_userinfo={props.fetch_userinfo}/>
+            <Dashboard user={user} visible={false}/>
           }
           </Box>
         </React.Fragment>}
