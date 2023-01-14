@@ -259,9 +259,9 @@ export default function Dashboard(props: {
 					<Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Draws: <br/><Box component='span'>{nbTotalMatches - (victory + defeat)}</Box></Box>
 				</Box>
 				
-				<Box component='p' sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}>
+				<Box component='div' sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}>
 
-					<Box component='div' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
+					<Box component='p' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
 						<Doughnut data={dataVictoryChart} options={options} />
 					</Box>
 				
