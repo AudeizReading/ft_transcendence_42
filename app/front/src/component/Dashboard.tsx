@@ -1,15 +1,23 @@
 import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, } from 'react';
 
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 
-import { Doughnut } from 'react-chartjs-2';
+import { 
+	Chart as ChartJS, 
+	ArcElement, 
+	Tooltip, 
+	Legend,
+	CategoryScale,
+	LinearScale,
+	BarElement,
+	Title,
+ } from "chart.js";
+import { Doughnut, Bar } from 'react-chartjs-2';
 
 import { User } from '../interface/User';
-
-import Score from '../page/Score';
 
 import { fetch_opt } from '../dep/fetch'
 
@@ -31,6 +39,20 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
     padding: '5%',
     fontSize: '2vi',
     fontWeight: 700,
+    display: 'flex',
+  },
+  '& > h3': {
+  	marginLeft: '2.5%',
+    paddingLeft: '5%',
+    fontSize: '2.5vi',
+    fontWeight: 700,
+    display: 'block',
+  },
+  '& > h4': {
+  	marginLeft: '3.5%',
+    paddingLeft: '5%',
+    fontSize: '2.25vi',
+    fontWeight: 700,
     display: 'block',
   }
 })) as typeof Paper;
@@ -38,23 +60,59 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
 export default function Dashboard(props: {
 	user: User, 
 	visible: boolean,
-    fetch_userinfo: Function,
 })
 {
 	const [visible, setVisible] = useState(props.visible);
 	const [visProp, setVisProp] = useState('none');
   	const [nbTotalMatches, setTotalMatches] = useState(0);
   	const [victory, setVictory] = useState(0);
-	const [scores, setScores] = useState([
+  	const [defeat, setDefeat] = useState(0);
+	const [challengers, setChallengers] = useState([
 		{
-			id: 0, 
-			winnerId: 0, 
-			winnedAt: '', 
-			scores: [], 
-			players: []
+			challenger: '', 
+			challenges: 0
 		},
 	]);
-	const [challengers, setChallengers] = useState(new Map());
+
+	ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+
+	const [dataVictoryChart, setDataVChart] = useState({
+		datasets: [
+		{
+			data: [0, 0],
+			backgroundColor: ['#027368', '#3f528c'],
+			borderWidth: 8,
+			borderColor: 'rgba(0,0,0,0.4)',
+		},
+		],
+		labels: ['Victoires', 'Défaites'],
+	});
+	const [dataChallengers, setDataChallengers] = useState({
+	    datasets: [
+	      {
+	        backgroundColor: '#8493BF',
+	        barPercentage: 0.5,
+	        barThickness: 12,
+	        borderRadius: 4,
+	        categoryPercentage: 0.5,
+	        data: [] as Number[],
+	        label: 'Challengers',
+	        maxBarThickness: 10
+	      },
+	   	],
+	    labels: ['']
+
+	  });
+
+	const options = {
+		datasets: {},
+		layout: { 
+			padding: 0,
+		},
+		responsive: true,
+	};
+
+
 	
 	const fetching = useRef(0);
 
@@ -64,17 +122,44 @@ export default function Dashboard(props: {
 	const computeVictory = (scores: any) => {
 		let cnt = 0;
     	scores.forEach((score: any) => {
-    		if (score.winnedAt !== null)
+    		if (score.winnedAt !== null && score.winnerId !== null)
     			++cnt;
     	});
-    	setVictory(cnt);
+    	return cnt;
+	};
+
+	const computeDefeat = (scores: any) => {
+		let cnt = 0;
+		scores.forEach((score: any) => {
+			if (score.winnedAt === null && score.winnerId !== null)
+    			++cnt;
+		});
+    	return cnt;
 	};
 
 	const computeChallengers = (scores: any) => {
 		scores.forEach( (game: any) => { 
 			return (game.players.forEach( (player: any) => {
-				if (player.id !== props.user.id && player.name !== props.user.name)
-					setChallengers(challengers.set(player.name, (challengers.get(player.name) !== undefined ? challengers.get(player.name) + 1 : 1)));
+				if (player.id !== props.user.id && player.name !== props.user.name) {
+					if (challengers[0].challenger.length > 0) 
+					{
+						let found = false;
+						challengers.forEach((item: any) => {
+							if (item.challenger === player.name)
+							{
+								found = true;
+								item.challenges++;
+							}
+						});
+						if (!found)
+							challengers.push({challenger: player.name, challenges: 1});
+					} 
+					else {
+						challengers.pop();
+						challengers.push({challenger: player.name, challenges: 1});
+					}
+					setChallengers(challengers);
+				}
 			}))
 		});
 	};
@@ -92,37 +177,49 @@ export default function Dashboard(props: {
 
 	        	(result[0].id === 0) ? setVisible(false) : setVisible(true)
 	        	
-	        	if (result[0].id !== nbTotalMatches)
+	        	if ((result.length) !== nbTotalMatches)
 	        	{
-		        	setScores(result);
-		        	setTotalMatches(result[0].id);    	
-
-		        	computeVictory(result);
+		        	setTotalMatches(result.length); 
+		        	
+    				setVictory(computeVictory(result));
+    				setDefeat(computeDefeat(result));
 		        	computeChallengers(result);
-	        	}
 
-	        	console.log("result", result, "scores", scores, props.visible, props.user, props.user.friends);
-	        })
-	        .catch(() => {});
-
-	        fetch(`http://${window.location.hostname}:8190/friend`, fetch_opt())
-	        .then(res => res.json())
-	        .then(result => {
-	        	if (result)
-	        	/*(result[0].id === 0) ? setVisible(false) : setVisible(true)
+		        	setDataVChart({
+						datasets: [
+							{
+								data: [computeVictory(result), computeDefeat(result), result.length - (computeVictory(result) + computeDefeat(result))],
+								backgroundColor: ['#027368', '#3f528c', '#8493BF'],
+								borderWidth: 8,
+								borderColor: 'rgba(0,0,0,0.4)',
+							},
+						],
+						labels: ['Victories', 'Defeats', 'Draws'],
+					});
 	        	
-	        	if (result[0].id !== nbTotalMatches)
-	        	{
-		        	setScores(result);
-		        	setTotalMatches(result[0].id);    	
+	        		const values_challengers = challengers.map((ch: any) => ch.challenges);
+	        		const labels_challengers = challengers.map((ch: any) => ch.challenger);	        		
 
-		        	computeVictory(result);
-		        	computeChallengers(result);
-	        	}*/
 
-	        	console.log("result", result);
-	        })
-	        .catch((e: any) => {console.log("error", e);});
+		        	setDataChallengers({
+		        		datasets: [
+		        		{
+		        			backgroundColor: '#027368',
+		        			barPercentage: 0.75,
+		        			barThickness: 50,
+		        			borderRadius: 40,
+		        			categoryPercentage: 0.77,
+		        			data: values_challengers,
+		        			label: 'Challengers',
+		        			maxBarThickness: 120
+		        		},
+		        		],
+		        		labels: labels_challengers
+
+		        	});
+		        }
+		    })
+	  	.catch(() => {});
 	    };
 
 	    const refreshInterval = setInterval(refresh, 5000);
@@ -133,7 +230,7 @@ export default function Dashboard(props: {
 	    }
   });
 
-	return (
+  	return (
 		<React.Fragment>
 			<Box 
               component="div"
@@ -144,32 +241,43 @@ export default function Dashboard(props: {
                 flexFlow: 'column',
                 flex: '2 1 auto',
                 alignItems: {md: 'center'},
-                border: '1px solid red',
               }}
             >
 			<BoxPaper 
 				sx={{
-					marginTop: {
-						xs: '9.5vi',
-						md: 0
-				}}}>
+					marginTop: {xs: '9.5vi', md: 0},
+					marginBottom: {xs: 0, md: '9.5vi',},
+			}}>
+				<Box component='h4'>My games</Box>
 				
-				<Box component='p'>
-				Nombres de matches joués: <Box component='span'>{nbTotalMatches}</Box> Nombres de victoires: <Box component='span'>{victory}</Box>
-				<Box component='span'>{challengers}</Box>
+				<Box component='div' sx={{display: 'flex', flowDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', textAlign: 'center',
+    fontSize: '1.2vi',}}>
+					<Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Total games: <br/><Box component='span'>{nbTotalMatches}</Box></Box>
+				
+					<Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Victories: <br/><Box component='span'>{victory}</Box></Box>
+					<Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Defeats: <br/><Box component='span'>{defeat}</Box></Box>
+					<Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Draws: <br/><Box component='span'>{nbTotalMatches - (victory + defeat)}</Box></Box>
 				</Box>
-				<Box component='p'>
-					Nullam eu sapien sagittis, molestie magna nec, aliquet dolor. Fusce gravida quis velit non aliquet. Nulla et lacinia magna. Vestibulum nec nunc eget nulla maximus condimentum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum dignissim nisi interdum neque accumsan, vitae laoreet turpis laoreet. Curabitur ut cursus mi, rhoncus euismod leo. Donec eu pellentesque libero. Fusce laoreet in augue eu condimentum. Aliquam volutpat nisi in scelerisque imperdiet. Sed justo ante, scelerisque at sollicitudin vel, varius ut dui. Fusce varius tortor quis posuere dignissim. Maecenas neque ligula, vulputate ac turpis nec, blandit mollis enim.
+				
+				<Box component='p' sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}>
+
+					<Box component='div' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
+						<Doughnut data={dataVictoryChart} options={options} />
+					</Box>
+				
 				</Box>
+			</BoxPaper>
+			<BoxPaper 
+				sx={{
+					marginTop: {xs: '9.5vi', md: 0},
+					marginBottom: {xs: 0, md: '9.5vi',},
+			}}>
+			
+				<Box component='h4'>My main challengers</Box>
 				<Box component='p'>
-					Nulla id semper orci. Curabitur odio lacus, interdum condimentum volutpat ut, efficitur at quam. Fusce ut purus consectetur, porta urna a, semper tellus. Ut faucibus, magna volutpat scelerisque rutrum, lorem lectus vestibulum tellus, sed consequat leo magna ut mauris. Cras vestibulum ipsum ut iaculis mollis. Morbi ut efficitur lorem. Ut varius tristique erat, et consequat est finibus et. Vivamus a magna ut quam lacinia iaculis. Nullam sed fringilla sem, vitae varius metus.
+					<Bar data={dataChallengers} options={options}/>
 				</Box>
-				<Box component='p'>
-					Praesent blandit diam at nunc posuere consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum auctor quam auctor ornare efficitur. Sed in faucibus orci. Nullam ornare, quam a blandit convallis, libero est tempor purus, ac rutrum dui sem a orci. Nulla facilisi. Aenean dolor ante, convallis sit amet ligula at, scelerisque pulvinar diam. Vestibulum porttitor eleifend nibh, ut accumsan purus commodo quis. In hac habitasse platea dictumst. Duis feugiat tristique viverra. In non massa ut diam pretium eleifend. Vivamus a erat sollicitudin arcu volutpat venenatis id et leo. Ut a nunc at dui efficitur condimentum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur tortor nisi, ornare dictum est at, facilisis fringilla sapien. Vestibulum consequat metus ut odio auctor, in dapibus est tincidunt.
-				</Box>
-				<Box component='p'>
-					Nulla cursus nisi quis augue tincidunt volutpat. Nunc hendrerit porta lacus, quis dignissim lectus facilisis id. Sed iaculis, nibh eu imperdiet ultricies, lorem dolor rhoncus mauris, eu placerat tortor nibh quis sapien. Integer cursus, sapien vitae euismod semper, erat velit sodales tellus, vel efficitur massa turpis id nunc. Praesent pellentesque nibh a auctor pellentesque. Sed in lacus diam. Vivamus accumsan ultrices ipsum bibendum finibus. Integer varius pulvinar diam, et fermentum erat pulvinar eget. Quisque sagittis varius varius. Maecenas convallis dolor non quam efficitur posuere. Suspendisse lectus nibh, vehicula nec malesuada vitae, facilisis ac nisi. Maecenas auctor lorem sit amet blandit suscipit. Maecenas vehicula et turpis tempor lobortis. Maecenas vitae sagittis augue, ac venenatis nulla.
-				</Box>
+				
 			</BoxPaper>
 			</Box>
 		</React.Fragment>
