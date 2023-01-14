@@ -1,10 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
 import { fetch_opt } from '../dep/fetch'
 import UserButton from '../component/UserButton';
-import GameInterface from '../interface/GameInterface';
 import LoadingButton from '../component/LoadingButton';
 import StatusSnackbar from '../component/StatusSnackbar';
 
