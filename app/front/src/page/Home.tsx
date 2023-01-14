@@ -17,6 +17,7 @@ import UnstableGrid from '@mui/system/Unstable_Grid';
 
 import { Link as RouterLink } from 'react-router-dom';
 import Link from '@mui/material/Link';
+
 import { fetch_opt } from '../dep/fetch'
 
 import { styled } from '@mui/material/styles';
@@ -26,10 +27,6 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(0,0,0,0.5)',
   color: 'white',
   textShadow: '0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 2px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C, 0 0 1px #3F528C',
-  minWidth: '14vw',
-  minHeight: '14vw',
-  maxWidth: '14vw',
-  maxHeight: '14vw',
   ...theme.typography.body2,
   overflow: 'hidden',
   borderRadius: '10%',
@@ -38,9 +35,8 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
   '& > p': {
     margin: 0,
     padding: 0,
-    fontSize: '3vi',
     fontWeight: 700,
-    marginTop: '9.5vi',
+    marginTop: '70%',
     display: 'block',
     textAlign: 'center'
   }
@@ -53,11 +49,6 @@ function Home(props: {
   }) {
   const [user, setUser] = useState(props.user);
   const [isLogged, setIsLogged] = useState(user.connected);
-
-  const test = async () => {
-    await fetch('http://' + window.location.hostname + ':8190/user/' + user.id.toString(), fetch_opt()).then(result => console.log(result));
-  };
-  //test();
   
   useEffect(() => setUser(props.user), [user, props.user]);
   useEffect(() => setIsLogged(user.connected), [user.connected]);
@@ -70,14 +61,14 @@ function Home(props: {
   ]};
 
   function randomizeMessages() {
-    return (customMessages.notLogged[new Date().getHours() % (customMessages.notLogged.length - 1)]);
+    return (customMessages.notLogged[new Date().getMinutes() % (customMessages.notLogged.length - 1)]);
   }
 
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(new Date());
+      setTime(() => new Date());
     })
     return () => clearInterval(interval);
   }, [time])
@@ -111,7 +102,7 @@ function Home(props: {
               </UnstableGrid>
           </UnstableGrid>
 
-          <UnstableGrid rowSpacing={{xs: 4, sm: 2}} xs={6} sm={7} xsOffset={3} smOffset='auto' 
+          <UnstableGrid rowSpacing={{xs: 4, sm: 2}} xs={6} sm={7} xsOffset={3} smOffset='auto' lgOffset={2}
             sx={{
               position: {sm: 'absolute'}, 
               top: {sm: 0}, 
@@ -132,9 +123,16 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: '100%, cover',
+        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        '& > p': {
+          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
+        }
       },
       child: {sx: {},},
-      name:'JOUER',
+      name:'PLAY',
       url: '/play',
       uid: 'play',
     },
@@ -147,13 +145,19 @@ function Home(props: {
         backgroundSize: 'cover',
         transform: 'rotate3d(0, 1, 0, 180deg)',
         boxShadow: '1px -4px 12px #3F528C',
+        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        '& > p': {
+          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
+          transform: 'rotate3d(0, 1, 0, 180deg)',
+        }
       },
       child: {
-        sx: {
-          transform: 'rotate3d(0, 1, 0, 180deg)',
-        },
+        sx: {},
       },
-      name:'SCORES',
+      name:'HISTORY',
       url: '/score',
       uid: 'score',
     },
@@ -163,9 +167,16 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
+        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        '& > p': {
+          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
+        }
       },
       child: {sx:{},},
-      name: 'AMIS',
+      name: 'FRIENDS',
       url: '/myfriends',
       uid: 'friend',
     },
@@ -175,9 +186,17 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
+        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+        '& > p': {
+          fontSize: { xs: '4vi', sm: '3.65vi', md: '3.4vi'},
+          mx: '2.5%',
+        }
       },
       child: {sx:{},},
-      name: 'OPTIONS',
+      name: 'SETTINGS',
       url: '/settings/',
       uid: 'options',
     },
@@ -187,13 +206,15 @@ function Home(props: {
       datasBoxPaper.map((data) =>
         {
           return (
-            <Link to={data.url} component={RouterLink} color="inherit" underline="none">
-              <BoxPaper key={data.uid} sx={data.sx}>
+            <div key={data.uid}>
+              <Link to={data.url} component={RouterLink} color="inherit" underline="none">
+              <BoxPaper  sx={data.sx}>
                 <Box component="p" sx={data.child.sx}>
                     {data.name}
                 </Box>
               </BoxPaper>
-            </Link>
+              </Link>
+            </div>
           )
         }
   ));
@@ -208,12 +229,13 @@ function Home(props: {
           display: 'flex', 
           height: '100%', 
           p: 'auto',
+          m: 'auto',
           flexDirection: {
             xs: 'row', 
             md: 'column',
           },
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: {xs: 'center', md: 'flex-start'},
+          alignItems: {xs: 'flex-start', md: 'center'},
         }}>
 
           <Box sx={{ 
@@ -237,19 +259,7 @@ function Home(props: {
             }
           </Box>
           {  
-            true && 
-            <Box 
-              component="div"
-              sx={{ 
-                width: 'auto', 
-                display: 'flex', 
-                flexFlow: 'column wrap',
-                flex: '2 1 auto', 
-                border: '2px solid #3F528C'
-              }}
-            >
-              Futur Dashboard
-            </Box>
+            <Dashboard user={user} visible={false} fetch_userinfo={props.fetch_userinfo}/>
           }
           </Box>
         </React.Fragment>}
