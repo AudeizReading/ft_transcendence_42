@@ -149,7 +149,7 @@ function AnalogicClock(props: {
       }
     })
     return () => clearInterval(interval);
-  }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles, styleTic])
+  }, [time, styleNeedleSecond, styleNeedleMinute, styleNeedles, styleTic, styleTac])
 
  
   // On peut choisir de mettre la pression au visiteur, dans ce cas un TIC TAC apparait a cote de l'horloge
