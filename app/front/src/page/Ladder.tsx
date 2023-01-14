@@ -87,7 +87,7 @@ export default function Ladder(props: LadderProps)
       setRefreshing(true);
       const res = await fetch(`http://${window.location.hostname}:8190/user/best/${ROW_LIMIT}`, fetch_opt());
       if (!res.ok)
-        throw "yolo";
+        throw Error();
       const data = await res.json();
       setRows(data);
     }
