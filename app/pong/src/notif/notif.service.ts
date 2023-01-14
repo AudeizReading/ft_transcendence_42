@@ -42,7 +42,6 @@ export class NotifService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => InviteService))
     private inviteService: InviteService,
-    // private inviteService: InviteService, // FIXME: Dependencies :)
   ) {}
 
   async createAction(

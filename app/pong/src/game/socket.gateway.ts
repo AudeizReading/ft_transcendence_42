@@ -17,6 +17,7 @@ import { GameService } from './game.service';
 import { User, Game, PlayerGame } from '@prisma/client';
 import { DataGame, DataElement, DataUser, Point, pl_intersect,
          Plane, pl_time_to_vector, check_segment_collision, v_norm } from './dep/minirt_functions'
+import { UsersService } from 'src/users/users.service';
 
 interface Client {
   userId: number;
@@ -84,6 +85,7 @@ export class GameSocketGateway
     private jwtService: JwtService,
     private jwtStrategy: JwtStrategy,
     private gameService: GameService,
+    private usersService: UsersService,
   ) {}
 
   @WebSocketServer()
@@ -107,6 +109,22 @@ export class GameSocketGateway
         return null;
       }
     })();
+  }
+
+  // TODO: @gphilipp: integrate me
+  private async gameJustEnded(game: PlayGame, winnerID: number, loserID: number)
+  {
+    // NOTE: This is... not efficient, but no matter.
+    this.usersService.addAchivement({OR: [{id: winnerID}, {id: loserID}]},
+        {primary: "Il faut une première fois à tout", secondary: "Jouez une fois à pong"});
+    this.usersService.addAchivement({id: winnerID},
+        {primary: "Point faible : trop fort", secondary: "Gagnez une partie de pong"});
+    
+    const [pointsA, pointsB] = game.data.points;
+    if (pointsA <= 0 || pointsB <= 0) {
+      this.usersService.addAchivement({id: pointsA === 0 ? game.users[1] : game.users[2]},
+        {primary: "lmao gg ez", secondary: "Écrasez votre adversaire à pong"});
+    }
   }
 
   refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number, speed?: number) {

@@ -24,6 +24,7 @@ export interface ProfileUserInterface {
   losses: number,
   status: "offline" | "online" | "playing",
   gameID?: number,
+  achievements: string[], // Still serialized for now
 }
 
 // TODO: Get a "User not found" page instead of a blank thing
@@ -40,6 +41,7 @@ function Profile(props: {
     wins: 0,
     losses: 0,
     status: "offline",
+    achievements: [],
   } as ProfileUserInterface;
 
   const [user, setUser] = useState<ProfileUserInterface>(emptyUser);
@@ -55,7 +57,7 @@ function Profile(props: {
         (result) => {
           if (result.error)
             return navigate('/not-found');
-          setUser({...result})
+          setUser({...result});
         },
         (error) => {
           navigate('/not-found');

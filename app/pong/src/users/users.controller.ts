@@ -106,6 +106,7 @@ export class UsersController {
       ...(await this.usersService.getScore(user.id)),
       status: await this.usersService.getUserStatus(user),
       gameID: user.games[0] ? user.games[0].gameId : undefined, // usersService.user only returns games not ended
+      achievements: user.achievements,
     };
   }
 
@@ -131,7 +132,8 @@ export class UsersController {
         }),
     )
     file: Express.Multer.File,
-  ) {
+  )
+  {
     if (!file.mimetype.match(/^image\/(bmp|gif|jpeg|png|webp)$/))
       return { error: 1 };
     const ext = file.mimetype.replace(/^image\//, '.');
@@ -153,6 +155,8 @@ export class UsersController {
           hash,
       },
     });
+    this.usersService.addAchivement({login: req.user.login},
+      {primary: "Salut mes petites beautés !", secondary: "Changez votre avatar"});
     return { upload: 1 };
   }
 
@@ -182,6 +186,8 @@ export class UsersController {
     if (params.newname.length > 32 || params.newname.length < 4)
       return req.user.name;
 
+    this.usersService.addAchivement({id: req.user.id},
+      {primary: "SAY MY NAME", secondary: "Changez votre nom"});
     return this.usersService.updateUser({
       where: {id: req.user.id},
       data: {name: params.newname}
@@ -192,5 +198,15 @@ export class UsersController {
   async get_best_players(@Param() params: ParamBestUsersLimit)
   {
     return this.usersService.getBestPlayers(+params.limit);
+  }
+
+  // HACK: DEBUG ONLY
+  // Call this to init the achievements fields in your DB (things don't work if they're NULL)
+  // This WILL reset the achievements too, so be careful.
+  @Get('debug/init-ach')
+  async DEBUG_init_ach()
+  {
+    const numUpdated = await this.usersService.DEBUG_init_achievements();
+    console.log(`DEBUG: Init Achievements: Updated ${numUpdated.count} rows.`);
   }
 }

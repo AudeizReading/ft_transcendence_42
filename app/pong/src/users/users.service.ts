@@ -236,9 +236,45 @@ export class UsersService {
       .map(user => ({
         id: user.id,
         name: user.name,
-        avatar: user.avatar.replace( '://<<host>>', '://' + process.env.FRONT_HOST ),
+        avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
         wins: user.wins.length,
         losses: user.games.length - user.wins.length,
       }));
+  }
+
+  async addAchivement(usersWhere: Prisma.UserWhereInput, achievementData: { primary: string, secondary?: string })
+  {
+    const serialized = JSON.stringify(achievementData);
+    return this.prisma.user.updateMany({
+      where: {
+        AND: [
+          {...usersWhere},
+          {
+            NOT: {
+              achievements: {
+                has: serialized,
+              }
+            }
+          }
+        ]
+      },
+
+      data: {
+        achievements: {
+          push: serialized,
+        }
+      }
+    });
+  }
+
+  // HACK: FOR DEBUG ONLY
+  // Only call this if you have an existing DB with NULL achievements fields
+  async DEBUG_init_achievements()
+  {
+    return this.prisma.user.updateMany({
+      data: {
+        achievements: []
+      }
+    });
   }
 }
