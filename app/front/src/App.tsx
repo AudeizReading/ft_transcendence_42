@@ -258,7 +258,7 @@ function Error() {
         <h1>404: Not Found</h1>
         <p>The server can not find the requested resource.</p>
         <RouterLink to="/">Revenir sur la page d'accueil</RouterLink>
-        <img src="/res/404.jpg" style={{ maxWidth: '100%', marginTop: '15px' }} />
+        <img src="/res/404.jpg" alt='not found' style={{ maxWidth: '100%', marginTop: '15px' }} />
         {/* <style>{`body {
           background: url('/res/404.jpg') center center;
           background-size: 'cover';
