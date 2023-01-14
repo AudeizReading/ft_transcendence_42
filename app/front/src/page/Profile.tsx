@@ -14,7 +14,7 @@ import MatchHistory from '../component/MatchHistory';
 import StatusSnackbar from '../component/StatusSnackbar';
 import { Button } from '@mui/material';
 import { EmojiEvents } from '@mui/icons-material';
-import AchievementListDialog from '../component/AchievementListDialogg';
+import AchievementListDialog from '../component/AchievementListDialog';
 
 export interface ProfileUserInterface {
   id: number,
