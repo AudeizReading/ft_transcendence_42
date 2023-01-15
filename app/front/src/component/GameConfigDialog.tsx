@@ -101,7 +101,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
                 onChange={handleBallSlider}
                 marks={ [{value: 25, label: "Par défaut"}] }
                 step={5}
-                min={0}
+                min={5}
                 max={100}
               />
               🐇

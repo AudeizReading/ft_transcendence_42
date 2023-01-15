@@ -4,7 +4,7 @@ import { GameService } from "src/game/game.service";
 import { ActionRedirContent, NotifService } from "src/notif/notif.service";
 import { PrismaService } from "src/prisma.service";
 import { UsersService } from "src/users/users.service";
-import { InviteDTO } from "./invite.controller";
+import { GameSettingsInterface, InviteDTO } from "./invite.controller";
 
 @Injectable()
 export class InviteService
@@ -17,7 +17,7 @@ export class InviteService
 		private gameService: GameService,
 	) {}
 
-	async isInvitePossible(inviteData: InviteDTO)
+	private async areUsersAvail(inviteData: InviteDTO)
 	{
 		const users = await this.prisma.user.findMany({
 			where: {
@@ -40,12 +40,25 @@ export class InviteService
 		return (notInMM && firstOnline && secondOnline);
 	}
 
+	private isGoodInviteSettings(settings: GameSettingsInterface)
+	{
+		return (
+			settings.pointsToWin >= 3 && settings.pointsToWin <= 50
+			&& settings.ballSpeed >= 5 && settings.ballSpeed <= 100
+			&& (settings.timeLimit === undefined ||
+				(settings.timeLimit >= 1 && settings.timeLimit <= 15))
+		);
+	}
+
 	// TODO: Check for blocked user
 	async sendInvite(inviteData: InviteDTO)
 	{
-		const canInvite = await this.isInvitePossible(inviteData);
-		if (!canInvite) {
+		const usersAvail = await this.areUsersAvail(inviteData);
+		if (!usersAvail) {
 			throw new BadRequestException("Some invited users are busy");
+		}
+		if (!this.isGoodInviteSettings(inviteData.settings)) {
+			throw new BadRequestException("Invites's settings are invalid");
 		}
 
 		const newInvite = await this.prisma.invite.create({
@@ -89,7 +102,7 @@ export class InviteService
 
 	async acceptInvite(inviteData: InviteDTO)
 	{
-		const canAccept = await this.isInvitePossible(inviteData);
+		const canAccept = await this.areUsersAvail(inviteData);
 		if (!canAccept)
 			throw new BadRequestException("Cannot accept invite");
 		console.log("DATA: ", inviteData);
