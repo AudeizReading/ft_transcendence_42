@@ -72,7 +72,7 @@ function App() {
   const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = useCallback(() => {
-    // console.trace(); // Permet de vérifier quelles fonctions appellent fetch_userinfo
+    //console.trace(); // Permet de vérifier quelles fonctions appellent fetch_userinfo
     fetch('http://' + window.location.hostname + ':8190/user/me', fetch_opt())
       .then(res => res.json())
       .then(
