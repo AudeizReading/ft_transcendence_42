@@ -16,7 +16,7 @@ import { InviteService } from './invite.service';
 export class GameSettingsInterface {
 	pointsToWin: number;
 	ballSpeed: number;
-	timeLimit: number | undefined;
+	pointsGap: number | undefined;
 }
 
 export class InviteDTO {

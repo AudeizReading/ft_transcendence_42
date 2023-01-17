@@ -18,23 +18,30 @@ interface GameConfigDialogProps {
 // the game. In other words, it's what will ultimately call the backend.
 export default function GameConfigDialog(props: GameConfigDialogProps)
 {
-  const DEFAULTS = { PTS_TO_WIN: 11, BALL_SPEED: 25 };
+  const DEFAULTS = { PTS_TO_WIN: 11, PTS_GAP: 2, BALL_SPEED: 25 };
+  const CLAMPS = { // min/max values for each setting
+    pointsToWin: {min: 3, max: 50},
+    pointsGap: {min: 1, max: 10},
+    ballSpeed: {min: 5, max: 100},
+  };
 
+  const clamp = (n: number, x: {min: number, max: number}) => Math.min(Math.max(n, x.min), x.max);
   const handleClose = () => props.setOpen(false);
-  const handleSwitch = (e: any) => setEnableTimeLimit(e.target.checked);
+  const handleSwitch = (e: any) => setEnablePointsGap(e.target.checked);
   const handleBallSlider = (e: any, newVal: number | number[]) => setBallSpeed(newVal as number);
   const handleSend = async () => {
     setStatus("loading");
-    const success = await props.sendInvite({ pointsToWin, timeLimit: enableTimeLimit ? timeLimit : undefined, ballSpeed});
-    if (success)
-      setStatus("success");
-    else
-      setStatus("error");
+    const success = await props.sendInvite({
+      pointsToWin,
+      pointsGap: enablePointsGap ? pointsGap : undefined,
+      ballSpeed
+    });
+    setStatus(success ? "success" : "error");
   }
 
-  const [enableTimeLimit, setEnableTimeLimit] = useState(false);
   const [pointsToWin, setPointsToWin] = useState(DEFAULTS.PTS_TO_WIN);
-  const [timeLimit, setTimeLimit] = useState<number>(5);
+  const [enablePointsGap, setEnablePointsGap] = useState(false);
+  const [pointsGap, setPointsGap] = useState<number>(DEFAULTS.PTS_GAP);
   const [ballSpeed, setBallSpeed] = useState(DEFAULTS.BALL_SPEED);
   const [status, setStatus] = useState<'neutral' | 'loading' | 'success' | 'error'>("neutral");
 
@@ -66,29 +73,30 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
               label="Points pour gagner"
               type="number"
               margin="dense"
-              inputProps={{ min: 3, max: 50 }}
+              inputProps={{ ...CLAMPS.pointsToWin }}
               value={pointsToWin}
               onChange={(e: any) => setPointsToWin(e.target.value)}
-              onBlur={() => setPointsToWin(Math.min(Math.max(pointsToWin, 3), 50))}
-              error={pointsToWin < 3 || pointsToWin > 50}
+              onBlur={() => setPointsToWin(clamp(pointsToWin, CLAMPS.pointsToWin))}
+              error={pointsToWin < CLAMPS.pointsToWin.min || pointsToWin > CLAMPS.pointsToWin.max}
               fullWidth
             />
           </Grid>
           <Grid item xs={7}>
             <Box display="flex" flexDirection="row" alignItems="center" sx={{m: 0, p: 0}} >
-              <Switch checked={enableTimeLimit} onChange={handleSwitch} />
+              <Switch checked={enablePointsGap} onChange={handleSwitch} />
               <TextField
                 id="time-limit"
-                label="Limite de temps (min)"
+                label="Points d'écart pour gagner"
                 type="number"
                 margin="dense"
-                inputProps={{ min: 1, max: 15 }}
-                value={timeLimit}
-                onChange={(e: any) => setTimeLimit(e.target.value)}
-                onBlur={() => setTimeLimit(Math.min(Math.max(timeLimit || 0, 1), 15))}
-                error={enableTimeLimit && (timeLimit < 1 || timeLimit > 15)}
+                inputProps={{ ...CLAMPS.pointsGap }}
+                value={pointsGap}
+                onChange={(e: any) => setPointsGap(e.target.value)}
+                onBlur={() => setPointsGap(clamp(pointsGap, CLAMPS.pointsGap))}
+                error={enablePointsGap
+                  && (pointsGap < CLAMPS.pointsGap.min || pointsGap > CLAMPS.pointsGap.max)}
                 fullWidth
-                disabled={!enableTimeLimit}
+                disabled={!enablePointsGap}
               />
             </Box>
           </Grid>
@@ -99,10 +107,10 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
               <Slider
                 value={ballSpeed}
                 onChange={handleBallSlider}
-                marks={ [{value: 25, label: "Par défaut"}] }
+                marks={ [{value: DEFAULTS.BALL_SPEED, label: "Par défaut"}] }
                 step={5}
-                min={5}
-                max={100}
+                min={CLAMPS.ballSpeed.min}
+                max={CLAMPS.ballSpeed.max}
               />
               🐇
             </Box>
@@ -111,7 +119,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
             <Button variant="outlined" fullWidth
               onClick={() => {
                 setBallSpeed(DEFAULTS.BALL_SPEED);
-                setEnableTimeLimit(false);
+                setEnablePointsGap(false);
                 setPointsToWin(DEFAULTS.PTS_TO_WIN);
               }}
             >

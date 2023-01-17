@@ -17,6 +17,12 @@ export class InviteService
 		private gameService: GameService,
 	) {}
 
+	private readonly CLAMPS = { // min/max values for each setting
+    pointsToWin: {min: 3, max: 50},
+    pointsGap: {min: 1, max: 10},
+    ballSpeed: {min: 5, max: 100},
+  };
+
 	private async areUsersAvail(inviteData: InviteDTO)
 	{
 		const users = await this.prisma.user.findMany({
@@ -43,10 +49,15 @@ export class InviteService
 	private isGoodInviteSettings(settings: GameSettingsInterface)
 	{
 		return (
-			settings.pointsToWin >= 3 && settings.pointsToWin <= 50
-			&& settings.ballSpeed >= 5 && settings.ballSpeed <= 100
-			&& (settings.timeLimit === undefined ||
-				(settings.timeLimit >= 1 && settings.timeLimit <= 15))
+			settings.pointsToWin >= this.CLAMPS.pointsToWin.min
+				&& settings.pointsToWin <= this.CLAMPS.pointsToWin.max
+			
+			&& settings.ballSpeed >= this.CLAMPS.ballSpeed.min
+				&& settings.ballSpeed <= this.CLAMPS.ballSpeed.max
+			
+			&& (settings.pointsGap === undefined ||
+				(settings.pointsGap >= this.CLAMPS.pointsGap.min
+					&& settings.pointsGap <= this.CLAMPS.pointsGap.max))
 		);
 	}
 
