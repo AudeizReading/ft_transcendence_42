@@ -26,6 +26,8 @@ interface ProfileActionButtonsProps {
 
 export default function ProfileActionButtons(props: ProfileActionButtonsProps)
 {
+  const [cooldown, setCooldown] = useState(false);
+
   async function callFriendController(user: number | string, action: string) {
     await fetch(`http://${window.location.hostname}:8190/friend/${user}/${action}`, fetch_opt());
     props.fetch_userinfo();
@@ -57,7 +59,12 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
   const normalUser = (
     <Box component="span">
       <Button variant="contained" color="success" sx={{mx: 1, mb: 1}} startIcon={<PersonAddAlt1Icon/>}
-        onClick={() => callFriendController(props.profileUser.name, "request")}
+        onClick={() => {
+          setCooldown(true);
+          callFriendController(props.profileUser.name, "request");
+          setTimeout(() => setCooldown(false), 5000);
+        }}
+        disabled={cooldown}
       >
         Ajouter en ami
       </Button>

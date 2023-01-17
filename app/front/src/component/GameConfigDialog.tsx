@@ -36,9 +36,12 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
       pointsGap: enablePointsGap ? pointsGap : undefined,
       ballSpeed
     });
+    setCooldown(success);
+    setTimeout(() => setCooldown(false), 5000);
     setStatus(success ? "success" : "error");
   }
 
+  const [cooldown, setCooldown] = useState(false);
   const [pointsToWin, setPointsToWin] = useState(DEFAULTS.PTS_TO_WIN);
   const [enablePointsGap, setEnablePointsGap] = useState(false);
   const [pointsGap, setPointsGap] = useState<number>(DEFAULTS.PTS_GAP);
@@ -133,7 +136,14 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
 
       <DialogActions>
         <Button onClick={() => props.setOpen(false)} variant="text">Annuler</Button>
-        <LoadingButton loading={status === "loading"} onClick={handleSend} variant="contained">Inviter</LoadingButton>
+        <LoadingButton
+          loading={status === "loading"}
+          onClick={handleSend}
+          variant="contained"
+          disabled={cooldown}
+        >
+          Inviter
+        </LoadingButton>
       </DialogActions>
 
     </Dialog>
