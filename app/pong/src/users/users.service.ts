@@ -228,18 +228,17 @@ export class UsersService {
       }
     });
 
-    userList.sort( (a, b) =>
-      getScore(b.wins.length, b.games.length) - getScore(a.wins.length, a.games.length)
-    );
-
-    return userList.slice(0, limit)
-      .map(user => ({
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
-        wins: user.wins.length,
-        losses: user.games.length - user.wins.length,
-      }));
+    return userList.sort( (a, b) =>
+      getScore(b.wins.length, b.games.length) - getScore(a.wins.length, a.games.length) )
+    .slice(0, limit)
+    .sort( (a, b) => a.id - b.id)
+    .map(user => ({
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar.replace('://<<host>>', '://' + process.env.FRONT_HOST),
+      wins: user.wins.length,
+      losses: user.games.length - user.wins.length,
+    }));
   }
 
   async addAchivement(usersWhere: Prisma.UserWhereInput, achievementData: { primary: string, secondary?: string })
