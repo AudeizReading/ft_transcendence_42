@@ -10,6 +10,7 @@ function Auth() {
 
   const [bearer, setBearer] = useState(false);
   const [surrogate, setSurrogate] = useState(false);
+  const [ok, setOk] = useState(false);
 
   const refDoubleFA = React.createRef();
 
@@ -23,15 +24,17 @@ function Auth() {
       localStorage.setItem('surrogate', window.location.hash.replace('#surrogate=', ''));
     }
 
-    try {
-      window.opener.window.wOpen = window;
-      if (bearer)
+
+    if (bearer || ok) {
+      try {
+        window.opener.window.wOpen = window;
         window.opener.window.dispatchEvent(new Event('auth_success'));
-    } catch (e) {
-      console.warn('je suis triste mais auth!');
-      setHtml(' *');
+      } catch (e) {
+        console.warn('je suis triste mais auth!');
+        setHtml(' *');
+      }
     }
-  },[bearer, surrogate]);
+  },[bearer, surrogate, ok]);
 
   const validate2FA = () => {
     fetch(`http://${window.location.hostname}:8190/auth/login2fa`, {
@@ -48,6 +51,7 @@ function Auth() {
           if (result.bearer) {
             setBearer(true);
             setSurrogate(false);
+            setOk(true);
             localStorage.setItem('bearer', result.bearer);
           }
         },
@@ -59,10 +63,10 @@ function Auth() {
 
   return (
     <Box component="main" sx={{ height: '100%', background: 'white', color: 'black', textAlign: 'center' }}>
-      {bearer &&
+      {(bearer || ok) &&
         <Box component="p">Connexion OK. Vous pouvez fermer cette page :) {html}</Box>
       }
-      {surrogate &&
+      {(surrogate && !ok) &&
         <Box>
           <Stack spacing={2} direction="row" justifyContent="center" sx={{  mb: '36px', mt: '20%' }}>
             <TextField id="outlined-basic" inputRef={refDoubleFA} variant="outlined"
