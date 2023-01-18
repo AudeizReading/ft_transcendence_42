@@ -18,23 +18,26 @@ interface GameConfigDialogProps {
 // the game. In other words, it's what will ultimately call the backend.
 export default function GameConfigDialog(props: GameConfigDialogProps)
 {
-  const DEFAULTS = { PTS_TO_WIN: 11, PTS_GAP: 2, BALL_SPEED: 25 };
+  const DEFAULTS = { PTS_TO_WIN: 11, PTS_GAP: 2, BALL_SPEED: 25, RACKET_SIZE: 40 };
   const CLAMPS = { // min/max values for each setting
     pointsToWin: {min: 3, max: 50},
     pointsGap: {min: 1, max: 10},
     ballSpeed: {min: 5, max: 100},
+    racketSize: {min: 10, max: 100},
   };
 
   const clamp = (n: number, x: {min: number, max: number}) => Math.min(Math.max(n, x.min), x.max);
   const handleClose = () => props.setOpen(false);
   const handleSwitch = (e: any) => setEnablePointsGap(e.target.checked);
   const handleBallSlider = (e: any, newVal: number | number[]) => setBallSpeed(newVal as number);
+  const handleRacketSizeSlider = (e: any, newVal: number | number[]) => setRacketSize(newVal as number);
   const handleSend = async () => {
     setStatus("loading");
     const success = await props.sendInvite({
       pointsToWin,
       pointsGap: enablePointsGap ? pointsGap : undefined,
-      ballSpeed
+      ballSpeed,
+      racketSize,
     });
     setCooldown(success);
     setTimeout(() => setCooldown(false), 5000);
@@ -46,6 +49,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
   const [enablePointsGap, setEnablePointsGap] = useState(false);
   const [pointsGap, setPointsGap] = useState<number>(DEFAULTS.PTS_GAP);
   const [ballSpeed, setBallSpeed] = useState(DEFAULTS.BALL_SPEED);
+  const [racketSize, setRacketSize] = useState(DEFAULTS.RACKET_SIZE);
   const [status, setStatus] = useState<'neutral' | 'loading' | 'success' | 'error'>("neutral");
 
   return (
@@ -119,11 +123,25 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
             </Box>
           </Grid>
           <Grid item xs={12}>
+            <p style={{textAlign: 'center', margin: 0, padding: 0}}>Taille de la raquette</p>
+            <Box display="flex" flexDirection="row" alignItems="center" sx={{my: 0, mx: 0.5, p: 0, gap: "10px"}} >
+              <Slider
+                value={racketSize}
+                onChange={handleRacketSizeSlider}
+                marks={ [{value: DEFAULTS.RACKET_SIZE, label: "Par défaut"}] }
+                step={5}
+                min={CLAMPS.racketSize.min}
+                max={CLAMPS.racketSize.max}
+              />
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
             <Button variant="outlined" fullWidth
               onClick={() => {
                 setBallSpeed(DEFAULTS.BALL_SPEED);
                 setEnablePointsGap(false);
                 setPointsToWin(DEFAULTS.PTS_TO_WIN);
+                setRacketSize(DEFAULTS.RACKET_SIZE);
               }}
             >
               Réglages par défaut

@@ -17,6 +17,7 @@ export class GameSettingsInterface {
 	pointsToWin: number;
 	ballSpeed: number;
 	pointsGap: number | undefined;
+	racketSize: number;
 }
 
 export class InviteDTO {

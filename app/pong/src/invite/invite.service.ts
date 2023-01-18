@@ -21,6 +21,7 @@ export class InviteService
     pointsToWin: {min: 3, max: 50},
     pointsGap: {min: 1, max: 10},
     ballSpeed: {min: 5, max: 100},
+    racketSize: {min: 10, max: 100},
   };
 
 	private async areUsersAvail(inviteData: InviteDTO)
@@ -58,6 +59,9 @@ export class InviteService
 			&& (settings.pointsGap === undefined ||
 				(settings.pointsGap >= this.CLAMPS.pointsGap.min
 					&& settings.pointsGap <= this.CLAMPS.pointsGap.max))
+			
+			&& settings.racketSize >= this.CLAMPS.racketSize.min
+				&& settings.racketSize <= this.CLAMPS.racketSize.max
 		);
 	}
 
