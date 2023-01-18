@@ -17,6 +17,7 @@ export interface DataGame {
   points: number[];
   players: DataElement[];
   ball: DataElement;
+  ended: boolean;
 }
 
 export interface Point {

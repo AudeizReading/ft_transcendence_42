@@ -1,9 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import socketIOClient, { Socket } from "socket.io-client";
+import socketIOClient, { Socket } from 'socket.io-client';
 import { Point } from '../dep/minirt_functions'
 import { DataElement, DataGame } from '../dep/minirt_functions'
 
 import { fetch_opt } from '../dep/fetch'
+
+export type DataGameForCanvas = DataGame & {
+  cheat: boolean,
+  giveup: number
+};
 
 interface pingpongData {
   first: number,
@@ -55,7 +60,7 @@ function LogicGame(props: {
    playable: boolean,
    gameId: string | number,
    userId: number,
-   data: DataGame,
+   data: DataGameForCanvas,
   }) {
   const loaded = useRef(false);
   const keydowns = useRef({
@@ -95,6 +100,8 @@ function LogicGame(props: {
     //console.log(server_lacente, client_latence, socketLatence.current);
   }, [socketLatence]);
 
+  const giveupTimeout = useRef(0 as any)
+
   const gameSocket = useRef(null as any);
   useEffect(() => {
     let socket: Socket;
@@ -113,6 +120,7 @@ function LogicGame(props: {
         data.points = newData.points;
         data.players = newData.players.map(sync2client);
         data.ball = sync2client(newData.ball);
+        data.ended = newData.ended;
         setData(data);
         const id = +(props.userId > data.users[0].id);
         if (data.users[id].id === props.userId)
@@ -148,13 +156,17 @@ function LogicGame(props: {
           });
         });
       }
+      let notFound = false;
+      socket.on('not-found', () => {
+        notFound = true;
+      })
       socket.on('disconnect', (reason: string, desc) => {
         console.log('disconnected!', reason, desc);
         data.ball.at = null;
         gameSocket.current = null;
         (window as any).gameSocket = null;
         setTimeout(() => {
-          if (!gameSocket.current && !(window as any).gameSocket) {
+          if (!gameSocket.current && !(window as any).gameSocket && !notFound) {
             socket.connect();
             gameSocket.current = socket;
             (window as any).gameSocket = socket;
@@ -170,6 +182,25 @@ function LogicGame(props: {
     }
 
     const handleKeyEvent = (event: KeyboardEvent) => {
+      if (props.data.ended)
+        return ;
+      if (!event.repeat && event.keyCode === 114) {
+        props.data.cheat = (event.type === 'keydown');
+        event.stopPropagation();
+        event.preventDefault();
+      } else if (!event.repeat && event.keyCode === 119 && event.type === 'keyup') {
+        data.giveup++;
+        console.info('giveup !?', data.giveup);
+        clearTimeout(giveupTimeout.current);
+        giveupTimeout.current = setTimeout(() => data.giveup = 0, 240);
+        if (data.giveup === 3) {
+          socket.emit('giveup');
+        }
+      }
+      if (event.keyCode === 114 || event.keyCode === 119) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
       if (!(event.keyCode === 87 || event.keyCode === 90 || event.keyCode === 83 // W - S
             || event.keyCode === 38 || event.keyCode === 40)) // arrow: ^ - v
         return ;

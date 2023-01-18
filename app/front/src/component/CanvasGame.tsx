@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, DataGame, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
-import LogicGame, { getPlayerPosition, getBallPosition } from './LogicGame';
+import LogicGame, { getPlayerPosition, getBallPosition, DataGameForCanvas } from './LogicGame';
 
-function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, gameId: string | number) {
+function draw(context: CanvasRenderingContext2D, tick: number, data: DataGameForCanvas, gameId: string | number) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   /*context.fillStyle = 'black';
   context.beginPath();
@@ -22,7 +22,15 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   context.font = 'small-caps bold 48px/1 sans-serif';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  if (data.ball.at === null) {
+  if (data.ended) {
+    context.fillText('Terminé', 200, 150);
+    if (data.points[0] !== data.points[1]) {
+      context.font = 'small-caps bold 24px/1 sans-serif';
+      context.fillText(data.users[+(data.points[0] < data.points[1])].name + ' a gagné !', 200, 180);
+    }
+  } else if (data.users.length === 0) {
+    context.fillText('Not found', 200, 150);
+  } else if (data.ball.at === null) {
     context.fillText('En attente', 200, 150);
   } else if (data.ball.at > +new Date()) {
     context.fillText(String(Math.ceil((data.ball.at - +new Date()) / 1000)), 200, 150);
@@ -82,8 +90,11 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGame, g
   // Balle
   const ballPos: Point = getBallPosition(data.ball);
   context.fillRect(ballPos.x - data.ball.size / 2, ballPos.y - data.ball.size / 2, data.ball.size, data.ball.size);
-  const dir: Point = data.ball.dir as Point;
 
+  if (!data.cheat)
+    return ;
+
+  const dir: Point = data.ball.dir as Point;
   // const vec: Point = v_norm({
   //   x: pl.pos.x - 200,
   //   y: pl.pos.y - 150 + (+new Date()/300%((pl.size||1) + 20)) - 10
@@ -218,8 +229,11 @@ function CanvasGame(props: {
       { dir: 0, pos: 164, speed: 250, size: 40, at: null },
       { dir: 0, pos: 210, speed: 250, size: 40, at: null },
     ],
-    ball: { dir: { x: 0, y: 0 }, pos: { x: 320, y: 240 }, speed: 250, size: 6, at: null }
-  } as DataGame);
+    ball: { dir: { x: 0, y: 0 }, pos: { x: 320, y: 240 }, speed: 250, size: 6, at: null },
+    ended: false,
+    cheat: false,
+    giveup: 0
+  } as DataGameForCanvas);
 
   useEffect(() => {
     if (!canvasEl.current)

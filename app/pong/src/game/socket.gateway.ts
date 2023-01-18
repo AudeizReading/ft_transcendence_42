@@ -112,12 +112,12 @@ export class GameSocketGateway
   }
 
   // TODO: @gphilipp: integrate me
-  private async gameJustEnded(game: PlayGame, winnerID: number, loserID: number)
+  private async gameJustEnded(game: PlayGame, winnerId: number, loserID: number)
   {
     // NOTE: This is... not efficient, but no matter.
-    this.usersService.addAchivement({OR: [{id: winnerID}, {id: loserID}]},
+    this.usersService.addAchivement({OR: [{id: winnerId}, {id: loserID}]},
         {primary: "Il faut une première fois à tout", secondary: "Jouez une fois à pong"});
-    this.usersService.addAchivement({id: winnerID},
+    this.usersService.addAchivement({id: winnerId},
         {primary: "Point faible : trop fort", secondary: "Gagnez une partie de pong"});
     
     const [pointsA, pointsB] = game.data.points;
@@ -127,6 +127,11 @@ export class GameSocketGateway
     }
   }
 
+  sendGameData(socket: Socket, game: PlayGame) {
+    socket.to(`game-${game.pGame.id}`).emit('dataGame', game.data);
+    socket.emit('dataGame', game.data);
+  }
+
   refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number, speed?: number) {
     game.data.ball.speed = (speed) ? speed : DEFAULT_BALL_SPEED;
     game.data.ball.pos = pos;
@@ -134,14 +139,94 @@ export class GameSocketGateway
     game.data.ball.at = +new Date() + (deltaTime || 0);
 
     this.planeCollisionChecking(socket, game);
-    socket.to(`game-${game.pGame.id}`).emit('dataGame', game.data);
-    socket.emit('dataGame', game.data);
+    this.sendGameData(socket, game);
   }
 
-  planeCollisionChecking(socket: Socket, game: PlayGame) {
-    if (game.data.ball.at === null)
-      return ;
-    const planes: Plane[] = [{
+  saveScore(game: PlayGame, winner?: number) {
+    let data: any = {
+      scoreA: game.data.points[0],
+      scoreB: game.data.points[1]
+    }
+    if (winner) {
+      data.winnerId = winner
+      data.state = 'ENDED'
+    }
+    this.gameService.updateGame({
+      data: data,
+      where: {
+        id: game.pGame.id
+      }
+    }).then((pGame) => {
+      game.pGame = pGame;
+    });
+  }
+
+  checkGameEnd(socket: Socket, game: PlayGame): boolean {
+    if (game.pGame.state === 'ENDED') {
+      game.data.ended = true;
+      clearTimeout(game.timeout);
+      this.refreshBall(socket, game, { x: 0, y: 0 }, 0, 30000);
+      return true
+    } else if (game.data.points[0] < 0 || game.data.points[1] < 0) {
+      game.data.ended = true;
+      clearTimeout(game.timeout);
+      this.saveScore(game, (game.data.points[0] < game.data.points[1]) ? game.data.users[0].id : game.data.users[1].id)
+      this.refreshBall(socket, game, { x: 0, y: 0 }, 0, 30000);
+      return true
+    }
+    return false
+  }
+
+  getStarterAngle(i: number | boolean): number {
+    return Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
+  }
+
+  goalWillMaybeHappened(socket: Socket, game: PlayGame, time: number, i: number) {
+    const plane: Plane = this.getPlanes(game)[i];
+    const a: Point = game.data.ball.pos as Point;
+    const dir: Point = v_norm(game.data.ball.dir as Point);
+    const speed: number = game.data.ball.speed;
+    const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y }
+
+    const point: Point = pl_time_to_vector(a, b, time);
+    if (point && !(0 <= point.y && point.y <= 300)) {
+      point.y = Math.abs(point.y);
+      const pair: number = Math.floor(point.y / 300) % 2;
+      point.y = point.y % 300;
+      if (pair) 
+        point.y = 300 - point.y;
+    }
+    if (check_segment_collision(plane, point)) {
+      const size: number = (plane.size || 0);
+      let dist: number = (point.y - plane.pos.y + 3) / (size + 6) * 160; // 3 et 6 == rayon/diametre de la balle
+      if (Math.sign(plane.n.x) < 0)
+        dist = (160 - dist) - 180;
+      this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80), 0, speed + 20);
+    }
+    else {
+      const angle: number = this.getStarterAngle(i);
+
+      game.data.points[+!i]++;
+      if (!this.checkGameEnd(socket, game))
+        this.saveScore(game);
+
+      // Calc time distance between player and goal (x: 20 -> 0 || x: 380 -> 400)
+      const a: Point = point;
+      const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y };
+      plane.pos.x = (i) ? 400 : 0;
+      const time: number = pl_intersect(a, b, plane);
+      const real_ms = Math.min(2.4, time) * 1000;
+
+      clearTimeout(game.timeout);
+      game.timeout = setTimeout(() => {
+        if (!this.checkGameEnd(socket, game))
+          this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
+      }, real_ms);
+    }
+  }
+
+  getPlanes(game: PlayGame): Plane[] {
+    return [{
       n: { x: 1, y: 0 },
       pos: { x: 20, y: getPlayerPosition(game.data.players[0]) as number },
       size: game.data.players[0].size
@@ -150,74 +235,41 @@ export class GameSocketGateway
       pos: { x: 400 - 20, y: getPlayerPosition(game.data.players[1]) as number },
       size: game.data.players[1].size
     }];
+  }
+
+  planeCollisionChecking(socket: Socket, game: PlayGame) {
+    if (game.data.ball.at === null || game.data.ended)
+      return ;
+    const planes: Plane[] = this.getPlanes(game);
     const a: Point = game.data.ball.pos as Point;
     const dir: Point = v_norm(game.data.ball.dir as Point);
     const speed: number = game.data.ball.speed;
     const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y }
     let time: number = -1;
 
+    // CHECK WHICH SIDE IS THE GOAL
     for (let i: number = 0; i < planes.length; i++) {
       if ((time = pl_intersect(a, b, planes[i])) > -1) {
         const ms: number = game.data.ball.at + time * 1000 - +new Date();
-        if (time > 10) {
+        if (time > 10) { // We prefere recalcul very long/infinite move
           console.log('recalcul.');
-          const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((!i) ? 180 : 0));
+          const angle: number = this.getStarterAngle(!i);
           this.refreshBall(socket, game, game.data.ball.pos as Point, angle,
-            Math.min(0, game.data.ball.at - +new Date()), game.data.ball.speed);
+            Math.min(0, game.data.ball.at - +new Date()), speed);
           break;
         }
-        if (ms <= 0)
+        if (ms <= 0) {
+          console.log('is now!');
+          this.goalWillMaybeHappened(socket, game, time, i);
           break;
+        }
         clearTimeout(game.timeout);
-        game.timeout = setTimeout(() => {
-          const point: Point = pl_time_to_vector(a, b, time);
-          if (point && !(0 <= point.y && point.y <= 300)) {
-            point.y = Math.abs(point.y);
-            const pair: number = Math.floor(point.y / 300) % 2;
-            point.y = point.y % 300;
-            if (pair) 
-              point.y = 300 - point.y;
-          }
-          if (check_segment_collision(planes[i], point)) {
-            const size: number = (planes[i].size || 0);
-            let dist: number = (point.y - planes[i].pos.y + 3) / (size + 6) * 160; // 3 et 6 == rayon/diametre de la balle
-            if (Math.sign(planes[i].n.x) < 0)
-              dist = (160 - dist) - 180;
-            this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80), 0, game.data.ball.speed + 10);
-          }
-          else {
-            const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
-
-            game.data.points[+!i]++; // TODO: Update database
-            this.gameService.updateGame({
-              data: {
-                scoreA: game.data.points[0],
-                scoreB: game.data.points[1]
-              },
-              where: {
-                id: game.pGame.id
-              }
-            }).then((pGame) => {
-              game.pGame = pGame;
-            });
-
-            // Calc time distance between player and goal (x: 20 -> 0 || x: 380 -> 400)
-            const a: Point = point;
-            const b: Point = { x: a.x + speed * dir.x, y: a.y + speed * dir.y };
-            const plane: Plane = planes[i];
-            plane.pos.x = (i) ? 400 : 0;
-            const time: number = pl_intersect(a, b, planes[i]);
-            const real_ms = Math.min(2.4, time) * 1000;
-
-            setTimeout(() =>
-              this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
-            , real_ms);
-          }
-        }, ms);
+        game.timeout = setTimeout(() =>
+          this.goalWillMaybeHappened(socket, game, time, i), ms);
         break ;
       } else if (time < 0 && i + 1 === planes.length) {
-        console.log('impossible!');
-        const angle: number = Math.PI / 180 * (Math.random() * 120 - 60 - ((i) ? 180 : 0));
+        console.log('impossible!'); // = restart, should not happened with the first recalcul
+        const angle: number = this.getStarterAngle(i);
         this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000);
       }
     }
@@ -295,18 +347,23 @@ export class GameSocketGateway
       pGame = await this.gameService.game({
         id: parseInt(socket.handshake?.query?.gameid as string)
       });
-      client.gameId = pGame.id;
-      logicState = pGame.state;
+      if (pGame) {
+        client.gameId = pGame.id;
+        logicState = pGame.state;
+      }
     }
 
-    if (!pGame || client.gameId < 0)
+    if (!pGame || client.gameId < 0) {
+      socket.emit('not-found');
+      socket.disconnect();
       return ;
+    }
 
     let game: PlayGame = this.games.get(client.gameId);
     if (game) {
       game.users.push(user.id);
     } else {
-      const angle = Math.PI / 180 * (Math.random() * 120 - 60 - 180); // TODO: Side random
+      const angle = Math.PI / 180 * -140;//Math.PI / 180 * (Math.random() * 120 - 60 - 180); // TODO: Side random
       game = {
         pGame: pGame,
         data: {
@@ -328,7 +385,8 @@ export class GameSocketGateway
               x: Math.cos(angle),
               y: Math.sin(angle)
             }, pos: { x: 200, y: 150 }, speed: DEFAULT_BALL_SPEED, size: 6, at: null
-          }
+          },
+          ended: false
         },
         users: [user.id],
         timeout: 0 as any,
@@ -347,7 +405,7 @@ export class GameSocketGateway
 
     socket.join(`game-${client.gameId}`);
     if (logicState === 'STARTING')
-      socket.to(`game-${client.gameId}`).emit('dataGame', game.data);
+      this.sendGameData(socket, game);
     else if (logicState === 'PLAYING')
       socket.emit('dataGame', game.data);
   }
@@ -371,59 +429,97 @@ export class GameSocketGateway
     }
   }
 
-  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
-  @SubscribeMessage('data')
-  async data(
-    @ConnectedSocket() socket: SocketUserAuth,
-  ) {
+  getClient(socket: Socket): Client | null  {
     const client = this.clients.get(socket.id);
     if (!client || !client.gameId)
-      return ;
-
-    const game = this.games.get(client.gameId);
-    if (!game || game.users.indexOf(client.userId) === -1)
-      return ;
-
-    return game.data;
+      return null;
+    return client;
   }
 
-  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
-  @SubscribeMessage('move')
-  async move(
-    @MessageBody() data: DataElement,
-    @ConnectedSocket() socket: SocketUserAuth,
-  ) {
-    const diff: number = +new Date() - data.at;
-    const client = this.clients.get(socket.id);
-    if (!client || !client.gameId)
-      return ;
-
+  getGame(client: Client): PlayGame | null  {
+    if (!client)
+      return null;
     const game = this.games.get(client.gameId);
     if (!game || game.users.indexOf(client.userId) === -1)
-      return ;
+      return null;
+    return game;
+  }
+
+  getPlayerId(client: Client, game: PlayGame): number | null  {
+    if (!game)
+      return null;
 
     const pGame = game.pGame as Game & { players: PlayerGame[] };
     const playerId: number = +(client.userId > pGame.players[0].userId);
 
     if (pGame.players[playerId].userId !== client.userId) {
       console.log('tricheur?');
-      return ;
+      return null;
     }
+    return playerId;
+  }
+
+  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
+  @SubscribeMessage('data')
+  data(
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
+    const client = this.getClient(socket)
+    const game = this.getGame(client);
+
+    if (game)
+      return game.data;
+  }
+
+  //@UseGuards(JwtAuthGuard) <=== Rajoute bcp trop de latence!
+  @SubscribeMessage('move')
+  move(
+    @MessageBody() data: DataElement,
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
+    const diff: number = +new Date() - data.at;
+    const client = this.getClient(socket)
+    const game = this.getGame(client);
+    const playerId = this.getPlayerId(client, game);
+    if (playerId === null || game.data.ended)
+      return null;
 
     this.planeCollisionChecking(socket, game);
 
-    //TODO: ANTICHEAT & CHECK DATA
-    game.data.players[playerId] = data;
-    socket.to(`game-${client.gameId}`).emit('dataGame', game.data);
+    // ANTICHEAT & CHECK DATA
+    const player = getPlayerPosition(game.data.players[playerId]);
+    const delta = Math.abs(getPlayerPosition(data) - getPlayerPosition(game.data.players[playerId]))
+    if (delta > 5) {
+      console.log('tricheur?', delta);
+    }
+    game.data.players[playerId].dir = data.dir;
+    game.data.players[playerId].pos = (delta < 5) ? getPlayerPosition(data) : getPlayerPosition(game.data.players[playerId]);
+    game.data.players[playerId].at = +new Date();
 
-    console.log('move player', playerId, data);
+    this.sendGameData(socket, game);
 
     return diff
   }
 
+  @SubscribeMessage('giveup')
+  giveup(
+    @MessageBody() data: DataElement,
+    @ConnectedSocket() socket: SocketUserAuth,
+  ) {
+    const client = this.getClient(socket)
+    const game = this.getGame(client);
+    const playerId = this.getPlayerId(client, game);
+    if (playerId === null || game.data.ended)
+      return null;
+
+    game.data.points[playerId] *= -1;
+    console.log('giveup', playerId, game.data.points[playerId])
+    this.checkGameEnd(socket, game);
+  }
+
   // @UseGuards(JwtAuthGuard)
   @SubscribeMessage('ping')
-  async ping(
+  ping(
     @MessageBody() data: pingpongData,
     //@ConnectedSocket() socket: SocketUserAuth,
   ) {
@@ -433,7 +529,7 @@ export class GameSocketGateway
 
   // @UseGuards(JwtAuthGuard)
   @SubscribeMessage('pong')
-  async pong(
+  pong(
     @MessageBody() data: pingpongData,
     //@ConnectedSocket() socket: SocketUserAuth,
   ) {
