@@ -51,8 +51,8 @@ declare global {
 
 const drawerWidth = 240;
 const pages = [
-  {name: 'Play', url: '/play'},
-  {name: 'History', url: '/score'},
+  {name: 'Jouer', url: '/play'},
+  {name: 'Derniers matches', url: '/score'},
   {name: 'Ladder', url: '/ladder'},
 ];
 
@@ -71,10 +71,6 @@ function TopBar(props: {
 
   const handleOpenNotifMenu = async (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNotif(event.currentTarget);
-    // if (user.notifs.num > 0 && !user.notifs.arr[0].read) {
-    //   fetch('http://' + window.location.hostname + ':8190/notif/read_all/' + user.notifs.arr[0].date, fetch_opt());
-    //   user.notifs.arr.forEach((notif) => notif.read = true);
-    // }
   };
   const handleCloseNotifMenu = async () => {
     setAnchorElNotif(null);

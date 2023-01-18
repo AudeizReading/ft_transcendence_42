@@ -98,7 +98,7 @@ export default function Dashboard(props: {
           borderRadius: 4,
           categoryPercentage: 0.5,
           data: [] as Number[],
-          label: 'Challengers',
+          label: 'Rivaux',
           maxBarThickness: 10,
         },
        ],
@@ -173,7 +173,7 @@ export default function Dashboard(props: {
       fetch(`http://${window.location.hostname}:8190/user/${props.user.id}/games`, fetch_opt())
         .then(res => {
           if (!res.ok)
-            throw new Error("Error fetching user games");
+            throw new Error("Impossible d'obtenir les statistiques du joueur");
           return res.json();
         })
         .then((result: GameInterface[]) => {
@@ -197,7 +197,7 @@ export default function Dashboard(props: {
                   borderColor: 'rgba(0,0,0,0.4)',
                 },
               ],
-              labels: ['Victories', 'Defeats'],
+              labels: ['Victoires', 'Défaites'],
             });
             const values_challengers = challengers.map((ch: any) => ch.challenges);
             const labels_challengers = challengers.map((ch: any) => ch.challenger);
@@ -210,7 +210,7 @@ export default function Dashboard(props: {
                 borderRadius: 40,
                 categoryPercentage: 0.77,
                 data: values_challengers,
-                label: 'Challengers',
+                label: 'Rivaux',
                 maxBarThickness: 120
               },
               ],
@@ -249,7 +249,7 @@ export default function Dashboard(props: {
         }}
       >
         <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
-          <h4>My games</h4>
+          <h4>Mes parties</h4>
 
           <Box
             sx={{
@@ -257,10 +257,10 @@ export default function Dashboard(props: {
               alignItems: 'flex-end', textAlign: 'center', fontSize: '1.2vi'
             }}
           >
-            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Games: <br/>{nbTotalMatches}</p>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Parties: <br/>{nbTotalMatches}</p>
 
-            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Victories: <br/>{victory}</p>
-            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Defeats: <br/>{defeat}</p>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Victoires: <br/>{victory}</p>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Défaites: <br/>{defeat}</p>
           </Box>
 
           <Box sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}} >
@@ -273,7 +273,7 @@ export default function Dashboard(props: {
         </BoxPaper>
         <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
 
-          <h4>My main challengers</h4>
+          <h4>Mes principaux rivaux</h4>
           <p>
             <Bar data={dataChallengers} options={options}/>
           </p>

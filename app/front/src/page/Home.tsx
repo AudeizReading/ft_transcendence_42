@@ -85,9 +85,9 @@ function Home(props: {
   
   const customMessages = {
     notLogged: [
-      "Why not throw a Pong Game ?", 
-      "Try it is love it", 
-      "There is already someone who is looking for playing with you!"
+      "Pourquoi ne pas lancer une petite partie ?", 
+      "L'essayer, c'est l'adopter !", 
+      "Il y a déjà quelqu'un qui veut jouer avec vous !",
   ]};
 
   function randomizeMessages() {
@@ -106,7 +106,7 @@ function Home(props: {
   const gridNotLogged = (
       <UnstableGrid container rowSpacing={{xs: 1, md: 2}} columnSpacing={{xs: 3, md: 6}} sx={{margin: 0, height: {xs: 'calc(100vh - 120px)', lg: 'calc(100vh - 90}px)'},}}>
         <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center',}}>
-          <DateTime component="h2" time={time}/>
+          <DateTime component="h2" time={new Date("01/01/2023")} />
         </UnstableGrid>
 
         <UnstableGrid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
@@ -142,9 +142,9 @@ function Home(props: {
               minHeight: '50vh',
             }}> 
               <RandomMessagesBox>
-            <UnstableGrid component='h1'>Hello Dear Visitor!</UnstableGrid>
+            <UnstableGrid component='h1'>Bonjour, cher visiteur !</UnstableGrid>
             <UnstableGrid component='blockquote' sx={{fontStyle: 'italic'}}>{randomizeMessages()}</UnstableGrid>
-            <UnstableGrid component='div' sx={{textAlign: {sm: 'right', md: 'left'}, fontWeight: 'bold', fontSize: '1.5em', textTransform: 'uppercase',}}>Please Log In</UnstableGrid>
+            <UnstableGrid component='div' sx={{textAlign: {sm: 'right', md: 'left'}, fontWeight: 'bold', fontSize: '1.5em', textTransform: 'uppercase',}}>Veuillez vous connecter</UnstableGrid>
               </RandomMessagesBox>
           </UnstableGrid>
           
@@ -168,7 +168,7 @@ function Home(props: {
         }
       },
       child: {sx: {},},
-      name:'PLAY',
+      name:'JOUER',
       url: '/play',
       uid: 'play',
     },
@@ -193,7 +193,7 @@ function Home(props: {
       child: {
         sx: {},
       },
-      name:'HISTORY',
+      name:'HISTORIQUE',
       url: '/score',
       uid: 'score',
     },
@@ -212,7 +212,7 @@ function Home(props: {
         }
       },
       child: {sx:{},},
-      name: 'FRIENDS',
+      name: 'AMIS',
       url: '/myfriends',
       uid: 'friend',
     },
@@ -232,7 +232,7 @@ function Home(props: {
         }
       },
       child: {sx:{},},
-      name: 'SETTINGS',
+      name: 'PARAMÈTRES',
       url: '/settings/',
       uid: 'options',
     },

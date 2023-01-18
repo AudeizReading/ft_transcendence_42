@@ -3,16 +3,14 @@ import {ElementType} from 'react'
 
 import formattingNumber from '../dep/formattingNumber';
 
-function formattingEnglishDate(day: number) {
-  switch (day % 10) {
+function formattingFrenchDate(day: number) {
+  switch (day) {
   case 1:
-    return "st";
+    return "er";
   case 2:
     return "nd";
-  case 3:
-    return "rd";
   default:
-    return "th";
+    return null;
   }
 }
 
@@ -21,15 +19,14 @@ function DateTime(props: {
   time: Date
 })
 {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
+  const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
   return (
     <Box component={props.component}> 
       <Box component="span">{days[props.time.getDay()]}</Box>
       <Box component="span"> {formattingNumber(props.time.getDate())}</Box>
-      <Box component="sup">{formattingEnglishDate(props.time.getDate())}</Box>
+      <Box component="sup">{formattingFrenchDate(props.time.getDate())}</Box>
       <Box component="span"> {months[props.time.getMonth()]}</Box>
       <Box component="span"> {props.time.getFullYear()}</Box>   
     </Box>);
