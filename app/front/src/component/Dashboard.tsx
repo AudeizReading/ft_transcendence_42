@@ -224,7 +224,7 @@ export default function Dashboard(props: {
     }
   });
 
-    return (
+  return (
     <React.Fragment>
       <StatusSnackbar
         errorText="Impossible d'obtenir les statistiques du joueur"
@@ -232,52 +232,50 @@ export default function Dashboard(props: {
         snackbarProps={{ anchorOrigin: {vertical: 'top', horizontal: 'center'} }}
       />
       <Box
-              component="div"
-              sx={{
-                width: { md: '70%'},
-                minHeight: '100%',
-                display: visProp,
-                flexFlow: 'column',
-                flex: '2 1 auto',
-                alignItems: {md: 'center'},
-              }}
-            >
-      <BoxPaper
+        component="div"
         sx={{
-          marginTop: {xs: '9.5vi', md: 0},
-          marginBottom: {xs: 0, md: '9.5vi',},
-      }}>
-        <Box component='h4'>My games</Box>
+          width: { md: '70%'},
+          minHeight: '100%',
+          display: visProp,
+          flexFlow: 'column',
+          flex: '2 1 auto',
+          alignItems: {md: 'center'},
+        }}
+      >
+        <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
+          <Box component='h4'>My games</Box>
 
-        <Box component='div' sx={{display: 'flex', flowDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', textAlign: 'center',
-    fontSize: '1.2vi',}}>
-          <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Total games: <br/><Box component='span'>{nbTotalMatches}</Box></Box>
+          <Box component='div'
+            sx={{
+              display: 'flex', flowDirection: 'column', justifyContent: 'space-around',
+              alignItems: 'flex-end', textAlign: 'center', fontSize: '1.2vi'
+            }}
+          >
+            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Total games: <br/><span>{nbTotalMatches}</span></Box>
 
-          <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Victories: <br/><Box component='span'>{victory}</Box></Box>
-          <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Defeats: <br/><Box component='span'>{defeat}</Box></Box>
-          <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Draws: <br/><Box component='span'>{nbTotalMatches - (victory + defeat)}</Box></Box>
-        </Box>
-
-        <Box component='div' sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}>
-
-          <Box component='p' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
-            <Doughnut data={dataVictoryChart} options={options} />
+            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Victories: <br/><span>{victory}</span></Box>
+            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Defeats: <br/><span>{defeat}</span></Box>
+            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Draws: <br/><span>{nbTotalMatches - (victory + defeat)}</span></Box>
           </Box>
 
-        </Box>
-      </BoxPaper>
-      <BoxPaper
-        sx={{
-          marginTop: {xs: '9.5vi', md: 0},
-          marginBottom: {xs: 0, md: '9.5vi',},
-      }}>
+          <Box component='div'
+            sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}
+          >
 
-        <Box component='h4'>My main challengers</Box>
-        <Box component='p'>
-          <Bar data={dataChallengers} options={options}/>
-        </Box>
+            <Box component='p' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
+              <Doughnut data={dataVictoryChart} options={options} />
+            </Box>
 
-      </BoxPaper>
+          </Box>
+        </BoxPaper>
+        <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
+
+          <Box component='h4'>My main challengers</Box>
+          <Box component='p'>
+            <Bar data={dataChallengers} options={options}/>
+          </Box>
+
+        </BoxPaper>
       </Box>
     </React.Fragment>
   );
