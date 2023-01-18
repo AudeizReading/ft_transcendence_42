@@ -8,7 +8,6 @@ import { QRCodeSVG } from 'qrcode.react';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
-import { FormControl } from '@mui/material';
 
 function Settings(props: {
     fetch_userinfo: Function,
