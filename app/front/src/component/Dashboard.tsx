@@ -99,7 +99,7 @@ export default function Dashboard(props: {
           categoryPercentage: 0.5,
           data: [] as Number[],
           label: 'Challengers',
-          maxBarThickness: 10
+          maxBarThickness: 10,
         },
        ],
       labels: ['']
@@ -112,6 +112,13 @@ export default function Dashboard(props: {
       padding: 0,
     },
     responsive: true,
+    plugins: {
+      legend: {
+        labels: {
+          color: 'white',
+        }
+      }
+    }
   };
 
   const [isError, setError] = useState(false);
@@ -184,13 +191,13 @@ export default function Dashboard(props: {
             setDataVChart({
               datasets: [
                 {
-                  data: [computeVictory(result), computeDefeat(result), result.length - (computeVictory(result) + computeDefeat(result))],
-                  backgroundColor: ['#027368', '#3f528c', '#8493BF'],
+                  data: [computeVictory(result), computeDefeat(result)],
+                  backgroundColor: ['#027368', '#3f528c'],
                   borderWidth: 8,
                   borderColor: 'rgba(0,0,0,0.4)',
                 },
               ],
-              labels: ['Victories', 'Defeats', 'Draws'],
+              labels: ['Victories', 'Defeats'],
             });
             const values_challengers = challengers.map((ch: any) => ch.challenges);
             const labels_challengers = challengers.map((ch: any) => ch.challenger);
@@ -232,7 +239,6 @@ export default function Dashboard(props: {
         snackbarProps={{ anchorOrigin: {vertical: 'top', horizontal: 'center'} }}
       />
       <Box
-        component="div"
         sx={{
           width: { md: '70%'},
           minHeight: '100%',
@@ -243,24 +249,21 @@ export default function Dashboard(props: {
         }}
       >
         <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
-          <Box component='h4'>My games</Box>
+          <h4>My games</h4>
 
-          <Box component='div'
+          <Box
             sx={{
               display: 'flex', flowDirection: 'column', justifyContent: 'space-around',
               alignItems: 'flex-end', textAlign: 'center', fontSize: '1.2vi'
             }}
           >
-            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Total games: <br/><span>{nbTotalMatches}</span></Box>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Games: <br/>{nbTotalMatches}</p>
 
-            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Victories: <br/><span>{victory}</span></Box>
-            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Defeats: <br/><span>{defeat}</span></Box>
-            <Box component='p' sx={{fontSize: '1.2vi', p: 0, m: 0,}}>Draws: <br/><span>{nbTotalMatches - (victory + defeat)}</span></Box>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Victories: <br/>{victory}</p>
+            <p style={{fontSize: '1.2vi', padding: 0, margin: 0}}>Defeats: <br/>{defeat}</p>
           </Box>
 
-          <Box component='div'
-            sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}}
-          >
+          <Box sx={{ display: 'flex', flowDirection: 'row', justifyContent: 'center', marginTop: 0}} >
 
             <Box component='p' sx={{width: {xs: '75%', md:'50%'}, mr: '5%'}}>
               <Doughnut data={dataVictoryChart} options={options} />
@@ -270,10 +273,10 @@ export default function Dashboard(props: {
         </BoxPaper>
         <BoxPaper sx={{ marginTop: {xs: '9.5vi', md: 0}, marginBottom: {xs: 0, md: '9.5vi'} }} >
 
-          <Box component='h4'>My main challengers</Box>
-          <Box component='p'>
+          <h4>My main challengers</h4>
+          <p>
             <Bar data={dataChallengers} options={options}/>
-          </Box>
+          </p>
 
         </BoxPaper>
       </Box>
