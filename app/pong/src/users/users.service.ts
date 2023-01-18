@@ -89,30 +89,34 @@ export class UsersService {
         }
       }
     });
-    // Filter out the games this user hasn't played
-    const filtered = games.filter( (game) => !!game.players.find(player => player.userId === +userID) );
-    // Parse the results in a GameInterface object
-    const parsed = filtered.map( (game) => {
-      return {
-        id: game.id,
-        winnerId: game.winnerId,
-        winnedAt: game.winnedAt,
-        scores: [game.scoreA, game.scoreB],
-        players: [
-          {
-            id: game.players[0].user.id,
-            name: game.players[0].user.name,
-            avatar: game.players[0].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
-          },
-          {
-            id: game.players[1].user.id,
-            name: game.players[1].user.name,
-            avatar: game.players[1].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
-          },
-        ]
-      } as GameInterface;
-    });
-    return parsed.sort( (a, b) => b.winnedAt.getTime() - a.winnedAt.getTime() );
+
+    let parsed: GameInterface[] = [];
+    for (const game of games) { // Apparently this is faster than chaining array methods
+      if (game.players[0].userId === +userID || game.players[1].userId === +userID)
+      {
+        parsed.unshift({ // Put element at begin and not end to save time in sorting
+          id: game.id,
+          winnerId: game.winnerId,
+          winnedAt: game.winnedAt,
+          scores: [game.scoreA, game.scoreB],
+          players: [
+            {
+              id: game.players[0].user.id,
+              name: game.players[0].user.name,
+              avatar: game.players[0].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
+            },
+            {
+              id: game.players[1].user.id,
+              name: game.players[1].user.name,
+              avatar: game.players[1].user.avatar.replace('://<<host>>', `://${process.env.FRONT_HOST}`)
+            },
+          ]
+        });
+      }
+    }
+    // Still need to sort to have most recent first (id won't sort them completely, it
+    // correlates to start time, not end time)
+    return parsed.sort((a, b) => (b.winnedAt.getTime() - a.winnedAt.getTime()));
   }
 
   async getUserStatusFromID(userID: number): Promise<"offline" | "online" | "playing">
