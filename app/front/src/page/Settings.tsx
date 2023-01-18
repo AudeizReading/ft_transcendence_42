@@ -8,6 +8,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
+import { FormControl } from '@mui/material';
 
 function Settings(props: {
     fetch_userinfo: Function,
@@ -29,6 +30,11 @@ function Settings(props: {
       setKey2FA(props.user.doubleFA);
     }
   }, [props.user, doubleFA]);
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    doAction2FA();
+  }
 
   const doAction2FA = () => {
     fetch(`http://${window.location.hostname}:8190/auth/code2fa`, {
@@ -71,12 +77,17 @@ function Settings(props: {
               value={`otpauth://totp/iceberg?secret=${encodeURIComponent(key2FA)}`}
             />
           </Box>}
-      <Stack spacing={2} direction="row" justifyContent="center" sx={{ mb: '36px' }}>
-        <TextField id="outlined-basic" inputRef={refDoubleFA} variant="outlined"
-          label={error ? 'Error' : 'Code 2FA'} {...(error ? {error: true, helperText: 'Wrong 2FA code.'} : {})}
-          sx={{ '.MuiFormHelperText-root': { position: 'absolute', bottom: '-24px' } }}/>
-        <Button variant="contained" onClick={doAction2FA}>{!activated ? 'Activer' : 'Désactiver'}</Button>
-      </Stack>
+      <form style={{display: 'block'}} onSubmit={handleFormSubmit}>
+        <Stack spacing={2} direction="row" justifyContent="center" sx={{ mb: '36px' }}>
+          <TextField id="outlined-basic" inputRef={refDoubleFA} variant="outlined"
+            label={error ? 'Error' : 'Code 2FA'}
+            {...(error ? {error: true, helperText: 'Wrong 2FA code.'} : {})}
+            sx={{ '.MuiFormHelperText-root': { position: 'absolute', bottom: '-24px' } }}
+            onChange={ () => {if (error) setError(false);} }
+          />
+          <Button variant="contained" type="submit">{!activated ? 'Activer' : 'Désactiver'}</Button>
+        </Stack>
+      </form>
     </Box>
   );
 }
