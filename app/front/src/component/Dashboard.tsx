@@ -118,6 +118,9 @@ export default function Dashboard(props: {
           color: 'white',
         }
       }
+    },
+    animation: {
+      duration: 0
     }
   };
 
