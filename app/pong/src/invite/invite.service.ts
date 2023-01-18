@@ -21,7 +21,7 @@ export class InviteService
     pointsToWin: {min: 3, max: 50},
     pointsGap: {min: 1, max: 10},
     ballSpeed: {min: 5, max: 100},
-    racketSize: {min: 10, max: 100},
+    racketSize: {min: 6, max: 100},
   };
 
 	private async areUsersAvail(inviteData: InviteDTO)

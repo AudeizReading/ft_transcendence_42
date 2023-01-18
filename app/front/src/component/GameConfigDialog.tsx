@@ -23,7 +23,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
     pointsToWin: {min: 3, max: 50},
     pointsGap: {min: 1, max: 10},
     ballSpeed: {min: 5, max: 100},
-    racketSize: {min: 10, max: 100},
+    racketSize: {min: 6, max: 100},
   };
 
   const clamp = (n: number, x: {min: number, max: number}) => Math.min(Math.max(n, x.min), x.max);
@@ -129,7 +129,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
                 value={racketSize}
                 onChange={handleRacketSizeSlider}
                 marks={ [{value: DEFAULTS.RACKET_SIZE, label: "Par défaut"}] }
-                step={5}
+                step={2}
                 min={CLAMPS.racketSize.min}
                 max={CLAMPS.racketSize.max}
               />
