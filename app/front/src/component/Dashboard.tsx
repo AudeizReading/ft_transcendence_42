@@ -20,6 +20,8 @@ import { Doughnut, Bar } from 'react-chartjs-2';
 import { User } from '../interface/User';
 
 import { fetch_opt } from '../dep/fetch'
+import GameInterface from '../interface/GameInterface';
+import StatusSnackbar from './StatusSnackbar';
 
 const BoxPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(0,0,0,0.4)',
@@ -112,33 +114,23 @@ export default function Dashboard(props: {
     responsive: true,
   };
 
-
+  const [isError, setError] = useState(false);
 
   const fetching = useRef(0);
 
   useEffect(() => setVisible((visState) => !visState), [props.visible]);
   useEffect(() => setVisProp((prop) => ((visible === true) ? 'flex' : 'none')), [visible]);
 
-  const computeVictory = (scores: any) => {
-    let cnt = 0;
-      scores.forEach((score: any) => {
-        if (score.winnedAt !== null && score.winnerId !== null)
-          ++cnt;
-      });
-      return cnt;
-  };
+  const computeVictory = (games: GameInterface[]): number => (
+    games.reduce((acc, game) => (game.winnerId === props.user.id ? acc + 1 : acc), 0)
+  );
+    
+  const computeDefeat = (games: GameInterface[]): number => (
+    games.reduce((acc, game) => (game.winnerId !== props.user.id ? acc + 1 : acc), 0)
+  );
 
-  const computeDefeat = (scores: any) => {
-    let cnt = 0;
-    scores.forEach((score: any) => {
-      if (score.winnedAt === null && score.winnerId !== null)
-          ++cnt;
-    });
-      return cnt;
-  };
-
-  const computeChallengers = (scores: any) => {
-    scores.forEach( (game: any) => {
+  const computeChallengers = (games: GameInterface[]) => {
+    games.forEach( (game: any) => {
       return (game.players.forEach( (player: any) => {
         if (player.id !== props.user.id && player.name !== props.user.name) {
           if (challengers[0].challenger.length > 0)
@@ -160,7 +152,7 @@ export default function Dashboard(props: {
           }
           setChallengers(challengers);
         }
-      }))
+      }));
     });
   };
 
@@ -171,11 +163,17 @@ export default function Dashboard(props: {
         return ;
       fetching.current = + new Date();
 
-      fetch(`http://${window.location.hostname}:8190/game/score`, fetch_opt())
-        .then(res => res.json())
-        .then(result => {
+      fetch(`http://${window.location.hostname}:8190/user/${props.user.id}/games`, fetch_opt())
+        .then(res => {
+          if (!res.ok)
+            throw new Error("Error fetching user games");
+          return res.json();
+        })
+        .then((result: GameInterface[]) => {
 
-          (result[0].id === 0) ? setVisible(false) : setVisible(true)
+          setVisible(result.length > 0);
+          if (isError)
+            setError(false);
 
           if ((result.length) !== nbTotalMatches)
           {
@@ -213,7 +211,9 @@ export default function Dashboard(props: {
             });
           }
         })
-        .catch(() => {});
+        .catch((err) => {
+          setError(true);
+        });
     };
 
     const refreshInterval = setInterval(refresh, 5000);
@@ -226,6 +226,11 @@ export default function Dashboard(props: {
 
     return (
     <React.Fragment>
+      <StatusSnackbar
+        errorText="Impossible d'obtenir les statistiques du joueur"
+        status={isError ? "error" : ""}
+        snackbarProps={{ anchorOrigin: {vertical: 'top', horizontal: 'center'} }}
+      />
       <Box
               component="div"
               sx={{
