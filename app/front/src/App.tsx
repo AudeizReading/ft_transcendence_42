@@ -79,8 +79,16 @@ function App() {
         (result) => {
           setLoaded(true)
           // console.log('fetch', result);
-          if (!result.connected)
+          if (!result.connected) {
+            if (result.statusCode
+              && result.statusCode === 401
+              && result.message === 'Unauthorized'
+              && localStorage['bearer']) {
+              localStorage.removeItem('bearer');
+              console.error('401 because Invalid payload: ok, bearer erased.')
+            }
             return setUser(defaultNotConnected())
+          }
           setUser({
             id: result.user.id,
             name: result.user.name,
