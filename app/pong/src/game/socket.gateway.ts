@@ -17,7 +17,8 @@ import { GameService } from './game.service';
 import { User, Game, PlayerGame } from '@prisma/client';
 import { DataGame, DataElement, DataUser, Point, pl_intersect,
          Plane, pl_time_to_vector, check_segment_collision, v_norm } from './dep/minirt_functions'
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
+import { GameSettingsInterface } from '../invite/invite.controller';
 
 interface Client {
   userId: number;
@@ -49,13 +50,12 @@ type GameInclude = Game & {
 // https://docs.nestjs.com/websockets/gateways
 // https://codesandbox.io/s/xingyibiaochatserver-6x1jc?file=/src/main.ts
 
-const DEFAULT_BALL_SPEED = 130;
-
 interface PlayGame {
   pGame: Game;
   data: DataGame;
   timeout: ReturnType<typeof setTimeout>;
   users: number[];
+  settings: GameSettingsInterface;
 }
 
 function getPlayerPosition(player: DataElement): number {
@@ -133,7 +133,7 @@ export class GameSocketGateway
   }
 
   refreshBall(socket: Socket, game: PlayGame, pos: Point, angle: number, deltaTime?: number, speed?: number) {
-    game.data.ball.speed = (speed) ? speed : DEFAULT_BALL_SPEED;
+    game.data.ball.speed = (speed) ? speed : game.settings.ballSpeed;
     game.data.ball.pos = pos;
     game.data.ball.dir = { x: Math.cos(angle), y: Math.sin(angle) };
     game.data.ball.at = +new Date() + (deltaTime || 0);
@@ -149,6 +149,7 @@ export class GameSocketGateway
     }
     if (winner) {
       data.winnerId = winner
+      data.winnedAt = new Date()
       data.state = 'ENDED'
     }
     this.gameService.updateGame({
@@ -167,11 +168,15 @@ export class GameSocketGateway
       clearTimeout(game.timeout);
       this.refreshBall(socket, game, { x: 0, y: 0 }, 0, 30000);
       return true
-    } else if (game.data.points[0] < 0 || game.data.points[1] < 0) {
+    }
+    const minPoint = game.settings.pointsToWin - game.settings.pointsGap;
+    const points = game.data.points
+    if (points[0] < 0 || points[1] < 0 || (Math.min.apply(Math, points) >= minPoint
+          && game.settings.pointsGap <= Math.abs(points[0] - points[1]))) {
       game.data.ended = true;
       clearTimeout(game.timeout);
-      this.saveScore(game, (game.data.points[0] < game.data.points[1]) ? game.data.users[0].id : game.data.users[1].id)
-      this.refreshBall(socket, game, { x: 0, y: 0 }, 0, 30000);
+      this.saveScore(game, (points[0] < points[1]) ? game.data.users[1].id : game.data.users[0].id)
+      this.refreshBall(socket, game, game.data.ball.pos as Point, 0, 30000);
       return true
     }
     return false
@@ -207,8 +212,7 @@ export class GameSocketGateway
       const angle: number = this.getStarterAngle(i);
 
       game.data.points[+!i]++;
-      if (!this.checkGameEnd(socket, game))
-        this.saveScore(game);
+      this.saveScore(game);
 
       // Calc time distance between player and goal (x: 20 -> 0 || x: 380 -> 400)
       const a: Point = point;
@@ -364,6 +368,20 @@ export class GameSocketGateway
       game.users.push(user.id);
     } else {
       const angle = Math.PI / 180 * -140;//Math.PI / 180 * (Math.random() * 120 - 60 - 180); // TODO: Side random
+      const gameOpt = (() => {
+        try {
+          return JSON.parse(pGame.option);
+        } catch (e) {
+          console.error(e);
+          return {}
+        }
+      })();
+      const settings: GameSettingsInterface = {
+        pointsToWin: ('pointsToWin' in gameOpt) ? gameOpt.pointsToWin : 11,
+        pointsGap: ('pointsGap' in gameOpt) ? gameOpt.pointsGap : 2,
+        ballSpeed: ('ballSpeed' in gameOpt) ? 80 + gameOpt.ballSpeed * 200 : 130,
+        racketSize: ('racketSize' in gameOpt) ? gameOpt.racketSize : 40,
+      };
       game = {
         pGame: pGame,
         data: {
@@ -377,19 +395,20 @@ export class GameSocketGateway
           })) as DataUser[],
           points: [pGame.scoreA, pGame.scoreB],
           players: [
-            { dir: 0, pos: 140, speed: 250, size: 40, at: null },
-            { dir: 0, pos: 140, speed: 250, size: 40, at: null },
+            { dir: 0, pos: 140, speed: 250, size: settings.racketSize, at: null },
+            { dir: 0, pos: 140, speed: 250, size: settings.racketSize, at: null },
           ],
           ball: {
             dir: {
               x: Math.cos(angle),
               y: Math.sin(angle)
-            }, pos: { x: 200, y: 150 }, speed: DEFAULT_BALL_SPEED, size: 6, at: null
+            }, pos: { x: 200, y: 150 }, speed: settings.ballSpeed, size: 6, at: null
           },
           ended: false
         },
         users: [user.id],
         timeout: 0 as any,
+        settings: settings,
       };
       this.games.set(client.gameId, game);
     }
@@ -450,7 +469,7 @@ export class GameSocketGateway
       return null;
 
     const pGame = game.pGame as Game & { players: PlayerGame[] };
-    const playerId: number = +(client.userId > pGame.players[0].userId);
+    const playerId: number = +(client.userId === pGame.players[1].userId);
 
     if (pGame.players[playerId].userId !== client.userId) {
       console.log('tricheur?');

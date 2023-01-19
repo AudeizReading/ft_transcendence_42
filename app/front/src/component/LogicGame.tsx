@@ -122,7 +122,7 @@ function LogicGame(props: {
         data.ball = sync2client(newData.ball);
         data.ended = newData.ended;
         setData(data);
-        const id = +(props.userId > data.users[0].id);
+        const id = +(props.userId === data.users[1].id);
         if (data.users[id].id === props.userId)
           setPlayerId(id);
       })
