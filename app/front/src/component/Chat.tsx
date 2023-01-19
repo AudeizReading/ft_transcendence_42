@@ -40,17 +40,33 @@ interface ChannelTabPanelProps {
   value: number;
   channel: ChatChannel;
   sendMessage: any;
+  current_user: ChatUser;
+  switchChannelCallback: any;
 }
 
 function ChannelTabPanel(props: ChannelTabPanelProps) {
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
 
-  	const { children, value, index, channel, sendMessage, ...other} = props;
+  	const { children, value, index, channel, sendMessage, current_user, switchChannelCallback, ...other} = props;
 
   	const [message, setMessage] = React.useState("")
 
   	const inputRef = React.useRef<HTMLInputElement>(null);
+
+	const handlePrivateMessage = async (e: any) => {
+		e.preventDefault()
+		const { user } = e.currentTarget.dataset;
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/new`, {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json',
+			  ...(fetch_opt().headers),
+			},
+			body: JSON.stringify({name: "<DM>", password: null, users: [current_user.id, user.id], visibility: "PRIVATE_MESSAGE"}),
+		});
+		switchChannelCallback(result.id)
+	}
 
 	const handleClickOnUser = (e: any) => {
 		e.preventDefault()
@@ -69,7 +85,9 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   const channel_users = channel.users.map((user) => {
 	  return (
 		<Grid item>
-			<div id={String(user.id)} onClick={handleClickOnUser} >
+			<div id={String(user.id)}
+				onClick={user.id == current_user.id ? undefined : handleClickOnUser}
+			>
 	  			<Avatar alt={user.name} src={user.avatar} />
 				<Typography>{user.name}</Typography>
 			</div>
@@ -82,10 +100,13 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			'aria-labelledby': 'basic-button',
 			}}
 			>
-			<MenuItem onClick={handleClose}>Profile</MenuItem>
-			<MenuItem onClick={handleClose}>My account</MenuItem>
-			<MenuItem onClick={handleClose}>Logout</MenuItem>
-		</Menu>
+				<MenuItem onClick={handlePrivateMessage} data-value={user}>DM</MenuItem>
+				<MenuItem onClick={handleBlock} data-value={user}>Block</MenuItem>
+				{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} data-value={user}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
+				{current_user.power !== "REGULAR" && user.power === "REGULAR" && <MenuItem onClick={handleMute} data-value={user}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
+				{current_user.power !== "REGULAR" && user.power === "REGULAR" &&  <MenuItem onClick={handleBan} data-value={user}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
+
+			</Menu>
 
 		</Grid>
 	  )

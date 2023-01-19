@@ -18,8 +18,7 @@ export class ChatService {
 				AND: [
 					{ visibility: {not: ChannelType.PRIVATE} },
 					{ visibility: {not: ChannelType.PRIVATE_MESSAGE} },
-					{users: { some: { id: {//not: user_id TODO:FIX THIS WHEN SURE ITS WORKING
-										not: 600 } } } }
+					{users: { some: { id: {not: user_id } } } }
 				]
 			}
 		})
