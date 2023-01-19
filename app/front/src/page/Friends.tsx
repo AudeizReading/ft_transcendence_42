@@ -57,7 +57,7 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
     {
       field: "buttons",
       headerName: "",
-      width: 200,
+      width: 180,
       sortable: false,
       renderCell: (params: GridRenderCellParams<Friend, Friend>) =>
         <FriendActionButtons
@@ -144,10 +144,10 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
         <DataGrid
           rows={gridRows}
           columns={gridColums}
-          autoPageSize
           disableSelectionOnClick
           disableColumnSelector
           disableColumnMenu
+          sx={{ '.MuiDataGrid-footerContainer': { display: 'none' } }}
         />
       </Box>
     </Box>
