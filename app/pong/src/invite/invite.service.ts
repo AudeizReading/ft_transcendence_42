@@ -12,17 +12,17 @@ export class InviteService
 	constructor(
 		private prisma: PrismaService,
 		private usersService: UsersService,
-    	@Inject(forwardRef(() => NotifService))
+		@Inject(forwardRef(() => NotifService))
 		private notifService: NotifService,
 		private gameService: GameService,
-	) {}
+		) {}
 
 	private readonly CLAMPS = { // min/max values for each setting
-    pointsToWin: {min: 3, max: 50},
-    pointsGap: {min: 1, max: 10},
-    ballSpeed: {min: 5, max: 100},
-    racketSize: {min: 6, max: 100},
-  };
+		pointsToWin: {min: 3, max: 50},
+		pointsGap: {min: 1, max: 10},
+		ballSpeed: {min: 5, max: 100},
+		racketSize: {min: 6, max: 100},
+	};
 
 	private async areUsersAvail(inviteData: InviteDTO)
 	{
@@ -31,7 +31,7 @@ export class InviteService
 				OR: [
 					{id: inviteData.fromID},
 					{id: inviteData.toID},
-				],
+					],
 			},
 			include: {
 				mMaking: true,
@@ -51,18 +51,18 @@ export class InviteService
 	{
 		return (
 			settings.pointsToWin >= this.CLAMPS.pointsToWin.min
-				&& settings.pointsToWin <= this.CLAMPS.pointsToWin.max
+			&& settings.pointsToWin <= this.CLAMPS.pointsToWin.max
 			
 			&& settings.ballSpeed >= this.CLAMPS.ballSpeed.min
-				&& settings.ballSpeed <= this.CLAMPS.ballSpeed.max
+			&& settings.ballSpeed <= this.CLAMPS.ballSpeed.max
 			
 			&& (settings.pointsGap === undefined ||
 				(settings.pointsGap >= this.CLAMPS.pointsGap.min
 					&& settings.pointsGap <= this.CLAMPS.pointsGap.max))
 			
 			&& settings.racketSize >= this.CLAMPS.racketSize.min
-				&& settings.racketSize <= this.CLAMPS.racketSize.max
-		);
+			&& settings.racketSize <= this.CLAMPS.racketSize.max
+			);
 	}
 
 	// TODO: Check for blocked user
@@ -127,7 +127,7 @@ export class InviteService
 				OR: [
 					{fromID: inviteData.fromID, toID: inviteData.toID},
 					{fromID: inviteData.toID, toID: inviteData.fromID},
-				]
+					]
 			}
 		});
 		const redirAction: ActionRedirContent = {
