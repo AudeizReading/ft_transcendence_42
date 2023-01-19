@@ -192,7 +192,7 @@ function LogicGame(props: {
         data.giveup++;
         console.info('giveup !?', data.giveup);
         clearTimeout(giveupTimeout.current);
-        giveupTimeout.current = setTimeout(() => data.giveup = 0, 240);
+        giveupTimeout.current = setTimeout(() => data.giveup = 0, 300);
         if (data.giveup === 3) {
           socket.emit('giveup');
         }

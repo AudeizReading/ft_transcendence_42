@@ -19,7 +19,7 @@ export class InviteService
 
 	private readonly CLAMPS = { // min/max values for each setting
 		pointsToWin: {min: 3, max: 50},
-		pointsGap: {min: 1, max: 10},
+		pointsGap: {min: 0, max: 10}, // Min is 0 and not 1 because front sends 0 if pointsGap is disabled
 		ballSpeed: {min: 5, max: 100},
 		racketSize: {min: 6, max: 100},
 	};

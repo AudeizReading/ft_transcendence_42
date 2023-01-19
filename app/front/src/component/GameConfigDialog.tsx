@@ -35,7 +35,7 @@ export default function GameConfigDialog(props: GameConfigDialogProps)
     setStatus("loading");
     const success = await props.sendInvite({
       pointsToWin,
-      pointsGap: enablePointsGap ? pointsGap : undefined,
+      pointsGap: enablePointsGap ? pointsGap : 0,
       ballSpeed,
       racketSize,
     });

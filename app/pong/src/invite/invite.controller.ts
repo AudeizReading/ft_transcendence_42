@@ -16,7 +16,7 @@ import { InviteService } from './invite.service';
 export class GameSettingsInterface {
 	pointsToWin: number;
 	ballSpeed: number;
-	pointsGap: number | undefined;
+	pointsGap: number;
 	racketSize: number;
 }
 

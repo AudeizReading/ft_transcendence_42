@@ -111,7 +111,6 @@ export class GameSocketGateway
     })();
   }
 
-  // TODO: @gphilipp: integrate me
   private async gameJustEnded(game: PlayGame, winnerId: number, loserID: number)
   {
     // NOTE: This is... not efficient, but no matter.
@@ -169,14 +168,18 @@ export class GameSocketGateway
       this.refreshBall(socket, game, { x: 0, y: 0 }, 0, 30000);
       return true
     }
-    const minPoint = game.settings.pointsToWin - game.settings.pointsGap;
     const points = game.data.points
-    if (points[0] < 0 || points[1] < 0 || (Math.min.apply(Math, points) >= minPoint
-          && game.settings.pointsGap <= Math.abs(points[0] - points[1]))) {
+    if (points[0] < 0 || points[1] < 0 || (
+      (points[0] >= game.settings.pointsToWin || points[1] >= game.settings.pointsToWin)
+      && game.settings.pointsGap <= Math.abs(points[0] - points[1])))
+    {
       game.data.ended = true;
       clearTimeout(game.timeout);
+      const winnerID = (points[0] < points[1]) ? game.data.users[1].id : game.data.users[0].id;
+      const loserID = (points[0] < points[1]) ? game.data.users[0].id : game.data.users[1].id;
       this.saveScore(game, (points[0] < points[1]) ? game.data.users[1].id : game.data.users[0].id)
       this.refreshBall(socket, game, game.data.ball.pos as Point, 0, 30000);
+      this.gameJustEnded(game, winnerID, loserID);
       return true
     }
     return false
@@ -264,6 +267,7 @@ export class GameSocketGateway
         }
         if (ms <= 0) {
           console.log('is now!');
+          clearTimeout(game.timeout);
           this.goalWillMaybeHappened(socket, game, time, i);
           break;
         }
@@ -367,7 +371,7 @@ export class GameSocketGateway
     if (game) {
       game.users.push(user.id);
     } else {
-      const angle = Math.PI / 180 * -140;//Math.PI / 180 * (Math.random() * 120 - 60 - 180); // TODO: Side random
+      const angle = this.getStarterAngle(Date.now() % 2);
       const gameOpt = (() => {
         try {
           return JSON.parse(pGame.option);
@@ -379,7 +383,7 @@ export class GameSocketGateway
       const settings: GameSettingsInterface = {
         pointsToWin: ('pointsToWin' in gameOpt) ? gameOpt.pointsToWin : 11,
         pointsGap: ('pointsGap' in gameOpt) ? gameOpt.pointsGap : 2,
-        ballSpeed: ('ballSpeed' in gameOpt) ? 80 + gameOpt.ballSpeed * 200 : 130,
+        ballSpeed: ('ballSpeed' in gameOpt) ? 80 + gameOpt.ballSpeed * 2 : 130,
         racketSize: ('racketSize' in gameOpt) ? gameOpt.racketSize : 40,
       };
       game = {
@@ -423,10 +427,7 @@ export class GameSocketGateway
     this.planeCollisionChecking(socket, game);
 
     socket.join(`game-${client.gameId}`);
-    if (logicState === 'STARTING')
-      this.sendGameData(socket, game);
-    else if (logicState === 'PLAYING')
-      socket.emit('dataGame', game.data);
+    this.sendGameData(socket, game);
   }
 
   @UseGuards(JwtAuthGuard)

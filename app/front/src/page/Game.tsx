@@ -31,8 +31,8 @@ function Game(props: {
       <Box component="div" sx={{ maxWidth: 400, mx: 'auto' }}>
         <link rel="stylesheet" href="https://unpkg.com/keyboard-css@1.2.4/dist/css/main.min.css" />
         <p>Bonne chance !</p>
-        <p><kbd className="kbc-button">Z</kbd>, <kbd className="kbc-button">W</kbd>, <kbd className="kbc-button">^</kbd> : Aller vers le haut</p>
-        <p><kbd className="kbc-button">S</kbd>, <kbd className="kbc-button">v</kbd> : Aller vers le bas</p>
+        <p><kbd className="kbc-button">Z</kbd>, <kbd className="kbc-button">W</kbd>, <kbd className="kbc-button">↑</kbd> : Aller vers le haut</p>
+        <p><kbd className="kbc-button">S</kbd>, <kbd className="kbc-button">↓</kbd> : Aller vers le bas</p>
         <p><kbd className="kbc-button">F8</kbd>x3 : Pour abandonner.</p>
       </Box>
     </Box>

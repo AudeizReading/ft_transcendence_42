@@ -1,6 +1,6 @@
 export default interface GameSettingsInterface {
   pointsToWin: number,
   ballSpeed: number,
-  pointsGap: number | undefined,
+  pointsGap: number,
   racketSize: number,
 }
