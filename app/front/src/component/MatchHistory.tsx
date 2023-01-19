@@ -45,8 +45,9 @@ const columns: GridColDef[] = [
     field: 'players',
     headerName: 'Joueurs',
     width: 350,
-    disableColumnMenu: true,
     sortable: false,
+    valueGetter: (params: GridValueGetterParams<GameInterface, GameInterface>) =>
+      (`${params.row.players[0].name} ${params.row.players[1].name}`),
     renderCell: (params: GridRenderCellParams<GameInterface, GameInterface>) => (
       params.row.players.map( (player) =>
         <UserButton key={player.id} noBadge cropName={12} {...player} sx={{mr: 2}} /> )
