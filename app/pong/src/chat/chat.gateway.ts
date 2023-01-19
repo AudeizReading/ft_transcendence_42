@@ -87,11 +87,13 @@ export class ChatGateway
 		}
 		console.log(user.name, 'has joined the chats.');
 
+		const ids = await this.chatService.getChannelsIds(user.id)
 		const client: ChatClient = {
 			userId: user.id,
-			channelIds: await this.chatService.getChannelsIds(user.id),
+			channelIds: ids,
 			socketId: socket.id,
 		};
+		socket.join(ids.map((id) => "channel-"+id));
 		this.clients.set(client.socketId, client);
 	}
 
@@ -101,6 +103,7 @@ export class ChatGateway
 	  const user = await this.getUserWithToken(socket);
 	  if (!this.clients.get(socket.id)) return;
 	  this.clients.delete(socket.id);
+	  console.log("Disconnection", this.clients.size)
 	}	
 
 	getSocketIdByUserId(id: number)
@@ -117,14 +120,16 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_add', channel_id);
+		this.server.sockets.sockets.get(sockId).join("channel-"+channel_id)
+		this.server.to("channel-"+channel_id).emit('channel_add', user_id, channel_id);
 	}
 	async onChannelRemove(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_remove', channel_id);
+		await this.server.to("channel-"+channel_id).emit('channel_remove', user_id, channel_id);
+		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
 	}
 	async onChannelMute(user_id: number, channel_id: number)
 	{
@@ -145,14 +150,14 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_promote', channel_id);
+		this.server.to("channel-"+channel_id).emit('channel_promote', user_id, channel_id);
 	}
 	async onChannelDemote(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_demote', channel_id);
+		this.server.to("channel-"+channel_id).emit('channel_demote', user_id, channel_id);
 	}
 
 	@SubscribeMessage('send_message')
@@ -161,6 +166,8 @@ export class ChatGateway
 		@ConnectedSocket() socket: SocketUserAuth,
 		@MessageBody(new ValidationPipe({ transform: true })) messageDto: SendMessageDto)
 	{
+		console.log("Received a message", messageDto)
+
 		// Trying to send to a channel the user is not part of
 		if (!this.clients.get(socket.id).channelIds.includes(messageDto.channel))
 			return ;
@@ -171,10 +178,6 @@ export class ChatGateway
 			return ;
 
 		// Tell every connected socket to receive that message
-		for (const e of this.clients[Symbol.iterator]()) {
-		  if (e[1].channelIds.includes(messageDto.channel))
-		  	this.server.to(e[1].socketId).emit('recv_msg', message);
-		}
-	
+		this.server.to("channel-"+message.channelId).emit('recv_msg', message);	
 	}
 }

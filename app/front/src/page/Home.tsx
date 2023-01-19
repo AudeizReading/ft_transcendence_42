@@ -88,7 +88,6 @@ function Home(props: {
         <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center',}}>
           <DateTime component="h2" time={time}/>
         </UnstableGrid>
-		<ChatComponent />
         <UnstableGrid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
           <UnstableGrid xs={8} sm={5} xsOffset={2} smOffset={7} 
             sx={{
@@ -206,6 +205,7 @@ function Home(props: {
         <Fade in={true} timeout={400}>{gridNotLogged}</Fade>
         :
         <React.Fragment>
+		<ChatComponent />
         <Box sx={{
           display: 'flex', 
           height: '100%', 

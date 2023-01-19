@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotAcceptableException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma.service';
 import { ChannelType, ChannelUserPower, Prisma } from '@prisma/client';
@@ -11,6 +11,39 @@ import { ChatGateway } from './chat.gateway';
 export class ChatService {
   constructor(private prisma: PrismaService)
   {}
+
+  	async getJoinableChannels(user_id: number) {
+		return this.prisma.chatChannel.findMany({
+			where: {
+				AND: [
+					{ visibility: {not: ChannelType.PRIVATE} },
+					{ visibility: {not: ChannelType.PRIVATE_MESSAGE} },
+					{users: { some: { id: {//not: user_id TODO:FIX THIS WHEN SURE ITS WORKING
+										not: 600 } } } }
+				]
+			}
+		})
+	}
+
+
+	async getAddableUsers(channel_id: number, current_user_id: number) {
+		if (channel_id === -1)
+		{
+			return await this.prisma.user.findMany({
+				where: {
+					id: {
+						not: current_user_id
+					}
+				},
+				select: {
+					id: true,
+					name: true,
+					avatar: true
+				}
+			})
+		}
+  	}
+
 
   //TODO: Sanitize input so it doesnt have XSS
   async sendMessage(id: number, channel: number, content: string) {
@@ -375,18 +408,35 @@ export class ChatService {
 			},
 			select: {
 				name: true,
-				messages: true,
+				visibility: true,
 				users: {
 					select: {
 						user: {
 							select: {
 								id: true,
-								name: true
+								name: true,
+								avatar: true
 							}
-						}
+						},
+						power: true
 					}
 				},
-				visibility: true
+				messages: {
+					select: {
+						sender: {
+							select: {
+								user: {
+									select: {
+										name: true
+									}
+								}
+							}
+						},
+						content: true,
+						sent_at: true
+					},
+					take: -100
+				}
 			}
 		})
   }

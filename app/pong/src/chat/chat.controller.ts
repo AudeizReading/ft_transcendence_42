@@ -19,6 +19,12 @@ export class ChatController {
 	  return this.chatService.fetchChannels(req.user.id);
 	}
 
+	@Get('all_joinable')
+	@UseGuards(JwtAuthGuard)
+	async getJoinableChannels(@Request() req) {
+		return this.chatService.getJoinableChannels(req.user.id);
+	}
+
 	/* 
 		Get messages for channel,
 		can return 404, 401 and 200
@@ -33,7 +39,7 @@ export class ChatController {
 		Create a channel
 	*/
 	@Post('channel/new')
-	//@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtAuthGuard)
 	async createNewChannel(@Request() req, @Body(new ValidationPipe({ transform: true })) createDto: CreateChannelDto)
 	{
 		return this.chatService.createChannel(createDto, req.user.id)
@@ -70,6 +76,17 @@ export class ChatController {
 		return this.chatService.updateChannel(id, updateDto, req.user.id, this.chatGateway)
 	}
 	
+	/*
+		Get users that are addable to a channel.
+	*/
+	@Get('channel/:id/addable_users')
+	@UseGuards(JwtAuthGuard)
+	async getAddableUsers(@Request() req, @Param('id', ParseIntPipe) id: number)
+	{
+		return this.chatService.getAddableUsers(id, req.user.id);
+	}
+
+
 	/*
 		Leaves a channel.
 	*/
