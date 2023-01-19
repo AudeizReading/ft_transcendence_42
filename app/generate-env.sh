@@ -27,10 +27,10 @@ N_USER=user
 N_PASS="$(openssl rand -base64 12)"
 
 #PSQL         TODO: For prod (in Docker) change 'localhost' by 'psql'
-PSQL_HOST=localhost
+PSQL_HOST=psql
 PSQL_DATABASE=pong
 PSQL_USER=pong
 PSQL_PASSWORD="$PSQL_PWD"
-PSQL_URL="postgresql://pong:$(urlencode "$PSQL_PWD")@localhost:5432/pong"
+PSQL_URL="postgresql://pong:$(urlencode "$PSQL_PWD")@psql:5432/pong"
 EOF
 fi

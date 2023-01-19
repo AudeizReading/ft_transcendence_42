@@ -3,7 +3,7 @@
 ## Installation:
 
  - Prerequis version node: v16.17.0
- - timeout command `brew install coreutils
+ - timeout command `brew install coreutils`
 
 ### Back
 
@@ -25,7 +25,7 @@ If you want to read about: [How to make a migration?](https://docs.nestjs.com/re
 ### How to run project for dev ?
 
 Open 3 terminal session:
- - `make` to run docker and database ;
+ - `make run_psql` to run docker and database ;
  - `make run_front` to run front (React) ;
  - `make run_back` to run back (Nestjs).
 

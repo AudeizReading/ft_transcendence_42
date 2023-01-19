@@ -1,11 +1,16 @@
-FROM node:16.17.1
-# https://nodejs.org/fr/docs/guides/nodejs-docker-webapp/
+FROM alpine:3.17
+
+RUN apk update
+
+RUN apk add bash
+RUN apk add nginx
 
 # Create app directory
 WORKDIR /usr/src/app
+COPY ./build/ ./front/
+
+ADD ./nginx/default.conf /etc/nginx/http.d/
 
 EXPOSE 3000
 
-ADD ./node-entrypoint.sh .
-ENTRYPOINT ["./node-entrypoint.sh"]
-CMD [ "npm", "start" ]
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

@@ -1,26 +1,24 @@
-FROM node:16.17.1
-# https://nodejs.org/fr/docs/guides/nodejs-docker-webapp/
+FROM alpine:3.17
+
+RUN apk update
+
+RUN apk add bash
+
+# https://git.alpinelinux.org/aports/log/main/nodejs
+RUN addgroup -g 1000 node \
+    && adduser -u 1000 -G node -s /bin/bash -D node \
+    && apk add nodejs==18.12.1-r0 npm==9.1.2-r0 \
+    && echo "node : $(node --version) npm : $(npm --version)"
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-# Uncomment for vogsphere + disable volume
-# COPY package*.json ./
+COPY . ./pong/
 
-# Uncomment for vogsphere + disable volume
-# RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
-
-# Bundle app source
-# Uncomment for vogsphere + disable volume
-# COPY . .
+RUN cd pong && npm install
 
 EXPOSE 8190
 
 ADD ./node-entrypoint.sh .
 ENTRYPOINT ["./node-entrypoint.sh"]
-CMD [ "npm", "run", "start:dev" ]
+CMD [ "npm", "run", "start:prod" ]
