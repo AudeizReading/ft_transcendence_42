@@ -19,6 +19,7 @@ import { DataGame, DataElement, DataUser, Point, pl_intersect,
          Plane, pl_time_to_vector, check_segment_collision, v_norm } from './dep/minirt_functions'
 import { UsersService } from '../users/users.service';
 import { GameSettingsInterface } from '../invite/invite.controller';
+import { NotifService } from 'src/notif/notif.service';
 
 interface Client {
   userId: number;
@@ -86,6 +87,7 @@ export class GameSocketGateway
     private jwtStrategy: JwtStrategy,
     private gameService: GameService,
     private usersService: UsersService,
+    private notifsService: NotifService,
   ) {}
 
   @WebSocketServer()
@@ -111,6 +113,7 @@ export class GameSocketGateway
     })();
   }
 
+  // To call when game has ended
   private async gameJustEnded(game: PlayGame, winnerId: number, loserID: number)
   {
     // NOTE: This is... not efficient, but no matter.
@@ -120,10 +123,14 @@ export class GameSocketGateway
         {primary: "Point faible : trop fort", secondary: "Gagnez une partie de pong"});
     
     const [pointsA, pointsB] = game.data.points;
-    if (pointsA <= 0 || pointsB <= 0) {
-      this.usersService.addAchivement({id: pointsA === 0 ? game.users[1] : game.users[2]},
+    if (pointsA == 0 || pointsB == 0) {
+      this.usersService.addAchivement({id: winnerId},
         {primary: "lmao gg ez", secondary: "Écrasez votre adversaire à pong"});
     }
+    setTimeout(() => {
+      this.notifsService.createAction(winnerId, {url: '/', type: 'redir'});
+      this.notifsService.createAction(loserID, {url: '/', type: 'redir'});
+    }, 5000);
   }
 
   sendGameData(socket: Socket, game: PlayGame) {
