@@ -246,7 +246,7 @@ function App() {
           <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/ladder" element={<Ladder users={[]} />} />
+          <Route path="/ladder" element={<Ladder currentUserID={user.id} />} />
 
           <Route path="/auth" element={<Auth />} />
 

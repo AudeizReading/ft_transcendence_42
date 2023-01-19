@@ -67,7 +67,7 @@ interface UserInfo {
 }
 
 export interface LadderProps {
-  users: UserInfo[]
+  currentUserID: number,
 }
 
 // TODO: useState with call to backend, to avoid too many calls when re-rendering
@@ -139,7 +139,11 @@ export default function Ladder(props: LadderProps)
           disableSelectionOnClick
           disableColumnSelector
           disableColumnMenu
-          sx={{ '.MuiDataGrid-footerContainer': { display: 'none' } }}
+          sx={{
+            '.MuiDataGrid-footerContainer': { display: 'none' },
+            '& .grid-highlight': { bgcolor: '#dcf2f6' },
+          }}
+          getRowClassName={(params) => params.row.id === props.currentUserID ? "grid-highlight" : ""}
         />
       </Box>
     </Box>

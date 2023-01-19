@@ -13,7 +13,7 @@ const columns: GridColDef[] = [
     description: 'Le score du match',
     width: 100,
     valueGetter: (params: GridValueGetterParams) =>
-      `${params.row.scores[0]} - ${params.row.scores[1]}`,
+      `${params.row.scores[0]} | ${params.row.scores[1]}`,
     sortable: false,
     align: 'center',
     headerAlign: 'center',
@@ -45,7 +45,7 @@ const columns: GridColDef[] = [
   {
     field: 'players',
     headerName: 'Joueurs',
-    width: 370,
+    width: 350,
     disableColumnMenu: true,
     sortable: false,
     renderCell: (params: GridRenderCellParams<GameInterface, GameInterface>) => (
@@ -90,9 +90,9 @@ function Score() {
         <DataGrid
           rows={rows}
           columns={columns}
-          autoPageSize
           disableSelectionOnClick
           disableColumnSelector
+          sx={{ '.MuiDataGrid-footerContainer': { display: 'none' } }}
         />
       </Box>
     </Box>

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } from '@mui/x-data-grid';
 
 import { fetch_opt } from '../dep/fetch'
@@ -12,7 +12,7 @@ const columns: GridColDef[] = [
     description: 'Le score du match',
     width: 100,
     valueGetter: (params: GridValueGetterParams) =>
-      `${params.row.scores[0]} - ${params.row.scores[1]}`,
+      `${params.row.scores[0]} | ${params.row.scores[1]}`,
     sortable: false,
     align: 'center',
     headerAlign: 'center',
@@ -44,7 +44,7 @@ const columns: GridColDef[] = [
   {
     field: 'players',
     headerName: 'Joueurs',
-    width: 370,
+    width: 350,
     disableColumnMenu: true,
     sortable: false,
     renderCell: (params: GridRenderCellParams<GameInterface, GameInterface>) => (
@@ -54,8 +54,6 @@ const columns: GridColDef[] = [
   },
 ];
 
-// "deps" corresponds to the React useEffect dependancies. You can add some more
-// to trigger re-renders, or leave it empty.
 interface MatchHistoryProps {
   userID: number,
   deps: number[],
@@ -64,25 +62,21 @@ interface MatchHistoryProps {
 export default function MatchHistory(props: MatchHistoryProps)
 {
   const [rows, setRows] = useState([] as GameInterface[]);
-  const fetching = useRef(0);
 
   useEffect(() => {
-    if (fetching.current + 4000 > +new Date())
-      return ;
-    fetching.current = +new Date();
     fetch(`http://${window.location.hostname}:8190/user/${props.userID}/games`, fetch_opt())
       .then(res => res.json())
       .then(res => setRows(res))
       .catch(() => {});
-  }, [props.userID, props.deps]);
+  }, [props.userID]);
 
   return (
     <DataGrid
       rows={rows}
       columns={columns}
-      autoPageSize
       disableSelectionOnClick
       disableColumnSelector
+      sx={{ '.MuiDataGrid-footerContainer': { display: 'none' } }}
     />
   );
 }
