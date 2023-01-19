@@ -116,7 +116,7 @@ export class UsersService {
     }
     // Still need to sort to have most recent first (id won't sort them completely, it
     // correlates to start time, not end time)
-    return parsed.sort((a, b) => (b.winnedAt.getTime() - a.winnedAt.getTime()));
+    return parsed.sort((a, b) => (b.winnedAt?.getTime() - a.winnedAt?.getTime()));
   }
 
   async getUserStatusFromID(userID: number): Promise<"offline" | "online" | "playing">
