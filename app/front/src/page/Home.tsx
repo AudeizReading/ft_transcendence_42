@@ -34,11 +34,19 @@ const BoxPaper = styled(Paper)(({ theme }) => ({
     margin: 0,
     padding: 0,
     fontWeight: 700,
-    marginTop: '70%',
+    marginTop: '75%',
     display: 'block',
-    textAlign: 'center'
+    textAlign: 'center',
   }
 }));
+
+const BoxPaperSx = {
+  minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+  minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+  maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+  maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
+  fontSize: { xs: '3.7vi', sm: '3vi', md: '2.4vi'},
+};
 
 const RandomMessagesBox = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(0,0,0,0.4)',
@@ -159,13 +167,7 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: '100%, cover',
-        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        '& > p': {
-          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
-        }
+        ...BoxPaperSx
       },
       child: {sx: {},},
       name:'JOUER',
@@ -179,16 +181,7 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
-        transform: 'rotate3d(0, 1, 0, 180deg)',
-        boxShadow: '1px -4px 12px #3F528C',
-        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        '& > p': {
-          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
-          transform: 'rotate3d(0, 1, 0, 180deg)',
-        }
+        ...BoxPaperSx
       },
       child: {
         sx: {},
@@ -203,13 +196,7 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
-        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        '& > p': {
-          fontSize: { xs: '4vi', sm: '3.75vi', md: '3.5vi'},
-        }
+        ...BoxPaperSx
       },
       child: {sx:{},},
       name: 'AMIS',
@@ -222,17 +209,10 @@ function Home(props: {
         backgroundPosition: 'center 80%',
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
-        minWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        minHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxWidth: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        maxHeight: { xs: '25vw', sm: '20.5vw', md: '17vw'},
-        '& > p': {
-          fontSize: { xs: '4vi', sm: '3.65vi', md: '3.4vi'},
-          mx: '2.5%',
-        }
+        ...BoxPaperSx
       },
       child: {sx:{},},
-      name: 'PARAMÈTRES',
+      name: 'OPTIONS',
       url: '/settings/',
       uid: 'options',
     },

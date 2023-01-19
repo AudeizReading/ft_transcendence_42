@@ -46,7 +46,7 @@ export class FriendService {
       },
     });
     this.notif.createNotif(userBId, {
-      text: `${userA_name} vous a envoyé une demande d'ami`,
+      text: `${userA_name} vous a envoyé une demande d'ami.`,
       url: `user/${userAId}`,
     });
     return newFrienship;

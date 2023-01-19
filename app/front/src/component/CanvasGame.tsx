@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, DataGame, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
+import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
 import LogicGame, { getPlayerPosition, getBallPosition, DataGameForCanvas } from './LogicGame';
 
 function draw(context: CanvasRenderingContext2D, tick: number, data: DataGameForCanvas, gameId: string | number) {

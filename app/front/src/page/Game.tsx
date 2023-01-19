@@ -23,12 +23,12 @@ function Game(props: {
   }, [props, gameid, message]);
 
   return (
-    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', }}>
+    <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', color: 'black' }}>
       {props.loaded && (gameid
         ? <CanvasGame userId={props.user.id} gameId={gameid} playable border="3px solid black" />
-        : <Box component="p">{message || 'loading…'}</Box>
+        : <Box component="p" sx={{ maxWidth: 400, mx: 'auto' }}>{message || 'loading…'}</Box>
       )}
-      <Box component="div" sx={{ maxWidth: 400, mx: 'auto', color: 'black' }}>
+      <Box component="div" sx={{ maxWidth: 400, mx: 'auto' }}>
         <link rel="stylesheet" href="https://unpkg.com/keyboard-css@1.2.4/dist/css/main.min.css" />
         <p>Bonne chance !</p>
         <p><kbd className="kbc-button">Z</kbd>, <kbd className="kbc-button">W</kbd>, <kbd className="kbc-button">^</kbd> : Aller vers le haut</p>

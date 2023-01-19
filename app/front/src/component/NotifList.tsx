@@ -63,7 +63,11 @@ function NotifListItemButton(props: {
       // Make this a RouterLink only if there's a URL in the notif
       { ...(props.notif.url ? {component: RouterLink, to: props.notif.url} : {}) }
     >
-      <Box sx={{color: props.notif.read ? 'grey' : 'text.primary', whiteSpace: 'normal'}} >
+      <Box sx={{
+          color: props.notif.read ? 'grey' : 'text.primary',
+          whiteSpace: 'normal',
+          mx: '2px'
+        }}>
         {props.notif.text}
       </Box>        
       <Box sx={{ color: 'text.secondary', fontSize: 11, textAlign: 'right' }} >
