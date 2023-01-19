@@ -180,11 +180,15 @@ export class FriendService {
           gameID: getGameID(user.games),
         } as FriendForFront;
       })
-      .sort((a, b) => { // Sorts in the order described in the array
+      .sort((a, b) => { // Sorts in the order described in the array, and by name
         const statusOrder = ["pending", "accepted", "requested"];
         const statusA = statusOrder.findIndex((status) => status === a.friend_status);
         const statusB = statusOrder.findIndex((status) => status === b.friend_status);
-        return statusA - statusB;
+        if (statusA < statusB)
+          return -1;
+        if (statusA > statusB)
+          return 1;
+        return a.name.localeCompare(b.name) < 0 ? -1 : 1;
     });
 
     return friends;

@@ -23,6 +23,7 @@ import LoadingButton from '../component/LoadingButton';
 import { fetch_opt } from '../dep/fetch';
 import GameConfigDialog from '../component/GameConfigDialog';
 import GameSettingsInterface from '../interface/GameSettingsInterface';
+import { VisibilityOff } from '@mui/icons-material';
 
 // ========================================================================== //
 // ========================================================================== //
@@ -73,10 +74,11 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
 
   const [search, setSearch] = useState("");
   const [addingFriend, setAddingFriend] = useState(false); // Turns on or off popup
+  const [hideOffline, setHideOffline] = useState(false);
   // Filter the rows of the table with the search bar
-  const gridRows = props.user.friends.filter(
-    (row: Friend) => row.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const gridRows = props.user.friends.filter((friend) =>
+      friend.name.toLowerCase().includes(search.toLowerCase())
+  ).filter(friend => hideOffline && friend.status === "offline" ? false : true);
 
   return (
     <Box component="main" sx={{ p: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', }} >
@@ -109,6 +111,24 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
           onClick={(e: any) => setAddingFriend(true)}
         >
           Ajouter un ami
+        </Button>
+      </Box>
+
+      <Box display="flex" alignItems="center"
+        sx={{
+          maxWidth: 800,
+          width: '100%',
+          mx: 'auto',
+          mb: 1
+        }}
+      >
+        <Button
+          sx={{m: 'auto'}}
+          variant="outlined"
+          startIcon={hideOffline ? <VisibilityIcon/> : <VisibilityOff/>}
+          onClick={() => setHideOffline(!hideOffline)}
+        >
+          {`${hideOffline ? "Afficher" : "Cacher"} les amis hors-ligne`}
         </Button>
       </Box>
 
