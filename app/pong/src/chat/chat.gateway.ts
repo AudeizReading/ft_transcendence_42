@@ -122,6 +122,7 @@ export class ChatGateway
 			return ;
 		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
 		this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
+		this.clients.get(sockId).channelIds.push(channel_id)
 	}
 	async onChannelRemove(user_id: number, channel_id: number)
 	{
@@ -130,6 +131,7 @@ export class ChatGateway
 			return ;
 		await this.server.to("channel-"+channel_id).emit('channel_remove', {user: user_id, channel: channel_id});
 		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
+		this.clients.get(sockId).channelIds = this.clients.get(sockId).channelIds.filter((e) => e !== channel_id);
 	}
 	async onChannelMute(user_id: number, channel_id: number)
 	{
