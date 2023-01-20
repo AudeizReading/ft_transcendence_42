@@ -188,6 +188,7 @@ export class ChatService {
 			}
   }
 
+  //TODO: Fix deletion of channeluser without deleting its messages
   async leaveChannel(channel_id: number, user_id: number) {
 		try
 		{
@@ -239,6 +240,7 @@ export class ChatService {
 							power: ChannelUserPower.OWNER
 						}
 					})
+
 				}
 				else // No other user -> delete channel
 				{

@@ -168,6 +168,9 @@ export class ChatGateway
 	{
 		console.log("Received a message", messageDto)
 
+		if (!messageDto.content.trim().length)
+			return ;
+
 		// Trying to send to a channel the user is not part of
 		if (!this.clients.get(socket.id).channelIds.includes(messageDto.channel))
 			return ;
