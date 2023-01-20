@@ -314,21 +314,18 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
 	  return (
-			// <React.Fragment key={idx} >
-			<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red'}}>
+			<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red', cursor: 'pointer'}}>
 				<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
 				text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
 				<Grid item>
 					<div id={String(user.id)}
 						onClick={user.id == current_user.id ? undefined : handleClickOnUser}
 					>
-							<Avatar alt={user.name} src={user.avatar} />
-						<Typography>{user.name}</Typography>
-						{/* {user.name} */}
+						<Avatar alt={user.name} src={user.avatar} />
+						{user.name}
 					</div>
 				</Grid>
 			</div>
-			// </React.Fragment>
 	  )
   })
 
@@ -345,12 +342,9 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	};
 
   const channel_chat_interface = ( 
-		// <Grid container item>
 	  <div style={{border: "solid", borderColor: "green", maxHeight: '100%', /* overflow: 'auto', wordWrap: 'break-word' */}}>
 			<div style={{border: "solid", borderColor: "cyan", maxHeight: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
-				{/* <Grid container direction="column"> */}
-					{msgList}
-				{/* </Grid> */}
+				{msgList}
 			</div>
 			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue", position: "relative", bottom: 0}}>
 				<Grid container direction="row" spacing={1} >
@@ -375,7 +369,6 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 				</Grid>
 			</form>
 	  </div>
-		// </Grid>
   )
 
   return (
@@ -383,7 +376,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			role="tabpanel"
 			hidden={value !== index}
 			id={`vertical-tabpanel-${index}`}
-			style={{border: "dashed", borderColor: "yellow", /* height: 'calc(100vh - 100px)', */ /* overflow: 'auto', overflowBlock: 'auto' */}}
+			style={{border: "dashed", borderColor: "yellow"}}
 			{...other}
 		>
 			{value === index && (
@@ -1014,11 +1007,8 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		const tabs = this.generateChat();
 		
 		return (
-			<Box sx={{ /* flexGrow: 1, display: 'flex', */ height: '70%'}}>
+			<Box>
 				{tabs}
-			  	{/* <Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
-						<ChatIcon />
-			  	</Fab>	   */}
 			</Box>
 		  );			
 	}
