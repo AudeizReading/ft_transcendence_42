@@ -17,7 +17,7 @@ export default function ChatPage(props: ChatPageProps)
   }, [props.userID]);
 
   return (
-    <Box component="main" sx={{p: 1, background: 'white', color: 'black'}}>
+    <Box component="main" sx={{p: 1, height: '100vh', overflow: 'auto', background: 'white', color: 'black'}}>
       { loaded ?
         <ChatComponent user_id={props.userID} />
         : null
