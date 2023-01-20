@@ -171,7 +171,7 @@ function Play(props: {
   `;
 
   return (
-    <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: '#dcf2f6', }}>
+    <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: '#dcf2f6', color: 'black' }}>
       <Box>
         <Grid container sx={{
           display: 'flex',
