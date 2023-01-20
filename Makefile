@@ -11,14 +11,15 @@ all: $(NAME)
 re: fclean
 	make all
 
-$(NAME): clean setup_env build_front build_back
+$(NAME): 
 	make build
 	make up
 
-build:
+build: setup_env build_front build_back
+	#make clean_back # To be sure to not COPY node_module in docker image
 	docker-compose -f app/docker-compose.yml --env-file=app/pong/.env build
 
-up:
+up: setup_env
 	docker-compose -f app/docker-compose.yml --env-file=app/pong/.env up
 
 $(DIST_FRONT):
@@ -57,22 +58,27 @@ build_back: $(DIST_BACK)
 build_dist: build_front build_back
 
 #TODO: Make clean delete docker-compose stuff correctly and also make clean delete db storage, maybe use a real docker volume instead of bind mount??
-clean:
-	rm -rf ./app/front/node_modules
-	rm -rf ./app/pong/node_modules
+clean: clean_front clean_back
 
 clean_front:
-	rm -rf $(DIST_FRONT)
+	rm -rf ./app/front/node_modules
+
 
 clean_back:
+	rm -rf ./app/pong/node_modules
+
+fclean_front:
+	rm -rf $(DIST_FRONT)
+
+fclean_back:
 	rm -rf $(DIST_BACK)
 
-clean_dist: clean_front clean_back
+fclean_dist: fclean_front fclean_back
 
-fclean: clean_dist clean
+fclean: fclean_dist clean
 	rm -rf $(ENV_PATH)
 
 # clean_docker:
 #   docker kill $(docker ps -q); docker rm -vf $(docker ps -aq); docker rmi -f $(docker images -aq)
 
-.PHONY: all re $(NAME) build up setup_env mode_back_front mode_cmd_pong build_front build_back build_dist clean fclean clean_front clean_back clean_dist #clean_docker
+.PHONY: all re $(NAME) build up setup_env mode_back_front mode_cmd_pong build_front build_back build_dist clean fclean fclean_front fclean_back clean_front clean_back fclean_dist #clean_docker
