@@ -3,7 +3,7 @@ version: '3.1'
 services:
   psql:
     container_name: psql
-    image: postgres
+    image: postgres:15-alpine3.17
     restart: on-failure
     env_file: pong/.env
     networks:
