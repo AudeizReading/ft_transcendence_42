@@ -312,20 +312,24 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
-	  return (
-			<div key={idx}>
-				<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
-				text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
-				<Grid item>
-					<div id={String(user.id)}
-						onClick={user.id == current_user.id ? undefined : handleClickOnUser}
-					>
+	  	if (!user.banned || current_user.power !== "REGULAR")
+		{
+			return (
+				<div key={idx}>
+					<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
+					text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
+					<Grid item>
+						<div id={String(user.id)}
+							onClick={user.id == current_user.id ? undefined : handleClickOnUser}
+						>
 							<Avatar alt={user.name} src={user.avatar} />
-						<Typography>{user.name}</Typography>
-					</div>
-				</Grid>
-			</div>
-	  )
+							<Typography sx={user.banned && {textDecoration: "line-through"}}>{user.name}</Typography>
+						</div>
+					</Grid>
+				</div>
+			)
+		}
+		return (<></>)
   })
 
   const send_message = async () => {
