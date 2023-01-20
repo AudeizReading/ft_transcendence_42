@@ -6,20 +6,24 @@ import { ChannelType, ChannelUserPower, Prisma } from '@prisma/client';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto, UpdateChannelOperator } from './dto/update-channel.dto';
 import { ChatGateway } from './chat.gateway';
+import { CronJob } from 'cron';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+
+interface Expirable {expiration: Date, user: number, channel: number, operation: string, chatGateway: ChatGateway}
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService)
+  constructor(private prisma: PrismaService,
+			private schedulerRegistry: SchedulerRegistry)
   {}
 
-	//TODO: Fix thsi giving all channels even if im already in
   	async getJoinableChannels(user_id: number) {
 		return this.prisma.chatChannel.findMany({
 			where: {
 				AND: [
 					{ visibility: {not: ChannelType.PRIVATE} },
 					{ visibility: {not: ChannelType.PRIVATE_MESSAGE} },
-					{users: { some: { id: {not: user_id } } } }
+					{users: { every: { userId: {not: user_id } } } }
 				]
 			}
 		})
@@ -71,7 +75,6 @@ export class ChatService {
 	}
 
 
-  //TODO: Sanitize input so it doesnt have XSS
   async sendMessage(id: number, channel: number, content: string) {
 	const user = await this.prisma.channelUser.findUnique({where: {userId_channelId: {userId: id, channelId: channel}}});
 	if (user.ban_expiration || user.mute_expiration)
@@ -127,7 +130,6 @@ export class ChatService {
 		return (cu);
   }
 
-  	//TODO: Fix uniqueness on wrong parameters in prisma
 	async createChannel(createDto: CreateChannelDto, user_id: number, chatGateway: ChatGateway) {
 		const data = [...new Set(createDto.users)].map(obj => ({userId: obj, power: ChannelUserPower.REGULAR}))
 		
@@ -198,8 +200,33 @@ export class ChatService {
 			}
   }
 
-  //TODO: Fix deletion of channeluser without deleting its messages
-  async leaveChannel(channel_id: number, user_id: number) {
+  async getAllExpirable()
+  {
+	const data = await this.prisma.channelUser.findMany({
+		where: {
+			OR: [
+				{mute_expiration: {not: null}},
+				{ban_expiration: {not: null}}
+			]
+		},
+		select: {
+			userId: true,
+			channelId: true,
+			mute_expiration: true,
+			ban_expiration: true,
+		}
+	})
+	let expirables: any[] = [];
+	data.forEach((e) => {
+		if (e.mute_expiration)
+			expirables.push({operation: "REVOKE_MUTE", expiration: e.mute_expiration, user: e.userId, channel: e.channelId})
+		if (e.ban_expiration)
+			expirables.push({operation: "REVOKE_BAN", expiration: e.ban_expiration, user: e.userId, channel: e.channelId})
+	})
+	return (expirables)
+  }
+
+  async leaveChannel(channel_id: number, user_id: number, gateway: ChatGateway) {
 		try
 		{
 			// Make sure user can leave the channel
@@ -225,12 +252,20 @@ export class ChatService {
 					}*/
 				}
 			})
+			// TODO: Fix this so we can leave and keep messages
 			// Delete user
+			await this.prisma.chatMessage.deleteMany({
+				where: {
+					sender: {userId: user_id},
+					channelId: channel_id
+				}
+			})
 			const user = await this.prisma.channelUser.delete({
 				where: {
 					userId_channelId: {userId: user_id, channelId: channel_id}
 				}
 			})
+			gateway.onChannelRemove(user_id, channel_id);
 			/* If user who left was owner */
 			if (user.power == ChannelUserPower.OWNER)
 			{
@@ -274,9 +309,6 @@ export class ChatService {
 		try
 		{
 			// Get the user performing the action
-			const user = await this.prisma.channelUser.findUniqueOrThrow({
-				where: {userId_channelId: {userId: user_id, channelId: channel_id}}
-			})
 			const channel = await this.prisma.chatChannel.findFirstOrThrow({
 				where: {
 					id: channel_id,
@@ -285,21 +317,27 @@ export class ChatService {
 					}
 				}
 			})
-			// Permission check on the user trying to perform a modification on the channel
-			if (user.power != ChannelUserPower.OWNER
-			&& ( (user.power == ChannelUserPower.REGULAR
-						&& updateDto.operation != UpdateChannelOperator.ADD_USER)
-				|| (user.power == ChannelUserPower.ADMINISTRATOR
-						&& (updateDto.operation === UpdateChannelOperator.CHANGE_PASSWORD 
-						|| updateDto.operation === UpdateChannelOperator.ADD_ADMIN
-						|| updateDto.operation === UpdateChannelOperator.REMOVE_ADMIN))
-					)
-				)
+			let user: any;
+			if (user_id !== -1)
 			{
-				console.log("user power not enough", user, updateDto.operation, updateDto.parameter, updateDto.parameter_2)
-				throw new HttpException("Not enough power to do this", HttpStatus.FORBIDDEN);
+				user = await this.prisma.channelUser.findUniqueOrThrow({
+					where: {userId_channelId: {userId: user_id, channelId: channel_id}}
+				})
+				// Permission check on the user trying to perform a modification on the channel
+				if (user.power != ChannelUserPower.OWNER
+				&& ( (user.power == ChannelUserPower.REGULAR
+							&& updateDto.operation != UpdateChannelOperator.ADD_USER)
+					|| (user.power == ChannelUserPower.ADMINISTRATOR
+							&& (updateDto.operation === UpdateChannelOperator.CHANGE_PASSWORD 
+							|| updateDto.operation === UpdateChannelOperator.ADD_ADMIN
+							|| updateDto.operation === UpdateChannelOperator.REMOVE_ADMIN))
+						)
+					)
+				{
+					console.log("user power not enough", user, updateDto.operation, updateDto.parameter, updateDto.parameter_2)
+					throw new HttpException("Not enough power to do this", HttpStatus.FORBIDDEN);
+				}
 			}
-
 			try {
 				switch (updateDto.operation) {
 					case UpdateChannelOperator.ADD_USER:
@@ -323,6 +361,8 @@ export class ChatService {
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {ban_expiration: updateDto.parameter_2}})
 							else
 								await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {ban_expiration: updateDto.parameter_2}})
+							this.addExpirable({expiration: new Date(updateDto.parameter_2), user: updateDto.parameter, channel: channel_id, operation: "REVOKE_BAN", chatGateway: gateway})
+							this.sortExpirables()
 							await gateway.onChannelBan(updateDto.parameter, channel_id, updateDto.parameter_2)
 						}
 						break;
@@ -333,6 +373,8 @@ export class ChatService {
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {mute_expiration: updateDto.parameter_2}})
 							else
 								await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {mute_expiration: updateDto.parameter_2}})
+							this.addExpirable({expiration: new Date(updateDto.parameter_2), user: updateDto.parameter, channel: channel_id, operation: "REVOKE_MUTE", chatGateway: gateway})
+							this.sortExpirables()
 							await gateway.onChannelMute(updateDto.parameter, channel_id, updateDto.parameter_2)
 						}
 						break;
@@ -354,22 +396,22 @@ export class ChatService {
 						await gateway.onChannelDemote(updateDto.parameter, channel_id)
 						break;
 					case UpdateChannelOperator.REVOKE_BAN:
-						if (updateDto.parameter != user.id)
+						if (user_id === -1 || updateDto.parameter != user.id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {power: ChannelUserPower.REGULAR, ban_expiration: null}})
 							await gateway.onChannelUnban(updateDto.parameter, channel_id)
 						}
 						break;
 					case UpdateChannelOperator.REVOKE_MUTE:
-						if (updateDto.parameter != user.id)
+						if (user_id === -1 || updateDto.parameter != user.id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {mute_expiration: null}})
 							await gateway.onChannelUnmute(updateDto.parameter, channel_id)
 						}
 						break;
 				}
-			} catch (e) { throw new HttpException("Error performing this action", HttpStatus.I_AM_A_TEAPOT); }
-		} catch (e) { throw new HttpException("Error", HttpStatus.I_AM_A_TEAPOT); }
+			} catch (e) { console.log(e); throw new HttpException("Error performing this action", HttpStatus.I_AM_A_TEAPOT); }
+		} catch (e) { console.log(e); throw new HttpException("Error", HttpStatus.I_AM_A_TEAPOT); }
   }
 
   async deleteChannel(channel_id: number, user_id: number) {
@@ -537,4 +579,29 @@ export class ChatService {
 		)));
 		return channels;
   }
+  
+  private expirables: Expirable[] = []
+
+  addExpirable(e: Expirable)
+  {
+	this.expirables.push(e)
+  }
+
+
+  sortExpirables() {
+	this.expirables.sort((a, b) => a.expiration.getTime() - b.expiration.getTime())
+  }
+
+  @Cron('*/10 * * * * *')
+  runEvery10Seconds() {
+	  while (this.expirables.length && this.expirables[0].expiration <= new Date())
+	  {
+		  const e = this.expirables[0]
+		  this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway);
+		  this.expirables.shift()
+	  }
+  }
+
+
 }
+  

@@ -131,7 +131,7 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
+		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.leave("channel-"+channel_id)
 		this.clients.get(sockId).channelIds = this.clients.get(sockId).channelIds.filter((e) => e !== channel_id);
 	}
 	async onChannelMute(user_id: number, channel_id: number, mute_expiration: Date)
@@ -148,7 +148,7 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
+		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.leave("channel-"+channel_id)
 		this.clients.get(sockId).channelIds = this.clients.get(sockId).channelIds.filter((e) => e !== channel_id);
 	}
 	async onChannelUnban(user_id: number, channel_id: number)

@@ -914,7 +914,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			},
 		});
 		if (result.ok)
-			this.setState({anchorEl: null});
+			this.setState({anchorEl: null, current_channel_id: -1});
 	}
 	handleDeleteChannel = async (e: any) => {
 		e.preventDefault()

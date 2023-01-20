@@ -4,11 +4,27 @@ import { ChatService } from './chat.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { ChatGateway } from './chat.gateway';
+import { Cron } from '@nestjs/schedule';
+
+interface Expirable {expiration: Date, user: number, channel: number, operation: string}
 
 @Controller('chat')
 export class ChatController {
 	constructor(private chatService: ChatService,
-				private chatGateway: ChatGateway) {}
+				private chatGateway: ChatGateway)
+	{
+		// Setup unbans/unmutes
+		const setupExpirables = async () => {
+			(await chatService.getAllExpirable()).forEach((e) => {
+				if (e.expiration <= Date())
+					chatService.updateChannel(e.channel, {operation: e.operation, parameter: e.user, parameter_2: undefined}, -1, chatGateway)
+				else
+					chatService.addExpirable({...e, chatGateway})
+			})
+			chatService.sortExpirables()
+		}
+		setupExpirables()
+	}
 
 	/*
 		Get all channels for a specific user
@@ -94,7 +110,7 @@ export class ChatController {
 	@UseGuards(JwtAuthGuard)
 	async leaveChannel(@Request() req, @Param('id', ParseIntPipe) id: number)
 	{
-		return this.chatService.leaveChannel(id, req.user.id);
+		return this.chatService.leaveChannel(id, req.user.id, this.chatGateway);
 	}
 
 	/*
