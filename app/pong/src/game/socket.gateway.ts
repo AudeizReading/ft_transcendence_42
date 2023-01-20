@@ -127,10 +127,6 @@ export class GameSocketGateway
       this.usersService.addAchivement({id: winnerId},
         {primary: "lmao gg ez", secondary: "Écrasez votre adversaire à pong"});
     }
-    setTimeout(() => {
-      this.notifsService.createAction(winnerId, {url: '/', type: 'redir'});
-      this.notifsService.createAction(loserID, {url: '/', type: 'redir'});
-    }, 5000);
   }
 
   sendGameData(socket: Socket, game: PlayGame) {
@@ -185,7 +181,7 @@ export class GameSocketGateway
       const winnerID = (points[0] < points[1]) ? game.data.users[1].id : game.data.users[0].id;
       const loserID = (points[0] < points[1]) ? game.data.users[0].id : game.data.users[1].id;
       this.saveScore(game, (points[0] < points[1]) ? game.data.users[1].id : game.data.users[0].id)
-      this.refreshBall(socket, game, game.data.ball.pos as Point, 0, 30000);
+      this.refreshBall(socket, game, game.data.ball.pos as Point, 0, 8000);
       this.gameJustEnded(game, winnerID, loserID);
       return true
     }

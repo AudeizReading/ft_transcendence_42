@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { v_dot, v_sub, v_scale, pl_intersect, pl_time_to_vector, Point, Plane, check_segment_collision } from '../dep/minirt_functions'
 import LogicGame, { getPlayerPosition, getBallPosition, DataGameForCanvas } from './LogicGame';
+import { useNavigate } from 'react-router-dom';
 
-function draw(context: CanvasRenderingContext2D, tick: number, data: DataGameForCanvas, gameId: string | number) {
+function draw(context: CanvasRenderingContext2D, tick: number, data: DataGameForCanvas, gameId: string | number, navigate: any) {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   /*context.fillStyle = 'black';
   context.beginPath();
@@ -28,6 +29,8 @@ function draw(context: CanvasRenderingContext2D, tick: number, data: DataGameFor
       context.font = 'small-caps bold 24px/1 sans-serif';
       context.fillText(data.users[+(data.points[0] < data.points[1])].name + ' a gagné !', 200, 180);
     }
+    if (data.ball.at && data.ball.at < +new Date())
+      navigate('/play')
   } else if (data.users.length === 0) {
     context.fillText('Not found', 200, 150);
   } else if (data.ball.at === null) {
@@ -235,6 +238,8 @@ function CanvasGame(props: {
     giveup: 0
   } as DataGameForCanvas);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!canvasEl.current)
       canvasEl.current = document.getElementById('canvas-game');
@@ -246,7 +251,7 @@ function CanvasGame(props: {
 
     const render = () => {
       tick++;
-      draw(context, tick, data, props.gameId);
+      draw(context, tick, data, props.gameId, navigate);
       animationFrameId = window.requestAnimationFrame(render);
     }
     render();
@@ -254,7 +259,7 @@ function CanvasGame(props: {
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     }
-  });
+  }, [data, props.gameId, navigate]);
 
   return (
     <React.Fragment>
