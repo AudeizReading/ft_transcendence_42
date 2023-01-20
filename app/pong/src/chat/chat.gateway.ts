@@ -178,6 +178,6 @@ export class ChatGateway
 			return ;
 
 		// Tell every connected socket to receive that message
-		this.server.to("channel-"+message.channelId).emit('recv_msg', message);	
+		this.server.to("channel-"+message.channelId).emit('recv_msg', {...message, senderId: socket.user.id});	
 	}
 }

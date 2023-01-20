@@ -3,7 +3,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
+import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, FormControlLabel, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubble';
 import AddIcon from '@mui/icons-material/Add';
 import { fetch_opt } from '../dep/fetch'
@@ -13,6 +13,7 @@ import { render } from '@testing-library/react';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs, { Dayjs } from 'dayjs';
 
 interface ChatUser {
 	id: number;
@@ -49,10 +50,13 @@ interface ChannelTabPanelProps {
   current_user: ChatUser;
 }
 
+interface AddableUser {id: number;name: string;avatar: string;}
+
+//TODO: FIX BUG LE TEMPS NE CHANGE PAS
 function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback: any, closeCallback: any, open: boolean, text: string, user_id: number, expo: Date}) {
 	const { children, functionCallback, closeCallback, open, text, user_id, expo, ...other} = props;
 	
-	const [expiration, setExpiration] = React.useState(expo)
+	const [expiration, setExpiration] = React.useState<Dayjs | null>(dayjs(expo))
 
 	const handleClickOpen = () => {
 	  closeCallback(true);
@@ -73,18 +77,107 @@ function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback:
 		  <DateTimePicker
 			label="Expiration"
 			value={expiration}
-			onChange={(e: any) => console.log(e)}
+			onChange={(e: any) => {
+				setExpiration(expiration);
+			}}
 			renderInput={(params: any) => <TextField {...params} />}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={(e) => functionCallback(text, user_id, expiration)}>{text}</Button>
+          <Button onClick={(e) => functionCallback(text, user_id, expiration?.toDate())}>{text}</Button>
         </DialogActions>
       </Dialog>
 	  </LocalizationProvider>
 	)
+}
 
+function ChannelSettingsDialog(props: {children?: React.ReactNode, functionCallback: any, closeCallback: any, open: boolean, channel: ChatChannel, owner: boolean}) {
+	const { children, functionCallback, closeCallback, open, channel, owner, ...other} = props;
+	
+	const [usePassword, setUsePassword] = React.useState<boolean>(channel.visibility == "PASSWORD_PROTECTED")	
+	const [password, setPassword] = React.useState<string>("");
+	const [selectedUser, setSelectedUser] = React.useState<number>(-1)
+	const [addableUsers, setAddableUsers] = React.useState<AddableUser[]>([]);
+
+	const handleClickOpen = () => {
+	  closeCallback(true);
+	};
+  
+	const handleClose = () => {
+	  closeCallback(false);
+	};
+
+	React.useEffect(() => {
+		const fetchData = async () => {
+			const addableUsers = await fetch('http://' + window.location.hostname + ':8190/chat/channel/' + channel.id + '/addable_users', fetch_opt())
+			setAddableUsers(await addableUsers.json() as AddableUser[])
+		};
+		fetchData()
+	}, [])
+
+	//console.log(channel)
+	//console.log(owner)
+
+	return (
+		<LocalizationProvider dateAdapter={AdapterDayjs}>
+		<Dialog open={open} onClose={handleClose}>
+		<form onSubmit={(e) => {
+			e.preventDefault();
+			functionCallback(usePassword, password, selectedUser, channel);
+		}}>
+        <DialogTitle>Channel settings</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Channel settings
+          </DialogContentText>
+		  {owner && <FormControlLabel control={<Checkbox
+			checked={usePassword}
+			onChange={(e) => {
+				setUsePassword(e.target.checked)
+				if (!e.target.checked)
+					setPassword("");
+			}}
+			inputProps={{ 'aria-label': 'Enable password' }}
+		  />} label="Use password" />}
+		  {owner && usePassword && <TextField
+			id="password"
+			name="password"
+			value={password}
+			onChange={(e) => setPassword(e.target.value)}
+			label="Password"
+			variant="standard"
+			type="password"
+			required={channel.visibility === "PUBLIC"}
+		/>}
+			<InputLabel id="users-label">Additional users</InputLabel>
+			<Select
+				fullWidth
+				labelId="users-label"
+				id="users-select"
+				value={selectedUser}
+				label="Visibility"
+				onChange={(e) => setSelectedUser(e.target.value as number)}
+			>
+				{addableUsers.map((user) => {
+					return (<MenuItem value={user.id}>
+								<ListItemAvatar>
+									<Avatar alt={user.name} src={user.avatar} />
+								</ListItemAvatar>
+								<ListItemText>{user.name}</ListItemText>
+							</MenuItem>)
+					})
+				}
+			</Select>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button type="submit">Modify</Button>
+        </DialogActions>
+		</form>
+      </Dialog>
+	  </LocalizationProvider>
+	)
 }
 
 function ChannelTabPanel(props: ChannelTabPanelProps) {
@@ -314,8 +407,6 @@ interface NewChannelTabPanelProps {
 function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 	const { children, value, index, ...other} = props;
   
-	interface AddableUser {id: number;name: string;avatar: string;}
-
 	const [selectedMenu, setSelectedMenu] = React.useState<string>("NONE");
 	const [visibility, setVisibility] = React.useState('PUBLIC')
 	const [selectedUsers, setSelectedUsers] = React.useState<number[]>([]) // array of user ids
@@ -606,13 +697,15 @@ function a11yProps(index: number) {
   };
 }
 
-class ChatComponent extends React.Component<{user_id: number}, {show: boolean, channels: ChatChannel[], current_channel_idx: number, user_id: number}> {
+class ChatComponent extends React.Component<{user_id: number}, {show: boolean, channels: ChatChannel[], current_channel_idx: number, current_channel_id: number, user_id: number, anchorEl: null | HTMLElement, displaySettingsDialog: boolean}> {
+	
 	constructor(props: any)
 	{
 		super(props);
-		this.state = {show: false, channels: [], current_channel_idx: 0, user_id: props.user_id};
+		this.state = {show: false, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
 	}
 
+	//TODO: regler la confusion entre senderId et userId
 	recvMsgHandler(data: any)
 	{
 		const channels : ChatChannel[] = this.state.channels
@@ -642,7 +735,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 					notif: false, fetched: true, last_message: new Date()
 				}
 				const c = this.state.channels
-				this.setState({channels: [...c, chan], current_channel_idx: 0})
+				this.setState({channels: [...c, chan]})
 			}
 		}
 		else
@@ -719,7 +812,6 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		}
 	}
 
-	// Doesnt work
 	sendMessage = (content: string, channel_id: number) => {
 		(window as any).chatSocket.emit("send_message", {content: content, channel: channel_id})
 	}
@@ -735,6 +827,34 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		this.setState({show: !show})
 	}
 
+	channelContextMenu = (e: any) => {
+		e.preventDefault()
+		this.setState({anchorEl: e.currentTarget})
+		this.setState({current_channel_id: e.currentTarget.dataset.channelId as number})
+	}
+
+	handleSettingsDialog = (e: any) => {
+		this.setState({displaySettingsDialog: true, anchorEl: null});
+	}
+	handleLeaveChannel = async (e: any) => {
+		e.preventDefault()
+		console.log(e.currentTarget.value)
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+e.currentTarget.value+'/leave', {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json',
+			  ...(fetch_opt().headers),
+			},
+		});
+		if (result.ok)
+			this.setState({anchorEl: null});
+	}
+	handleDeleteChannel = async (e: any) => {
+		e.preventDefault()
+
+	}
+
+
 	generateTabLabels() : JSX.Element[]
 	{
 		let labels = this.state.channels.map((channel, index) => {
@@ -742,7 +862,9 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (channel.visibility === "PRIVATE_MESSAGE")
 				name = "PM: " + channel.users[0].name + " - " + channel.users[1].name;
 			const label = name + " (" + channel.users.length + ")"
-			return (<Tab label={label} {...a11yProps(index)} />);
+			return (<Tab data-channel-id={String(channel.id)} onContextMenu={this.channelContextMenu} label={label} {...a11yProps(index)} />);
+			
+			//return (<Tab label={label} {...a11yProps(index)} />);
 		});
 		// Special tab to create channel
 		labels.push(<Tab icon={<AddIcon />} {...a11yProps(labels.length)} />)
@@ -760,17 +882,53 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		return (panels);
 	}
 
+	channelSettingsDialogCallback = async (usePassword: boolean, password: string | null, user: number, channel: ChatChannel) => {
+		console.log(password)
+		console.log(user)
+
+		// password was added, removed or modified
+		if ((usePassword && channel.visibility == "PUBLIC") || (!usePassword && channel.visibility == "PRIVATE")|| (password != null && password !== ""))
+		{
+			console.log("Modifying password")
+			await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+				method: 'PUT',
+				headers: {
+				'Content-Type': 'application/json',
+				...(fetch_opt().headers)
+				},
+				body: JSON.stringify({operation: "CHANGE_PASSWORD", parameter: password})
+			});
+		}
+
+		if (user != -1)
+		{
+			console.log("Adding user")
+			await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+				method: 'PUT',
+				headers: {
+				'Content-Type': 'application/json',
+				...(fetch_opt().headers)
+				},
+				body: JSON.stringify({operation: "ADD_USER", parameter: user})
+			});
+	
+		}
+		this.setState({displaySettingsDialog: false, anchorEl: null});
+	}
+
 	generateChat() : JSX.Element
 	{
 		if (this.state.show)
 		{
 			// Sort by type and by date within those types
-			this.state.channels.sort((a, b) => {
+			// Cringe
+			/*this.state.channels.sort((a, b) => {
 				const _a = a.last_message ? a.last_message : new Date(0)
 				const _b = b.last_message ? b.last_message : new Date(0)
 
 				return a.visibility.localeCompare(b.visibility) || _b.getTime() - _a.getTime();
 			})
+			*/
 
 			// Generate tab labels
 			const tab_labels = this.generateTabLabels()
@@ -778,6 +936,22 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 
 			return (
 				<div>
+					{this.state.current_channel_id !== -1 && <Menu
+					id="basic-menu"
+					anchorEl={this.state.anchorEl}
+					open={Boolean(this.state.anchorEl)}
+					onClose={(e) => (this.setState({anchorEl: null}))}
+					MenuListProps={{
+					'aria-labelledby': 'basic-button',
+					}}
+					>
+						<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Settings</MenuItem>
+						<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Leave</MenuItem>
+						{Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
+						<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Delete</MenuItem>}
+					</Menu>}
+					{this.state.displaySettingsDialog && <ChannelSettingsDialog functionCallback={this.channelSettingsDialogCallback} closeCallback={(e: any) => this.setState({displaySettingsDialog: false, anchorEl: null})} open={this.state.displaySettingsDialog} 
+					channel={this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0]} owner={Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER"))}/>}
 					<Tabs orientation="vertical" variant="scrollable" value={this.state.current_channel_idx} onChange={this.changeChannel} aria-label="Chat channels"
 						sx={{ borderRight: 1, borderColor: 'divider' }}
 					>
@@ -794,7 +968,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		const tabs = this.generateChat();
 		
 		return (
-			<Box sx={{ flexGrow: 1, display: 'flex', height: 500, backgroundColor: 'white'}}>
+			<Box sx={{ flexGrow: 1, display: 'flex', height: 500}}>
 				{this.state.show && tabs}
 			  	<Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
 					<ChatIcon />

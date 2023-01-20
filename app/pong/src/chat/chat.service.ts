@@ -48,7 +48,7 @@ export class ChatService {
 				where: {
 					AND: [
 						{ id: {not: current_user_id} },
-						{ channels: { some: { channelId: {not: channel_id}}}}
+						{ channels: { every: { channelId: {not: channel_id}}}}
 					]
 				},
 				select: {
@@ -70,7 +70,7 @@ export class ChatService {
 	{
 		return await this.prisma.chatMessage.create({
 			data: {
-				senderId: id,
+				senderId: user.id,
 				channelId: channel,
 				content: content
 			}
@@ -198,7 +198,7 @@ export class ChatService {
 					visibility: {
 						not: ChannelType.PRIVATE_MESSAGE
 					},
-					users: {
+					/*users: {
 						some: {
 							AND: [
 								{
@@ -211,17 +211,15 @@ export class ChatService {
 								}
 							]
 						}
-					}
+					}*/
 				}
 			})
-
 			// Delete user
 			const user = await this.prisma.channelUser.delete({
 				where: {
 					userId_channelId: {userId: user_id, channelId: channel_id}
 				}
 			})
-
 			/* If user who left was owner */
 			if (user.power == ChannelUserPower.OWNER)
 			{
@@ -254,6 +252,7 @@ export class ChatService {
 		}
 		catch (e)
 		{
+			console.log(e)
 			throw new HttpException("Channel could not be left", HttpStatus.I_AM_A_TEAPOT)
 		}
   }
@@ -292,7 +291,7 @@ export class ChatService {
 			try {
 				switch (updateDto.operation) {
 					case UpdateChannelOperator.ADD_USER:
-						this.prisma.channelUser.create({data: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}})
+						await this.prisma.channelUser.create({data: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}})
 						await gateway.onChannelAdd(updateDto.parameter, channel_id)
 						break;
 					case UpdateChannelOperator.REMOVE_USER:
@@ -335,7 +334,6 @@ export class ChatService {
 						}
 						break;
 					case UpdateChannelOperator.ADD_ADMIN:
-						console.log(user.id, updateDto.parameter)
 						await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {power: ChannelUserPower.ADMINISTRATOR}})
 						await gateway.onChannelPromote(updateDto.parameter, channel_id)
 						break;
