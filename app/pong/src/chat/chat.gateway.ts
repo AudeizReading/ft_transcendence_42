@@ -117,49 +117,37 @@ export class ChatGateway
 	// Methods that updates the client but is triggered by the backend, after all SQL is done 
 	async onChannelAdd(user_id: number, channel_id: number)
 	{
+		await  this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
 		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
-		this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
 		this.clients.get(sockId).channelIds.push(channel_id)
 	}
 	async onChannelRemove(user_id: number, channel_id: number)
 	{
+		await this.server.to("channel-"+channel_id).emit('channel_remove', {user: user_id, channel: channel_id});
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		await this.server.to("channel-"+channel_id).emit('channel_remove', {user: user_id, channel: channel_id});
 		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
 		this.clients.get(sockId).channelIds = this.clients.get(sockId).channelIds.filter((e) => e !== channel_id);
 	}
-	async onChannelMute(user_id: number, channel_id: number)
+	async onChannelMute(user_id: number, channel_id: number, mute_expiration: Date)
 	{
-		const sockId = this.getSocketIdByUserId(user_id)
-		if (!sockId)
-			return ;
-		await this.server.to("channel-"+channel_id).emit('channel_mute', {user: user_id, channel: channel_id});
+		await this.server.to("channel-"+channel_id).emit('channel_mute', {user: user_id, channel: channel_id, mute_expiration: mute_expiration});
 	}
 	async onChannelUnmute(user_id: number, channel_id: number)
 	{
-		const sockId = this.getSocketIdByUserId(user_id)
-		if (!sockId)
-			return ;
 		await this.server.to("channel-"+channel_id).emit('channel_unmute', {user: user_id, channel: channel_id});
 	}
 	async onChannelPromote(user_id: number, channel_id: number)
 	{
-		const sockId = this.getSocketIdByUserId(user_id)
-		if (!sockId)
-			return ;
-		this.server.to("channel-"+channel_id).emit('channel_promote', {user: user_id, channel: channel_id});
+		await this.server.to("channel-"+channel_id).emit('channel_promote', {user: user_id, channel: channel_id});
 	}
 	async onChannelDemote(user_id: number, channel_id: number)
 	{
-		const sockId = this.getSocketIdByUserId(user_id)
-		if (!sockId)
-			return ;
-		this.server.to("channel-"+channel_id).emit('channel_demote', {user: user_id, channel: channel_id});
+		await this.server.to("channel-"+channel_id).emit('channel_demote', {user: user_id, channel: channel_id});
 	}
 
 	@SubscribeMessage('send_message')

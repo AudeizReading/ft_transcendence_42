@@ -725,6 +725,22 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			return (e);
 		})})
 	}
+
+	channel_user_replace(user: number, channel: number, data: any)
+	{
+		let channels = this.state.channels
+		channels.forEach((e, chan_idx) => {
+			if (e.id === channel)
+			{
+				e.users.forEach((u, user_idx) => {
+					if (u.id === user)
+						channels[chan_idx].users[user_idx] = {...u, ...data}
+				})
+			}
+		})
+		this.setState({channels: channels})
+	}
+
 	async channelAddHandler(data: any)
 	{
 		// We got added to a new channel
@@ -742,39 +758,57 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 				this.setState({channels: [...c, chan]})
 			}
 		}
+		// A user got added to a channel where i am
 		else
 		{
-
+			
 		}
 		console.log(data)
 	}
 	async channelRemoveHandler(data: any)
 	{
-		console.log(data)
+		if (data.user == this.state.user_id)
+		{
+			const c = this.state.channels
+			this.setState({channels: c.filter((c) => c.id !== data.channel)})
+		}
+		else
+		{
+			const c = this.state.channels
+			this.setState({channels: c.map((c) => {
+				if (c.id === data.channel)
+					return ({...c, users: c.users.filter((u) => u.id !== data.user)})
+				return (c)
+			})})
+		}
 	}
 	channelMuteHandler(data: any)
 	{
-		console.log(data)
+		console.log("On channel mute")
+		this.channel_user_replace(data.user, data.channel, {muted: data.mute_expiration})
 	}
 	channelUnmuteHandler(data: any)
 	{
-		console.log(data)
+		console.log("On channel Demute")
+		this.channel_user_replace(data.user, data.channel, {muted: null})
 	}
 	channelPromoteHandler(data: any)
 	{
-		console.log(data)
+		console.log("On channel promote")
+		this.channel_user_replace(data.user, data.channel, {power: "ADMINISTRATOR"})
 	}
 	channelDemoteHandler(data: any)
 	{
-		console.log(data)
+		this.channel_user_replace(data.user, data.channel, {power: "REGULAR"})
 	}
 	channelBanHandler(data: any)
 	{
-		console.log(data)
+		this.channel_user_replace(data.user, data.channel, {banned: data.ban_expiration})
+
 	}
 	channelUnbanHandler(data: any)
 	{
-		console.log(data)
+		this.channel_user_replace(data.user, data.channel, {banned: null})
 	}
 
 	async componentDidMount()
@@ -866,8 +900,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (channel.visibility === "PRIVATE_MESSAGE")
 				name = "PM: " + channel.users[0].name + " - " + channel.users[1].name;
 			const label = name + " (" + channel.users.length + ")"
-			return (<Tab key={index} data-channel-id={String(channel.id)} onContextMenu={this.channelContextMenu} label={label} {...a11yProps(index)} />);
-			
+			return (<Tab key={index} data-channel-id={String(channel.id)} onContextMenu={channel.visibility !== "PRIVATE_MESSAGE" ? this.channelContextMenu : undefined} label={label} {...a11yProps(index)} />);			
 			//return (<Tab label={label} {...a11yProps(index)} />);
 		});
 		// Special tab to create channel

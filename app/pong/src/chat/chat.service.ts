@@ -333,7 +333,7 @@ export class ChatService {
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {mute_expiration: updateDto.parameter_2}})
 							else
 								await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {mute_expiration: updateDto.parameter_2}})
-							await gateway.onChannelMute(updateDto.parameter, channel_id)
+							await gateway.onChannelMute(updateDto.parameter, channel_id, updateDto.parameter_2)
 						}
 						break;
 					case UpdateChannelOperator.CHANGE_PASSWORD:
