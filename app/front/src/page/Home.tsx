@@ -200,12 +200,12 @@ function Home(props: {
   ));
 
   return (
-    <Box component="main" sx={{ height: '100vh', overflow: 'auto' }}>
+    <Box component="main" /* className="pong-home-image-background" */ sx={{ height: '100vh', overflow: 'auto' }}>
       {isLogged === false ?
         <Fade in={true} timeout={400}>{gridNotLogged}</Fade>
         :
         <React.Fragment>
-		<ChatComponent user_id={user.id}/>
+
         <Box sx={{
           display: 'flex', 
           height: '100%', 

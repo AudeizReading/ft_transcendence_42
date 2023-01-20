@@ -305,7 +305,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   const msgList = channel.messages.map((message, index) => (
 		// <Grid key={index} item>
-			<Typography>
+			<Typography key={index} sx={{color: 'black'}}>
 				{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {message.content}
 			</Typography>
 		// </Grid>
@@ -323,7 +323,8 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 						onClick={user.id == current_user.id ? undefined : handleClickOnUser}
 					>
 							<Avatar alt={user.name} src={user.avatar} />
-						<Typography>{user.name}</Typography>
+						<Typography sx={{color: 'black'}}>{user.name}</Typography>
+						{/* {user.name} */}
 					</div>
 				</Grid>
 			</div>
@@ -345,8 +346,8 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   const channel_chat_interface = ( 
 		// <Grid container item>
-	  <div style={{border: "solid", borderColor: "green"}}>
-			<Grid container direction="column" sx={{overflow: "auto", wordWrap: "break-word"}}>
+	  <div style={{border: "solid", borderColor: "green", maxHeight: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
+			<Grid container direction="column">
 				{msgList}
 			</Grid>
 			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue"}}>
@@ -380,7 +381,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			role="tabpanel"
 			hidden={value !== index}
 			id={`vertical-tabpanel-${index}`}
-			style={{border: "dashed", borderColor: "yellow"}}
+			style={{border: "dashed", borderColor: "yellow", maxHeight: '80%', /* overflow: 'auto', overflowBlock: 'auto' */}}
 			{...other}
 		>
 			{value === index && (
@@ -388,21 +389,23 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 				<Grid container item xs={9} direction="column" height={500} >
 					{channel_chat_interface}
 				</Grid>
-				<Grid container item xs={3} direction="column" >
-					{channel_users}
-					<Menu
-						id="basic-menu"
-						anchorEl={anchorEl}
-						open={open}
-						onClose={handleClose}
-					>
-							<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
-							<MenuItem onClick={handleBlock} value={user.id}>Block</MenuItem>
-							{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
-							{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
-							{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
-					</Menu>
-				</Grid>
+					<Grid container item xs={3} direction="column" >
+				<div style={{height: '80%', overflow: 'auto', overflowBlock: 'auto'}}>
+						{channel_users}
+						<Menu
+							id="basic-menu"
+							anchorEl={anchorEl}
+							open={open}
+							onClose={handleClose}
+						>
+								<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
+								<MenuItem onClick={handleBlock} value={user.id}>Block</MenuItem>
+								{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
+								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
+								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
+						</Menu>
+				</div>
+					</Grid>
 			</Grid>
 			)}
 		</div>
@@ -712,7 +715,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	constructor(props: any)
 	{
 		super(props);
-		this.state = {show: false, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
+		this.state = {show: true, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
 	}
 
 	//TODO: regler la confusion entre senderId et userId
@@ -960,7 +963,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			const tab_panels = this.generateTabPanels()
 
 			return (
-				<div style={{width: '60%'}}>
+				<div style={{width: '100%'}}>
 					{this.state.current_channel_id !== -1 &&
 						<Menu
 							id="basic-menu"
@@ -1009,11 +1012,11 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		const tabs = this.generateChat();
 		
 		return (
-			<Box sx={{ backgroundColor: 'grey', flexGrow: 1, display: 'flex', height: 500}}>
-				{this.state.show && tabs}
-			  	<Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
+			<Box sx={{ flexGrow: 1, display: 'flex', height: 500}}>
+				{tabs}
+			  	{/* <Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
 						<ChatIcon />
-			  	</Fab>	  
+			  	</Fab>	   */}
 			</Box>
 		  );			
 	}
