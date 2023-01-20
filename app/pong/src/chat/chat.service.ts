@@ -325,7 +325,6 @@ export class ChatService {
 							await gateway.onChannelMute(updateDto.parameter, channel_id)
 						}
 						break;
-					//TODO: Hash password
 					case UpdateChannelOperator.CHANGE_PASSWORD:
 						if (!updateDto.parameter)
 							await this.prisma.chatChannel.update({where: {id: channel_id}, data: {password: null, visibility: ChannelType.PUBLIC}})
