@@ -26,13 +26,13 @@ export class ChatController {
 	}
 
 	/* 
-		Get messages for channel,
+		fetch channel,
 		can return 404, 401 and 200
 	*/
 	@Get('channel/:id')
 	@UseGuards(JwtAuthGuard)
-	async getChannelMessages(@Request() req, @Param('id') id: number) {
-	  return this.chatService.getChannelMessages(id, req.user.id);
+	async getChannel(@Request() req, @Param('id', ParseIntPipe) id: number) {
+	  return this.chatService.fetchChannel(id, req.user.id);
 	}
 
 	/*
@@ -42,7 +42,7 @@ export class ChatController {
 	@UseGuards(JwtAuthGuard)
 	async createNewChannel(@Request() req, @Body(new ValidationPipe({ transform: true })) createDto: CreateChannelDto)
 	{
-		return this.chatService.createChannel(createDto, req.user.id)
+		return this.chatService.createChannel(createDto, req.user.id, this.chatGateway)
 	}
 
 	/*
@@ -51,7 +51,7 @@ export class ChatController {
 	*/
 	@Delete('channel/:id')
 	@UseGuards(JwtAuthGuard)
-	async deleteChannel(@Request() req, @Param('id') id: number)
+	async deleteChannel(@Request() req, @Param('id', ParseIntPipe) id: number)
 	{
 		return this.chatService.deleteChannel(id, req.user.id);
 	}
@@ -71,7 +71,7 @@ export class ChatController {
 	*/
 	@Put('channel/:id')
 	@UseGuards(JwtAuthGuard)
-	async updateChannel(@Request() req, @Param('id') id: number, @Body() updateDto: UpdateChannelDto)
+	async updateChannel(@Request() req, @Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateChannelDto)
 	{
 		return this.chatService.updateChannel(id, updateDto, req.user.id, this.chatGateway)
 	}
@@ -104,7 +104,7 @@ export class ChatController {
 	@UseGuards(JwtAuthGuard)
 	async joinChannel(@Request() req, @Param('id', ParseIntPipe) id: number, @Body('password', new ValidationPipe({ transform: true })) password: string)
 	{
-		return this.chatService.joinChannel(id, password, req.user.id);
+		return this.chatService.joinChannel(id, password, req.user.id, this.chatGateway);
 	}
 
 }

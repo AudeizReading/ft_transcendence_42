@@ -205,7 +205,7 @@ function Home(props: {
         <Fade in={true} timeout={400}>{gridNotLogged}</Fade>
         :
         <React.Fragment>
-		<ChatComponent />
+		<ChatComponent user_id={user.id}/>
         <Box sx={{
           display: 'flex', 
           height: '100%', 

@@ -120,15 +120,15 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.sockets.sockets.get(sockId).join("channel-"+channel_id)
-		this.server.to("channel-"+channel_id).emit('channel_add', user_id, channel_id);
+		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
+		this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
 	}
 	async onChannelRemove(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		await this.server.to("channel-"+channel_id).emit('channel_remove', user_id, channel_id);
+		await this.server.to("channel-"+channel_id).emit('channel_remove', {user: user_id, channel: channel_id});
 		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
 	}
 	async onChannelMute(user_id: number, channel_id: number)
@@ -136,28 +136,28 @@ export class ChatGateway
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_mute', channel_id);
+		await this.server.to("channel-"+channel_id).emit('channel_mute', {user: user_id, channel: channel_id});
 	}
 	async onChannelUnmute(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to(sockId).emit('channel_unmute', channel_id);
+		await this.server.to("channel-"+channel_id).emit('channel_unmute', {user: user_id, channel: channel_id});
 	}
 	async onChannelPromote(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to("channel-"+channel_id).emit('channel_promote', user_id, channel_id);
+		this.server.to("channel-"+channel_id).emit('channel_promote', {user: user_id, channel: channel_id});
 	}
 	async onChannelDemote(user_id: number, channel_id: number)
 	{
 		const sockId = this.getSocketIdByUserId(user_id)
 		if (!sockId)
 			return ;
-		this.server.to("channel-"+channel_id).emit('channel_demote', user_id, channel_id);
+		this.server.to("channel-"+channel_id).emit('channel_demote', {user: user_id, channel: channel_id});
 	}
 
 	@SubscribeMessage('send_message')

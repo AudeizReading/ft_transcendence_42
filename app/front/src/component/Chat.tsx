@@ -3,22 +3,28 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { Avatar, Button, Fab, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
+import { Avatar, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubble';
 import AddIcon from '@mui/icons-material/Add';
 import { fetch_opt } from '../dep/fetch'
 import socketIOClient, { Socket } from "socket.io-client";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import { render } from '@testing-library/react';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 interface ChatUser {
 	id: number;
 	name: string;
 	power: string;
 	avatar: string;
+	muted?: Date;
+	banned?: Date;
 }
 
 interface ChatMessage {
-	sender_name: number;
+	sender_name: string;
 	content: string;
 	time: Date;
 }
@@ -41,37 +47,162 @@ interface ChannelTabPanelProps {
   channel: ChatChannel;
   sendMessage: any;
   current_user: ChatUser;
-  switchChannelCallback: any;
+}
+
+function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback: any, closeCallback: any, open: boolean, text: string, user_id: number, expo: Date}) {
+	const { children, functionCallback, closeCallback, open, text, user_id, expo, ...other} = props;
+	
+	const [expiration, setExpiration] = React.useState(expo)
+
+	const handleClickOpen = () => {
+	  closeCallback(true);
+	};
+  
+	const handleClose = () => {
+	  closeCallback(false);
+	};
+
+	return (
+		<LocalizationProvider dateAdapter={AdapterDayjs}>
+		<Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Mute/ban</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select when it will expire
+          </DialogContentText>
+		  <DateTimePicker
+			label="Expiration"
+			value={expiration}
+			onChange={(e: any) => console.log(e)}
+			renderInput={(params: any) => <TextField {...params} />}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={(e) => functionCallback(text, user_id, expiration)}>{text}</Button>
+        </DialogActions>
+      </Dialog>
+	  </LocalizationProvider>
+	)
+
 }
 
 function ChannelTabPanel(props: ChannelTabPanelProps) {
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
 
-  	const { children, value, index, channel, sendMessage, current_user, switchChannelCallback, ...other} = props;
+  	const { children, value, index, channel, sendMessage, current_user, ...other} = props;
 
-  	const [message, setMessage] = React.useState("")
+  	const [message, setMessage] = React.useState("");
+	const [prompt, setPrompt] = React.useState<{callback: any, text: string, user_id: number}>({callback: null, text: "", user_id: -1});
+	const [user, setUser] = React.useState<ChatUser>({id: -1, name:"", power:"", avatar:""});
+
+	const [displayTimeModal, setDisplayTimeModal] = React.useState(false);
 
   	const inputRef = React.useRef<HTMLInputElement>(null);
 
+	const applyBanOrMute = async (operation: string, user_id: number, expiration: Date) => {
+		const op = operation === "MUTE" ? "MUTE_USER" : "BAN_USER";
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+			method: 'PUT',
+			headers: {
+			'Content-Type': 'application/json',
+			...(fetch_opt().headers)
+			},
+			body: JSON.stringify({operation: op, parameter: user_id, parameter_2: expiration})
+		});
+		console.log(result)
+		setDisplayTimeModal(false);
+	}
+
 	const handlePrivateMessage = async (e: any) => {
 		e.preventDefault()
-		const { user } = e.currentTarget.dataset;
+		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
 		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/new`, {
 			method: 'POST',
 			headers: {
 			  'Content-Type': 'application/json',
 			  ...(fetch_opt().headers),
 			},
-			body: JSON.stringify({name: "<DM>", password: null, users: [current_user.id, user.id], visibility: "PRIVATE_MESSAGE"}),
+			body: JSON.stringify({name: "<DM>", password: null, users: [user.id], visibility: "PRIVATE_MESSAGE"}),
 		});
-		switchChannelCallback(result.id)
+		setAnchorEl(null);	
 	}
+	const handleBlock = async (e: any) => {
+		e.preventDefault()
+		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
+		const result = await fetch(`http://${window.location.hostname}:8190/user/block/`+user.id, {
+			method: 'POST',
+			headers: {
+			  'Content-Type': 'application/json',
+			  ...(fetch_opt().headers),
+			},
+		});
+		setAnchorEl(null);
+	}
+	const handlePromote = async (e: any) => {
+		e.preventDefault()
+		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
+		console.log(user, channel)
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+			method: 'PUT',
+			headers: {
+			  'Content-Type': 'application/json',
+			  ...(fetch_opt().headers)
+			},
+			body: JSON.stringify({operation: user.power === "REGULAR" ? "ADD_ADMIN": "REMOVE_ADMIN", parameter: user.id})
+		});
+		setAnchorEl(null);
+	}
+	const handleMute = async (e: any) => {
+		e.preventDefault()
+		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
+		console.log(user, channel)
+		if (!user.muted)
+		{
+			setDisplayTimeModal(true);
+			setPrompt({callback: applyBanOrMute, text: "MUTE", user_id: user.id});
+		}
+		else
+		{
+			const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+				method: 'PUT',
+				headers: {
+				'Content-Type': 'application/json',
+				...(fetch_opt().headers)
+				},
+				body: JSON.stringify({operation: "REVOKE_MUTE", parameter: user.id})
+			});
+		}
+		setAnchorEl(null);
+	}
+	const handleBan = async (e: any) => {
+		e.preventDefault()
+		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
+		if (!user.banned)
+		{
+			setDisplayTimeModal(true);
+			setPrompt({callback: applyBanOrMute, text: "BAN", user_id: user.id});
+		}
+		else
+		{
+			const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {
+				method: 'PUT',
+				headers: {
+				'Content-Type': 'application/json',
+				...(fetch_opt().headers),
+				},
+				body: JSON.stringify({operation: "REVOKE_BAN", parameter: user.id}),
+			});
+		}
+		setAnchorEl(null);
+	}
+
 
 	const handleClickOnUser = (e: any) => {
 		e.preventDefault()
 		setAnchorEl(e.currentTarget);
-		const user: number = e.target.id as number;
+		setUser(channel.users.filter((u) => u.id == e.currentTarget.id as number)[0])
 	};
 	
 	const handleClose = () => {
@@ -82,8 +213,12 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	return <Grid item><Typography>{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {message.content}</Typography></Grid>
   })
 
-  const channel_users = channel.users.map((user) => {
+  //TODO: Blocking
+  const channel_users = channel.users.map((user, idx) => {
 	  return (
+		<div>
+		<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
+		text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
 		<Grid item>
 			<div id={String(user.id)}
 				onClick={user.id == current_user.id ? undefined : handleClickOnUser}
@@ -91,24 +226,8 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	  			<Avatar alt={user.name} src={user.avatar} />
 				<Typography>{user.name}</Typography>
 			</div>
-			<Menu
-			id="basic-menu"
-			anchorEl={anchorEl}
-			open={open}
-			onClose={handleClose}
-			MenuListProps={{
-			'aria-labelledby': 'basic-button',
-			}}
-			>
-				<MenuItem onClick={handlePrivateMessage} data-value={user}>DM</MenuItem>
-				<MenuItem onClick={handleBlock} data-value={user}>Block</MenuItem>
-				{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} data-value={user}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
-				{current_user.power !== "REGULAR" && user.power === "REGULAR" && <MenuItem onClick={handleMute} data-value={user}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
-				{current_user.power !== "REGULAR" && user.power === "REGULAR" &&  <MenuItem onClick={handleBan} data-value={user}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
-
-			</Menu>
-
 		</Grid>
+		</div>
 	  )
   })
 
@@ -165,6 +284,21 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			</Grid>
 			<Grid container item xs={3} direction="column" >
 				{channel_users}
+				<Menu
+					id="basic-menu"
+					anchorEl={anchorEl}
+					open={open}
+					onClose={handleClose}
+					MenuListProps={{
+					'aria-labelledby': 'basic-button',
+					}}
+					>
+						<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
+						<MenuItem onClick={handleBlock} value={user.id}>Block</MenuItem>
+						{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
+						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
+						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
+				</Menu>
 			</Grid>
 		</Grid>
 	  )}
@@ -227,6 +361,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 				password: ""
 			}));
 			setStatus("good");
+			setSelectedMenu("NONE");
 		}
 	}
 
@@ -252,6 +387,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 				password: ""
 			}));
 			setStatus("good");
+			setSelectedMenu("NONE");
 		}
 	}
 
@@ -470,45 +606,102 @@ function a11yProps(index: number) {
   };
 }
 
-class ChatComponent extends React.Component<{}, {show: boolean, channels: ChatChannel[], current_channel_idx: number, socket: Socket}> {
+class ChatComponent extends React.Component<{user_id: number}, {show: boolean, channels: ChatChannel[], current_channel_idx: number, user_id: number}> {
 	constructor(props: any)
 	{
 		super(props);
-		this.state = {show: false, channels: [], current_channel_idx: 0, socket: socketIOClient('ws://' + window.location.hostname + ':8192/chat', {extraHeaders: fetch_opt().headers})};
+		this.state = {show: false, channels: [], current_channel_idx: 0, user_id: props.user_id};
+	}
+
+	recvMsgHandler(data: any)
+	{
+		const channels : ChatChannel[] = this.state.channels
+		this.setState({channels: channels.map((e) => {
+			if (e.id == data.channelId)
+			{
+				const messages : ChatMessage[] = [
+					...e.messages,
+					{sender_name: e.users.filter((u) => u.id === data.senderId)[0].name, content: data.content, time: new Date(data.sent_at)}
+				]
+				return ({...e, notif: true, last_message: new Date(data.sent_at), messages: messages})
+			}
+			return (e);
+		})})
+	}
+	async channelAddHandler(data: any)
+	{
+		// We got added to a new channel
+		if (data.user == this.state.user_id)
+		{
+			const res = await fetch('http://' + window.location.hostname + ':8190/chat/channel/'+data.channel, fetch_opt())
+			if (res.ok)
+			{
+				const e = await res.json();
+				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
+					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
+					notif: false, fetched: true, last_message: new Date()
+				}
+				const c = this.state.channels
+				this.setState({channels: [...c, chan], current_channel_idx: 0})
+			}
+		}
+		else
+		{
+
+		}
+		console.log(data)
+	}
+	async channelRemoveHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelMuteHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelUnmuteHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelPromoteHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelDemoteHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelBanHandler(data: any)
+	{
+		console.log(data)
+	}
+	channelUnbanHandler(data: any)
+	{
+		console.log(data)
 	}
 
 	async componentDidMount()
 	{
-		this.state.socket.on('recv_msg', (newData: any) => {
-			console.log(newData);
-		});
+		let socket: Socket;
+		if ((window as any).chatSocket)
+			(window as any).chatSocket.disconnect();
+		socket = socketIOClient('ws://' + window.location.hostname + ':8192/chat', {extraHeaders: fetch_opt().headers});
+		(window as any).chatSocket = socket;
+
+		//TODO: Fix this in order to have good user experience
+		socket.on('recv_msg', (data: any) => this.recvMsgHandler(data));
+		socket.on('channel_add', (data: any) => this.channelAddHandler(data));
+		socket.on('channel_remove', (data: any) => this.channelRemoveHandler(data));
+		socket.on('channel_mute', (data: any) => this.channelMuteHandler(data));
+		socket.on('channel_unmute', (data: any) => this.channelUnmuteHandler(data));
+		socket.on('channel_promote', (data: any) => this.channelPromoteHandler(data));
+		socket.on('channel_demote', (data: any) => this.channelDemoteHandler(data));
+		socket.on('channel_ban', (data: any) => this.channelBanHandler(data));
+		socket.on('channel_unban', (data: any) => this.channelUnbanHandler(data));
 
 		const data = await fetch('http://' + window.location.hostname + ':8190/chat', fetch_opt())
 		if (data.ok)
 		{
-			/*
-			interface ChatUser {
-				id: number;
-				name: string;
-				power: string;
-			}
-
-			interface ChatMessage {
-				sender_name: number;
-				content: string;
-				time: Date;
-			}
-
-			interface ChatChannel {
-				name: string;
-				visibility: string;
-				users: ChatUser[];
-				messages: ChatMessage[];
-				notif: boolean;
-				fetched: boolean;
-				last_message?: Date;
-			}
- 			*/
 			// Flatten the data so it can be directly applied to the state
 			const json = await data.json();
 			this.setState({channels: json.map((e: any) => {
@@ -516,7 +709,7 @@ class ChatComponent extends React.Component<{}, {show: boolean, channels: ChatCh
 					id: e.id,
 					name: e.name,
 					visibility: e.visibility,
-					users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power})),
+					users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
 					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
 					notif: false,
 					fetched: true,
@@ -528,7 +721,7 @@ class ChatComponent extends React.Component<{}, {show: boolean, channels: ChatCh
 
 	// Doesnt work
 	sendMessage = (content: string, channel_id: number) => {
-		this.state.socket.emit("send_message", {content: content, channel: channel_id})
+		(window as any).chatSocket.emit("send_message", {content: content, channel: channel_id})
 	}
 
 	changeChannel = (e: React.ChangeEvent<{}>, new_value: number) =>
@@ -560,7 +753,7 @@ class ChatComponent extends React.Component<{}, {show: boolean, channels: ChatCh
 	generateTabPanels() : JSX.Element[]
 	{
 		let panels = this.state.channels.map((channel, index) => {
-			return (<ChannelTabPanel value={this.state.current_channel_idx} index={index} channel={channel} sendMessage={this.sendMessage} />)
+			return (<ChannelTabPanel value={this.state.current_channel_idx} index={index} channel={channel} sendMessage={this.sendMessage} current_user={channel.users.filter((u) => u.id === this.state.user_id)[0]}/>)
 		});
 		// Special tab panel to create channel
 		panels.push(<NewChannelTabPanel value={this.state.current_channel_idx} index={panels.length} />)
@@ -601,7 +794,7 @@ class ChatComponent extends React.Component<{}, {show: boolean, channels: ChatCh
 		const tabs = this.generateChat();
 		
 		return (
-			<Box sx={{ flexGrow: 1, display: 'flex', height: 500 }}>
+			<Box sx={{ flexGrow: 1, display: 'flex', height: 500, backgroundColor: 'white'}}>
 				{this.state.show && tabs}
 			  	<Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
 					<ChatIcon />
