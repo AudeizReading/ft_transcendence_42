@@ -105,7 +105,7 @@ function LogicGame(props: {
   const gameSocket = useRef(null as any);
   useEffect(() => {
     let socket: Socket;
-    if (!gameSocket.current) {
+    if (!gameSocket.current && props.gameId !== 'demo') {
       if ((window as any).gameSocket)
         (window as any).gameSocket.disconnect();
       console.log('connexion!');
@@ -144,6 +144,7 @@ function LogicGame(props: {
             const diffs = [a - latence, -(b - latence), c - latence, -(d - latence)];
             const diff_datetime = Math.round(diffs.reduce(function(a, b) { return a + b; }, 0) / diffs.length);
             console.info('latence', latence, 'diff_datetime', diff_datetime); // positif = navigateur en retard, négatif = server en retard
+            const save_diffTime = diffTime.current
             diffTime.current = diff_datetime;
             socketLatence.current = latence / 2
             /*console.log(a, b, c, d, diff_datetime);
@@ -152,7 +153,10 @@ function LogicGame(props: {
             console.log(data.fourth - data.second);
             console.log(diffs);*/
             setTimeout(pingpong, 30000);
-            socket.emit('data');
+            if (Math.abs(save_diffTime - diffTime.current) > 20)
+              pingpong();
+            else
+              socket.emit('data');
           });
         });
       }
@@ -173,7 +177,7 @@ function LogicGame(props: {
           }
         }, 1000);
       });
-      setTimeout(pingpong, 1000);
+      setTimeout(pingpong, 200);
       /*socket.on('message', (data) => {
         console.log(data);
       });*/
