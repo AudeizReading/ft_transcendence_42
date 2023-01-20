@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import ChatComponent from '../component/Chat';
+import { CircularProgress } from '@mui/material';
 
 interface ChatPageProps {
   userID: number,
@@ -8,9 +9,19 @@ interface ChatPageProps {
 
 export default function ChatPage(props: ChatPageProps)
 {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(props.userID !== 0);
+    console.log("useEffect ChatPage");
+  }, [props.userID]);
+
   return (
     <Box component="main" sx={{p: 1, background: 'white', color: 'black'}}>
-      <ChatComponent user_id={props.userID} />
+      { loaded ?
+        <ChatComponent user_id={props.userID} />
+        : null
+      }
     </Box>
   );
 }
