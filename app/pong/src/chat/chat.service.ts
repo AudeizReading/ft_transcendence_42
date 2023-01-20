@@ -29,7 +29,7 @@ export class ChatService {
 	async getAddableUsers(channel_id: number, current_user_id: number) {
 		if (channel_id === -1)
 		{
-			return await this.prisma.user.findMany({
+			const addableUsers = await this.prisma.user.findMany({
 				where: {
 					id: {
 						not: current_user_id
@@ -40,11 +40,16 @@ export class ChatService {
 					name: true,
 					avatar: true
 				}
-			})
+			});
+			addableUsers.forEach(user => user.avatar = user.avatar.replace(
+				'://<<host>>',
+        '://' + process.env.FRONT_HOST,
+			));
+			return addableUsers;
 		}
 		else
 		{
-			return await this.prisma.user.findMany({
+			const addableUsers = await this.prisma.user.findMany({
 				where: {
 					AND: [
 						{ id: {not: current_user_id} },
@@ -56,9 +61,14 @@ export class ChatService {
 					name: true,
 					avatar: true
 				}
-			})
+			});
+			addableUsers.forEach(user => user.avatar = user.avatar.replace(
+				'://<<host>>',
+        '://' + process.env.FRONT_HOST,
+			));
+			return addableUsers;
 		}
-  	}
+	}
 
 
   //TODO: Sanitize input so it doesnt have XSS
@@ -421,7 +431,7 @@ export class ChatService {
   }
 
   async fetchChannel(channel_id: number, user_id: number) {
-	return (await this.prisma.chatChannel.findMany({
+		const channel = (await this.prisma.chatChannel.findFirst({
 		  where: {
 			  id: channel_id,
 			  users: {
@@ -466,11 +476,16 @@ export class ChatService {
 				  take: -100
 			  }
 		  }
-	  }))[0]
+	  }));
+		channel.users.forEach(user => user.user.avatar = user.user.avatar.replace(
+			'://<<host>>',
+			'://' + process.env.FRONT_HOST,
+		));
+		return channel;
 	}
 
   async fetchChannels(user_id: number) {
-	  return await this.prisma.chatChannel.findMany({
+	  const channels = await this.prisma.chatChannel.findMany({
 			where: {
 				users: {
 					some: {
@@ -514,6 +529,12 @@ export class ChatService {
 					take: -100
 				}
 			}
-		})
+		});
+
+		channels.forEach(chan => chan.users.forEach(user => user.user.avatar = user.user.avatar.replace(
+			'://<<host>>',
+			'://' + process.env.FRONT_HOST,
+		)));
+		return channels;
   }
 }

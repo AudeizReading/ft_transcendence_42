@@ -302,25 +302,29 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		setAnchorEl(null);
 	};
 
-  const msgList = channel.messages.map((message, index) => {
-	return <Grid item><Typography>{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {message.content}</Typography></Grid>
-  })
+  const msgList = channel.messages.map((message, index) => (
+		<Grid key={index} item>
+			<Typography>
+				{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {message.content}
+			</Typography>
+		</Grid>
+	));
 
   //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
 	  return (
-		<div>
-		<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
-		text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
-		<Grid item>
-			<div id={String(user.id)}
-				onClick={user.id == current_user.id ? undefined : handleClickOnUser}
-			>
-	  			<Avatar alt={user.name} src={user.avatar} />
-				<Typography>{user.name}</Typography>
+			<div key={idx}>
+				<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
+				text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
+				<Grid item>
+					<div id={String(user.id)}
+						onClick={user.id == current_user.id ? undefined : handleClickOnUser}
+					>
+							<Avatar alt={user.name} src={user.avatar} />
+						<Typography>{user.name}</Typography>
+					</div>
+				</Grid>
 			</div>
-		</Grid>
-		</div>
 	  )
   })
 
@@ -332,7 +336,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   const channel_chat_interface = (
 	  <div>
-		<Grid container xs={9} direction="column" sx={{height: "90%"}}>
+		<Grid container direction="column" sx={{height: "90%"}}>
 			{msgList}
 		</Grid>
 		<div>
@@ -588,14 +592,14 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								label="Visibility"
 								onChange={(e) => setSelectedUsers(e.target.value as number[])}
 							>
-								{addableUsers.map((user) => {
-									return (<MenuItem value={user.id}>
-												<ListItemAvatar>
-													<Avatar alt={user.name} src={user.avatar} />
-												</ListItemAvatar>
-												<ListItemText>{user.name}</ListItemText>
-											</MenuItem>)
-									})
+								{addableUsers.map((user, i) => (
+										<MenuItem key={i} value={user.id}>
+											<ListItemAvatar>
+												<Avatar alt={user.name} src={user.avatar} />
+											</ListItemAvatar>
+											<ListItemText>{user.name}</ListItemText>
+										</MenuItem>
+									))
 								}
 							</Select>
 						</Grid>
@@ -862,12 +866,12 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (channel.visibility === "PRIVATE_MESSAGE")
 				name = "PM: " + channel.users[0].name + " - " + channel.users[1].name;
 			const label = name + " (" + channel.users.length + ")"
-			return (<Tab data-channel-id={String(channel.id)} onContextMenu={this.channelContextMenu} label={label} {...a11yProps(index)} />);
+			return (<Tab key={index} data-channel-id={String(channel.id)} onContextMenu={this.channelContextMenu} label={label} {...a11yProps(index)} />);
 			
 			//return (<Tab label={label} {...a11yProps(index)} />);
 		});
 		// Special tab to create channel
-		labels.push(<Tab icon={<AddIcon />} {...a11yProps(labels.length)} />)
+		labels.push(<Tab key={labels.length} icon={<AddIcon />} {...a11yProps(labels.length)} />)
 
 		return (labels);
 	}
@@ -875,10 +879,10 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	generateTabPanels() : JSX.Element[]
 	{
 		let panels = this.state.channels.map((channel, index) => {
-			return (<ChannelTabPanel value={this.state.current_channel_idx} index={index} channel={channel} sendMessage={this.sendMessage} current_user={channel.users.filter((u) => u.id === this.state.user_id)[0]}/>)
+			return (<ChannelTabPanel key={index} value={this.state.current_channel_idx} index={index} channel={channel} sendMessage={this.sendMessage} current_user={channel.users.filter((u) => u.id === this.state.user_id)[0]}/>)
 		});
 		// Special tab panel to create channel
-		panels.push(<NewChannelTabPanel value={this.state.current_channel_idx} index={panels.length} />)
+		panels.push(<NewChannelTabPanel key={panels.length} value={this.state.current_channel_idx} index={panels.length} />)
 		return (panels);
 	}
 
@@ -971,7 +975,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			<Box sx={{ flexGrow: 1, display: 'flex', height: 500}}>
 				{this.state.show && tabs}
 			  	<Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
-					<ChatIcon />
+						<ChatIcon />
 			  	</Fab>	  
 			</Box>
 		  );			
