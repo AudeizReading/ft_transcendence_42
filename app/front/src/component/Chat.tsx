@@ -20,6 +20,7 @@ interface ChatUser {
 	name: string;
 	power: string;
 	avatar: string;
+	blocked: number[];
 	muted?: Date;
 	banned?: Date;
 }
@@ -188,7 +189,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   	const [message, setMessage] = React.useState("");
 	const [prompt, setPrompt] = React.useState<{callback: any, text: string, user_id: number}>({callback: null, text: "", user_id: -1});
-	const [user, setUser] = React.useState<ChatUser>({id: -1, name:"", power:"", avatar:""});
+	const [user, setUser] = React.useState<ChatUser>({id: -1, name:"", power:"", avatar:"", blocked:[]});
 
 	const [displayTimeModal, setDisplayTimeModal] = React.useState(false);
 
@@ -224,13 +225,15 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	const handleBlock = async (e: any) => {
 		e.preventDefault()
 		const user = channel.users.filter((u) => u.id == e.currentTarget.value)[0];
-		const result = await fetch(`http://${window.location.hostname}:8190/user/block/`+user.id, {
-			method: 'POST',
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/block/`+user.id, {
+			method: current_user.blocked.find((e) => e === user.id) ? 'DELETE' : 'POST',
 			headers: {
 			  'Content-Type': 'application/json',
 			  ...(fetch_opt().headers),
 			},
 		});
+		if (result.ok)
+			console.log(result, current_user.blocked.find((e) => e === user.id) ? 'DELETE' : 'POST')
 		setAnchorEl(null);
 	}
 	const handlePromote = async (e: any) => {
@@ -305,7 +308,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   const msgList = channel.messages.map((message, index) => (
 		<Grid key={index} item>
 			<Typography>
-				{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {message.content}
+				{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === message.sender_name)[0].id)) ? "<blocked blocked blocked>" : message.content}
 			</Typography>
 		</Grid>
 	));
@@ -395,7 +398,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 					}}
 					>
 						<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
-						<MenuItem onClick={handleBlock} value={user.id}>Block</MenuItem>
+						<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Unblock" : "Block"}</MenuItem>
 						{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
 						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
 						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
@@ -756,7 +759,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (res.ok)
 			{
 				const e = await res.json();
-				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
+				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration, blocked: user.user.blocked})),
 					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
 					notif: false, fetched: true, last_message: new Date()
 				}
@@ -772,7 +775,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (res.ok)
 			{
 				const e = await res.json();
-				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
+				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration, blocked: user.user.blocked})),
 					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
 					notif: false, fetched: true, last_message: new Date()
 				}
@@ -835,11 +838,35 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	{
 		console.log("Received unban handler")
 
-
 		if (data.user == this.state.user_id)
 			this.channelAddHandler(data)
 		this.channel_user_replace(data.user, data.channel, {banned: null})
 	}
+	userBlockHandler(data: any)
+	{
+		console.log("Received block handler")
+
+		this.setState({channels: this.state.channels.map((c) => {
+			return ({...c, users: (c.users.map((u) => {
+				if (u.id === this.state.user_id)
+					return {...u, blocked: [...u.blocked, data.user as number]}
+				return (u)
+			}))})
+		})})
+	}
+	userUnblockHandler(data: any)
+	{
+		console.log("Received unblock handler")
+
+		this.setState({channels: this.state.channels.map((c) => {
+			return ({...c, users: (c.users.map((u) => {
+				if (u.id === this.state.user_id)
+					return {...u, blocked: u.blocked.filter((u) => u != data.user as number)}
+				return (u)
+			}))})
+		})})
+	}
+
 
 	async componentDidMount()
 	{
@@ -858,6 +885,8 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		socket.on('channel_demote', (data: any) => this.channelDemoteHandler(data));
 		socket.on('channel_ban', (data: any) => this.channelBanHandler(data));
 		socket.on('channel_unban', (data: any) => this.channelUnbanHandler(data));
+		socket.on('user_block', (data: any) => this.userBlockHandler(data));
+		socket.on('user_unblock', (data: any) => this.userUnblockHandler(data));
 
 		const data = await fetch('http://' + window.location.hostname + ':8190/chat', fetch_opt())
 		if (data.ok)
@@ -869,7 +898,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 					id: e.id,
 					name: e.name,
 					visibility: e.visibility,
-					users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
+					users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration, blocked: user.user.blocked})),
 					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
 					notif: false,
 					fetched: true,

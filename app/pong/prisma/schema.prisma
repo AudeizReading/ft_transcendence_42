@@ -22,6 +22,8 @@ model User {
   doubleFA   String?
   lastFetch  DateTime     @updatedAt
 
+  blocked    Int[]
+
   notifs     Notif[]
   wins       Game[]
   games      PlayerGame[]
@@ -158,6 +160,8 @@ model ChannelUser {
 	messages			ChatMessage[]
 
 	power				ChannelUserPower
+
+  connected   Boolean   @default(true)
 
 	ban_expiration	 	DateTime?
 	mute_expiration		DateTime?

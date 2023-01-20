@@ -169,6 +169,20 @@ export class ChatGateway
 	{
 		await this.server.to("channel-"+channel_id).emit('channel_demote', {user: user_id, channel: channel_id});
 	}
+	async onUserBlock(blocker: number, blocked: number) {
+		const sockId = this.getSocketIdByUserId(blocker)
+		if (!sockId)
+			return ;
+		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.emit("user_block", {user: blocked})
+
+	}
+	async onUserUnblock(unblocker: number, blocked: number) {
+		const sockId = this.getSocketIdByUserId(unblocker)
+		if (!sockId)
+			return ;
+		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.emit("user_unblock", {user: blocked})
+	}
+
 
 	@SubscribeMessage('send_message')
 	@UseGuards(JwtAuthGuard)

@@ -23,7 +23,7 @@ export class ChatService {
 				AND: [
 					{ visibility: {not: ChannelType.PRIVATE} },
 					{ visibility: {not: ChannelType.PRIVATE_MESSAGE} },
-					{users: { every: { userId: {not: user_id } } } }
+					{ users: { every: { OR: [{userId: {not: user_id }}, {connected: false}] } } }
 				]
 			}
 		})
@@ -57,7 +57,7 @@ export class ChatService {
 				where: {
 					AND: [
 						{ id: {not: current_user_id} },
-						{ channels: { every: { channelId: {not: channel_id}}}}
+						{ channels: { every: {OR: [{channelId: {not: channel_id}}, {connected: false}]}}}
 					]
 				},
 				select: {
@@ -108,24 +108,28 @@ export class ChatService {
 						visibility: ChannelType.PUBLIC
 					},
 				],
-				NOT: {
-					users: {
-						some: {
-							userId: user_id
-						}
+				users: {
+					some: {
+						OR: [
+							{userId: {not: user_id}},
+							{userId: user_id, connected: false}
+						]
 					}
 				}
 			}
 		})
 		if (!channel)
 			throw new HttpException("Channel could not be joined", HttpStatus.I_AM_A_TEAPOT)
-		const cu = await this.prisma.channelUser.create({
+		let cu : any;
+		try {
+		cu = await this.prisma.channelUser.create({
 			data: {
 				channelId: channel_id,
 				userId: user_id,
 				power: ChannelUserPower.REGULAR
 			}
 		});
+		} catch (e: any) { cu = await this.prisma.channelUser.update({where: {userId_channelId: {userId: user_id, channelId: channel_id}}, data: {connected: true, power: ChannelUserPower.REGULAR}})}
 		chatGateway.onChannelAdd(user_id, channel_id);
 		return (cu);
   }
@@ -252,27 +256,34 @@ export class ChatService {
 					}*/
 				}
 			})
-			// TODO: Fix this so we can leave and keep messages
 			// Delete user
-			await this.prisma.chatMessage.deleteMany({
-				where: {
-					sender: {userId: user_id},
-					channelId: channel_id
-				}
-			})
-			const user = await this.prisma.channelUser.delete({
+			const user = await this.prisma.channelUser.update({
 				where: {
 					userId_channelId: {userId: user_id, channelId: channel_id}
+				},
+				data: {
+					connected: false,
 				}
 			})
 			gateway.onChannelRemove(user_id, channel_id);
 			/* If user who left was owner */
 			if (user.power == ChannelUserPower.OWNER)
 			{
+				const user = await this.prisma.channelUser.update({
+					where: {
+						userId_channelId: {userId: user_id, channelId: channel_id}
+					},
+					data: {
+						connected: false,
+						power: ChannelUserPower.REGULAR
+					}
+				})
+	
 				// Find another user to give ownership to
 				const new_owner = await this.prisma.channelUser.findFirst({
 					where: {
 						channelId: channel_id,
+						connected: true
 					}
 				});
 				if (new_owner) // There is another user
@@ -323,6 +334,8 @@ export class ChatService {
 				user = await this.prisma.channelUser.findUniqueOrThrow({
 					where: {userId_channelId: {userId: user_id, channelId: channel_id}}
 				})
+				if (!user.connected || user.ban_expiration)
+					return ;
 				// Permission check on the user trying to perform a modification on the channel
 				if (user.power != ChannelUserPower.OWNER
 				&& ( (user.power == ChannelUserPower.REGULAR
@@ -341,16 +354,18 @@ export class ChatService {
 			try {
 				switch (updateDto.operation) {
 					case UpdateChannelOperator.ADD_USER:
-						await this.prisma.channelUser.create({data: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}})
+						try { await this.prisma.channelUser.create({data: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}}) }
+						catch (e: any) { await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter}, data: {connected: true, power: ChannelUserPower.REGULAR}}) }
+
 						await gateway.onChannelAdd(updateDto.parameter, channel_id)
 						break;
 					case UpdateChannelOperator.REMOVE_USER:
 						if (user.id != updateDto.parameter)
 						{
 							if (user.power != ChannelUserPower.OWNER)
-								await this.prisma.channelUser.deleteMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}})
+								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {connected: false}})
 							else
-								await this.prisma.channelUser.deleteMany({where: {channelId: channel_id, userId: updateDto.parameter}})
+								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter}, data: {connected: false}})
 							await gateway.onChannelRemove(updateDto.parameter, channel_id)
 						}
 						break;
@@ -443,6 +458,8 @@ export class ChatService {
 	  	throw new HttpException("No such channel or you are not part of it", HttpStatus.I_AM_A_TEAPOT);
 	  if (user.ban_expiration)
 	  	throw new HttpException("You are banned from this channel", HttpStatus.FORBIDDEN);
+		if (!user.connected)
+	  	throw new HttpException("You are not in this channel", HttpStatus.FORBIDDEN);
 	  return await this.prisma.chatMessage.findMany({
 			where: {
 				channelId: channel_id
@@ -461,9 +478,12 @@ export class ChatService {
 			users: {
 				some: {
 					userId: user_id,
-					ban_expiration: null
+				},
+				every: {
+				  ban_expiration: null,
+				  connected: true
 				}
-			}
+		  }
 		},
 		select: {
 			id: true,
@@ -479,7 +499,10 @@ export class ChatService {
 			  users: {
 				  some: {
 					  userId: user_id,
-					  ban_expiration: null
+				  },
+				  every: {
+					ban_expiration: null,
+					connected: true
 				  }
 			  }
 		  },
@@ -493,7 +516,8 @@ export class ChatService {
 						  select: {
 							  id: true,
 							  name: true,
-							  avatar: true
+							  avatar: true,
+							  blocked: true
 						  }
 					  },
 					  power: true,
@@ -532,26 +556,31 @@ export class ChatService {
 				users: {
 					some: {
 						userId: user_id,
-						ban_expiration: null
+						ban_expiration: null,
+						connected: true
 					}
-				}
+				  }
 			},
 			select: {
 				id: true,
 				name: true,
 				visibility: true,
 				users: {
+					where: {
+						connected: true
+					},
 					select: {
 						user: {
 							select: {
 								id: true,
 								name: true,
-								avatar: true
+								avatar: true,
+								blocked: true
 							}
 						},
 						power: true,
 						ban_expiration: true,
-						mute_expiration: true
+						mute_expiration: true,
 					}
 				},
 				messages: {
@@ -580,6 +609,47 @@ export class ChatService {
 		return channels;
   }
   
+  	async blockUser(blocked: number, blocker: number, chatGateway: ChatGateway) {
+		const blist = await this.prisma.user.findUnique({
+			where: {
+				id: blocker
+			},
+			select: {
+				blocked: true
+			}
+		})
+		await this.prisma.user.update({
+			where: {
+				id: blocker
+			},
+			data: {
+				blocked: [...blist.blocked, blocked]
+			}
+		})
+		chatGateway.onUserBlock(blocker, blocked);
+	}
+
+	async unblockUser(blocked: number, unblocker: number, chatGateway: ChatGateway) {
+		const blist = await this.prisma.user.findUnique({
+			where: {
+				id: unblocker
+			},
+			select: {
+				blocked: true
+			}
+		})
+		await this.prisma.user.update({
+			where: {
+				id: unblocker
+			},
+			data: {
+				blocked: blist.blocked.filter((e) => e !== blocked)
+			}
+		})
+		chatGateway.onUserUnblock(unblocker, blocked);
+	}
+
+
   private expirables: Expirable[] = []
 
   addExpirable(e: Expirable)

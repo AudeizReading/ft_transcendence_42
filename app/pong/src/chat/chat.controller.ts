@@ -35,6 +35,19 @@ export class ChatController {
 	  return this.chatService.fetchChannels(req.user.id);
 	}
 
+	@Post('block/:id')
+	@UseGuards(JwtAuthGuard)
+	async blockUser(@Request() req, @Param('id', ParseIntPipe) id: number) {
+	  return this.chatService.blockUser(id, req.user.id, this.chatGateway);
+	}
+
+	@Delete('block/:id')
+	@UseGuards(JwtAuthGuard)
+	async unblockUser(@Request() req, @Param('id', ParseIntPipe) id: number) {
+	  return this.chatService.unblockUser(id, req.user.id, this.chatGateway);
+	}
+
+
 	@Get('all_joinable')
 	@UseGuards(JwtAuthGuard)
 	async getJoinableChannels(@Request() req) {
