@@ -117,12 +117,13 @@ export class ChatGateway
 	// Methods that updates the client but is triggered by the backend, after all SQL is done 
 	async onChannelAdd(user_id: number, channel_id: number)
 	{
-		await  this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
 		const sockId = this.getSocketIdByUserId(user_id)
-		if (!sockId)
-			return ;
-		await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
-		this.clients.get(sockId).channelIds.push(channel_id)
+		if (sockId)
+		{
+			await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
+			this.clients.get(sockId).channelIds.push(channel_id)
+		}
+		await  this.server.to("channel-"+channel_id).emit('channel_add', {user: user_id, channel: channel_id});
 	}
 	async onChannelRemove(user_id: number, channel_id: number)
 	{
@@ -140,6 +141,25 @@ export class ChatGateway
 	async onChannelUnmute(user_id: number, channel_id: number)
 	{
 		await this.server.to("channel-"+channel_id).emit('channel_unmute', {user: user_id, channel: channel_id});
+	}
+	async onChannelBan(user_id: number, channel_id: number, ban_expiration: Date)
+	{
+		await this.server.to("channel-"+channel_id).emit('channel_ban', {user: user_id, channel: channel_id, ban_expiration: ban_expiration});
+		const sockId = this.getSocketIdByUserId(user_id)
+		if (!sockId)
+			return ;
+		this.server.sockets.sockets.get(sockId).leave("channel-"+channel_id)
+		this.clients.get(sockId).channelIds = this.clients.get(sockId).channelIds.filter((e) => e !== channel_id);
+	}
+	async onChannelUnban(user_id: number, channel_id: number)
+	{
+		const sockId = this.getSocketIdByUserId(user_id)
+		if (sockId)
+		{
+			await (await this.server.fetchSockets()).find((s) => s.id === sockId)?.join("channel-"+channel_id)
+			this.clients.get(sockId).channelIds.push(channel_id)
+		}
+		await this.server.to("channel-"+channel_id).emit('channel_unban', {user: user_id, channel: channel_id});
 	}
 	async onChannelPromote(user_id: number, channel_id: number)
 	{

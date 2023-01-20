@@ -713,7 +713,6 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		this.state = {show: false, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
 	}
 
-	//TODO: regler la confusion entre senderId et userId
 	recvMsgHandler(data: any)
 	{
 		const channels : ChatChannel[] = this.state.channels
@@ -747,9 +746,12 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 
 	async channelAddHandler(data: any)
 	{
+		console.log("Received add handler")
+
 		// We got added to a new channel
 		if (data.user == this.state.user_id)
 		{
+			console.log("we were added to a new channel")
 			const res = await fetch('http://' + window.location.hostname + ':8190/chat/channel/'+data.channel, fetch_opt())
 			if (res.ok)
 			{
@@ -765,24 +767,39 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		// A user got added to a channel where i am
 		else
 		{
-			
+			console.log("a user was added to a channel we are in, refetch everything lol")
+			const res = await fetch('http://' + window.location.hostname + ':8190/chat/channel/'+data.channel, fetch_opt())
+			if (res.ok)
+			{
+				const e = await res.json();
+				const chan = {id: e.id, name: e.name, visibility: e.visibility, users: e.users.map((user: any) => ({id: user.user.id, name: user.user.name, avatar: user.user.avatar, power: user.power, banned: user.ban_expiration, muted: user.mute_expiration})),
+					messages: e.messages.map((m: any) => ({sender_name: m.sender.user.name, content: m.content, time: new Date(m.sent_at)})),
+					notif: false, fetched: true, last_message: new Date()
+				}
+				const c = this.state.channels
+				this.setState({channels: [...c.filter((e) => e.id !== data.channel), chan]})
+			}
 		}
 		console.log(data)
 	}
+
 	async channelRemoveHandler(data: any)
 	{
+		console.log("Received remove handler")
+
 		if (data.user == this.state.user_id)
 		{
+			console.log("we have to be removed from a channel")
 			const c = this.state.channels
-			this.setState({channels: c.filter((c) => c.id !== data.channel)})
+			this.setState({channels: c.filter((g) => g.id !== data.channel)})
 		}
 		else
 		{
 			const c = this.state.channels
-			this.setState({channels: c.map((c) => {
-				if (c.id === data.channel)
-					return ({...c, users: c.users.filter((u) => u.id !== data.user)})
-				return (c)
+			this.setState({channels: c.map((g) => {
+				if (g.id === data.channel)
+					return ({...g, users: g.users.filter((u) => u.id !== data.user)})
+				return (g)
 			})})
 		}
 	}
@@ -807,11 +824,20 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	}
 	channelBanHandler(data: any)
 	{
-		this.channel_user_replace(data.user, data.channel, {banned: data.ban_expiration})
+		console.log("Received ban handler")
 
+		if (data.user == this.state.user_id)
+			this.channelRemoveHandler(data)
+		else
+			this.channel_user_replace(data.user, data.channel, {banned: data.ban_expiration})
 	}
 	channelUnbanHandler(data: any)
 	{
+		console.log("Received unban handler")
+
+
+		if (data.user == this.state.user_id)
+			this.channelAddHandler(data)
 		this.channel_user_replace(data.user, data.channel, {banned: null})
 	}
 
@@ -823,7 +849,6 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		socket = socketIOClient('ws://' + window.location.hostname + ':8192/chat', {extraHeaders: fetch_opt().headers});
 		(window as any).chatSocket = socket;
 
-		//TODO: Fix this in order to have good user experience
 		socket.on('recv_msg', (data: any) => this.recvMsgHandler(data));
 		socket.on('channel_add', (data: any) => this.channelAddHandler(data));
 		socket.on('channel_remove', (data: any) => this.channelRemoveHandler(data));
