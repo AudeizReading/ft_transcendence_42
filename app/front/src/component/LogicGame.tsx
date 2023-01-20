@@ -20,10 +20,9 @@ interface pingpongData {
 
 export function getPlayerPosition(player: DataElement): number {
   if (player.at !== null && player.dir !== 0) {
-    // https://stackoverflow.com/q/153507/
     const time = (+new Date() - +player.at) / 1000;
     const speed = player.speed * (player.dir as number);
-    const delta = (1 / 2) * speed * (time * time);
+    const delta = speed * time;
     return Math.min(300 - player.size, Math.max(0, (player.pos as number) + delta));
   } else {
     return player.pos as number;

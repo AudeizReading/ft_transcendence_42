@@ -57,14 +57,14 @@ interface PlayGame {
   timeout: ReturnType<typeof setTimeout>;
   users: number[];
   settings: GameSettingsInterface;
+  pause: boolean;
 }
 
 function getPlayerPosition(player: DataElement): number {
   if (player.at !== null && player.dir !== 0) {
-    // https://stackoverflow.com/q/153507/
     const time = (+new Date() - +player.at) / 1000;
     const speed = player.speed * (player.dir as number);
-    const delta = (1 / 2) * speed * (time * time);
+    const delta = speed * time;
     return Math.min(300 - player.size, Math.max(0, (player.pos as number) + delta));
   } else {
     return player.pos as number;
@@ -117,14 +117,14 @@ export class GameSocketGateway
   private async gameJustEnded(game: PlayGame, winnerId: number, loserID: number)
   {
     // NOTE: This is... not efficient, but no matter.
-    this.usersService.addAchivement({OR: [{id: winnerId}, {id: loserID}]},
+    await this.usersService.addAchivement({OR: [{id: winnerId}, {id: loserID}]},
         {primary: "Il faut une première fois à tout", secondary: "Jouez une fois à pong"});
-    this.usersService.addAchivement({id: winnerId},
+    await this.usersService.addAchivement({id: winnerId},
         {primary: "Point faible : trop fort", secondary: "Gagnez une partie de pong"});
     
     const [pointsA, pointsB] = game.data.points;
     if (pointsA == 0 || pointsB == 0) {
-      this.usersService.addAchivement({id: winnerId},
+      await this.usersService.addAchivement({id: winnerId},
         {primary: "lmao gg ez", secondary: "Écrasez votre adversaire à pong"});
     }
   }
@@ -193,6 +193,9 @@ export class GameSocketGateway
   }
 
   goalWillMaybeHappened(socket: Socket, game: PlayGame, time: number, i: number) {
+    if (game.pause)
+      return ;
+    game.pause = true;
     const plane: Plane = this.getPlanes(game)[i];
     const a: Point = game.data.ball.pos as Point;
     const dir: Point = v_norm(game.data.ball.dir as Point);
@@ -213,6 +216,7 @@ export class GameSocketGateway
       if (Math.sign(plane.n.x) < 0)
         dist = (160 - dist) - 180;
       this.refreshBall(socket, game, point, Math.PI / 180 * (dist - 80), 0, speed + 20);
+      game.pause = false;
     }
     else {
       const angle: number = this.getStarterAngle(i);
@@ -230,7 +234,8 @@ export class GameSocketGateway
       clearTimeout(game.timeout);
       game.timeout = setTimeout(() => {
         if (!this.checkGameEnd(socket, game))
-          this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000)
+          this.refreshBall(socket, game, { x: 200, y: 150 }, angle, 3000);
+        game.pause = false;
       }, real_ms);
     }
   }
@@ -269,9 +274,11 @@ export class GameSocketGateway
           break;
         }
         if (ms <= 0) {
-          console.log('is now!');
-          clearTimeout(game.timeout);
-          this.goalWillMaybeHappened(socket, game, time, i);
+          console.log('is now!', game.pause);
+          if (!game.pause) {
+            clearTimeout(game.timeout);
+            this.goalWillMaybeHappened(socket, game, time, i);
+          }
           break;
         }
         clearTimeout(game.timeout);
@@ -416,6 +423,7 @@ export class GameSocketGateway
         users: [user.id],
         timeout: 0 as any,
         settings: settings,
+        pause: false,
       };
       this.games.set(client.gameId, game);
     }
