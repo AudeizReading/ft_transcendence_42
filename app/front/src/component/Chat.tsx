@@ -15,6 +15,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
 import SendIcon from '@mui/icons-material/Send';
+import { Link as RouterLink } from 'react-router-dom';
+import GameSettingsInterface from '../interface/GameSettingsInterface';
+import GameConfigDialog from './GameConfigDialog';
 
 interface ChatUser {
 	id: number;
@@ -322,7 +325,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	  	if (!user.banned || current_user.power !== "REGULAR")
 		{
 			return (
-				<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red', cursor: 'pointer'}}>
+				<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red', cursor: 'pointer', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
 					<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
 					text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
 					<Grid item>
@@ -353,7 +356,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 
   const channel_chat_interface = ( 
 	  <div style={{border: "solid", borderColor: "green", height: '100%'}}>
-			<div style={{border: "solid", borderColor: "cyan", height: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
+			<div style={{border: "solid", borderColor: "cyan", height: '100%', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
 				{msgList}
 			</div>
 			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue", position: "relative", bottom: 0}}>
@@ -381,6 +384,25 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	  </div>
   )
 
+	async function sendInvite(settings: GameSettingsInterface) {
+		const inviteData = {
+      fromID: current_user.id,
+      toID: user.id,
+      settings,
+    }
+    const result = await fetch(`http://${window.location.hostname}:8190/invite/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(fetch_opt().headers),
+        },
+        body: JSON.stringify(inviteData),
+    });
+    return (result.ok);
+	}
+
+	const [inviteOpen, setInviteOpen] = React.useState(false);
+
   return (
 		<div
 			role="tabpanel"
@@ -389,6 +411,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			style={{border: "dashed", borderColor: "yellow"}}
 			{...other}
 		>
+			<GameConfigDialog open={inviteOpen} setOpen={setInviteOpen} sendInvite={sendInvite}/>
 			{value === index && (
 			<Grid container direction="row" spacing={0} >
 				<Grid container item xs={9} direction="column" height="calc(100vh - 160px)" >
@@ -403,6 +426,8 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 							open={open}
 							onClose={handleClose}
 						>
+								<MenuItem component={RouterLink} to={`/user/${user.id}`}>Profile</MenuItem>
+								<MenuItem onClick={() => setInviteOpen(true)}>Invite</MenuItem>
 								<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
 								<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Unblock" : "Block"}</MenuItem>								{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
 								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
