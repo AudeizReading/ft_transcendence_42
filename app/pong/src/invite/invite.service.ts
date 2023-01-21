@@ -31,7 +31,7 @@ export class InviteService
 				OR: [
 					{id: inviteData.fromID},
 					{id: inviteData.toID},
-					],
+				],
 			},
 			include: {
 				mMaking: true,
@@ -135,7 +135,7 @@ export class InviteService
 					OR: [
 						{fromID: inviteData.fromID, toID: inviteData.toID},
 						{fromID: inviteData.toID, toID: inviteData.fromID},
-						]
+					]
 				}
 			});
 			const redirAction: ActionRedirContent = {

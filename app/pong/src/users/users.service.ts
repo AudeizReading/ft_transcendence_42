@@ -279,15 +279,4 @@ export class UsersService {
       }
     });
   }
-
-  // HACK: FOR DEBUG ONLY
-  // Only call this if you have an existing DB with NULL achievements fields
-  async DEBUG_init_achievements()
-  {
-    return this.prisma.user.updateMany({
-      data: {
-        achievements: []
-      }
-    });
-  }
 }

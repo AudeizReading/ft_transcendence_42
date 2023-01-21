@@ -33,17 +33,6 @@ export default function AchievementListDialog(props: AchievementListDialogProps)
         </List>
       </DialogContent>
 
-      <DialogActions>
-        <Button
-          variant="contained"
-          startIcon={<WarningIcon/>}
-          color="error"
-          onClick={() => fetch(`http://${window.location.hostname}:8190/debug/init-ach`)}
-        >
-          DEBUG: init/reset achievements
-        </Button>
-      </DialogActions>
-
     </Dialog>
   );
 }

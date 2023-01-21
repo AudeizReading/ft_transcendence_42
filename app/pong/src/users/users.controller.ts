@@ -199,14 +199,4 @@ export class UsersController {
   {
     return this.usersService.getBestPlayers(+params.limit);
   }
-
-  // HACK: DEBUG ONLY
-  // Call this to init the achievements fields in your DB (things don't work if they're NULL)
-  // This WILL reset the achievements too, so be careful.
-  @Get('debug/init-ach')
-  async DEBUG_init_ach()
-  {
-    const numUpdated = await this.usersService.DEBUG_init_achievements();
-    console.log(`DEBUG: Init Achievements: Updated ${numUpdated.count} rows.`);
-  }
 }
