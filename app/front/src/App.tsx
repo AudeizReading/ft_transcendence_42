@@ -109,8 +109,11 @@ function App() {
           setLoaded(false)
           // console.info('fetch_userinfo', error)
           setUser(defaultNotConnected())
-        }
-      )
+      })
+      .catch((err) => {
+        setLoaded(false);
+        setUser(defaultNotConnected());
+      });
   }, []);
 
   const handleDialogClose = () => {
