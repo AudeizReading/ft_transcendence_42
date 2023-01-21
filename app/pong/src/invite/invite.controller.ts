@@ -49,7 +49,12 @@ export class InviteController
 	async delete(@Body() invite: InviteDTO)
 	{
 		console.log("Deleting invite");
-		return this.inviteService.deleteInvite(invite);
+		try {
+			return this.inviteService.deleteInvite(invite);
+		}
+		catch (err) {
+			throw new BadRequestException();
+		}
 	}
 
 	@Post('accept')
