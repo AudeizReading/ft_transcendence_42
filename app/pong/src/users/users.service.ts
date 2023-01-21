@@ -232,10 +232,20 @@ export class UsersService {
       }
     });
 
-    return userList.sort( (a, b) =>
-      getScore(b.wins.length, b.games.length) - getScore(a.wins.length, a.games.length) )
+    return userList.sort( (a, b) => {
+      const scoreA = getScore(a.wins.length, a.games.length);
+      const scoreB = getScore(b.wins.length, b.games.length);
+      if (scoreA > scoreB)
+        return -1;
+      if (scoreA < scoreB)
+        return 1;
+      if (a.id < b.id)
+      return -1;
+      if (a.id > b.id)
+        return 1;
+      return 0;
+    })
     .slice(0, limit)
-    .sort( (a, b) => a.id - b.id)
     .map(user => ({
       id: user.id,
       name: user.name,
