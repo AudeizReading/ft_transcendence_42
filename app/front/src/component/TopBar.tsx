@@ -30,6 +30,7 @@ import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps, AlertColor } from '@mui/material/Alert';
+import MessageIcon from '@mui/icons-material/Message';
 
 import { fetch_opt } from '../dep/fetch'
 import { User } from '../interface/User'
@@ -444,6 +445,15 @@ function TopBar(props: {
                   <Person fontSize="small" />
                 </ListItemIcon>
                 Amis
+              </MenuItem>
+              <MenuItem key="Chat" onClick={handleCloseUserMenu}
+                component={RouterLink}
+                to={'/chat/'}
+              >
+                <ListItemIcon>
+                  <MessageIcon fontSize="small" />
+                </ListItemIcon>
+                Chat
               </MenuItem>
               <MenuItem key="Options" onClick={handleCloseUserMenu}
                 component={RouterLink}

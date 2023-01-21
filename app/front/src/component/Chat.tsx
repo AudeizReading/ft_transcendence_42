@@ -14,6 +14,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs, { Dayjs } from 'dayjs';
+import SendIcon from '@mui/icons-material/Send';
 
 interface ChatUser {
 	id: number;
@@ -305,20 +306,23 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		setAnchorEl(null);
 	};
 
-  const msgList = channel.messages.map((message, index) => (
-		<Grid key={index} item>
-			<Typography>
-				{message.time.toTimeString().split(' ')[0]} {message.sender_name}: {current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === message.sender_name)[0].id)) ? "<blocked blocked blocked>" : message.content}
+  const msgList = channel.messages.map((msg, i) => {
+		const timestamp = msg.time.toLocaleString("fr-FR", {year: '2-digit', month: "2-digit", day: "2-digit",
+				hour: '2-digit', minute: '2-digit'});
+		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === message.sender_name)[0].id)) ? "<blocked blocked blocked>" : message.content;
+		return (
+			<Typography key={i}>
+				<u>{timestamp} <strong>{`${msg.sender_name}:`}</strong></u> {msgContent}
 			</Typography>
-		</Grid>
-	));
+		);
+	});
 
   //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
 	  	if (!user.banned || current_user.power !== "REGULAR")
 		{
 			return (
-				<div key={idx}>
+				<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red', cursor: 'pointer'}}>
 					<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
 					text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
 					<Grid item>
@@ -341,72 +345,74 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	setMessage("")
   }
 
-  const channel_chat_interface = (
-	  <div>
-		<Grid container direction="column" sx={{height: "90%"}}>
-			{msgList}
-		</Grid>
-		<div>
-			<Grid item xs={9} sm={6}>
-			<TextField
-				required
-				inputRef={inputRef}
-				id="message"
-				name="message"
-				label="Message"
-				value={message}
-				onChange={(e) => setMessage(e.target.value)}
-				fullWidth
-				variant="standard"
-			/>
-			</Grid>
-			<Grid item xs={9} sm={2}>
-				<Button
-					type="submit"
-					fullWidth
-					variant="contained"
-					onClick={(e) => send_message()}>
-					Send
-				</Button>
-			</Grid>
-		</div>
+	// To be used with the channel_chat_interface right below.
+	const handleMessageFormSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		send_message();
+	};
+
+  const channel_chat_interface = ( 
+	  <div style={{border: "solid", borderColor: "green", height: '100%'}}>
+			<div style={{border: "solid", borderColor: "cyan", height: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
+				{msgList}
+			</div>
+			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue", position: "relative", bottom: 0}}>
+				<Grid container direction="row" spacing={1} >
+					<Grid item xs={9}>
+						<TextField
+							required
+							inputRef={inputRef}
+							id="message"
+							name="message"
+							label="Message"
+							value={message}
+							onChange={(e) => setMessage(e.target.value)}
+							fullWidth
+							variant="standard"
+						/>
+					</Grid>
+					<Grid item xs>
+						<Button type="submit" fullWidth variant="contained" sx={{height: '100%'}} >
+							<SendIcon />
+						</Button>
+					</Grid>
+				</Grid>
+			</form>
 	  </div>
   )
 
   return (
-	<div
-	  role="tabpanel"
-	  hidden={value !== index}
-	  id={`vertical-tabpanel-${index}`}
-	  aria-labelledby={`vertical-tab-${index}`}
-	  {...other}
-	>
-	  {value === index && (
-		<Grid container spacing={3} >
-			<Grid container item xs={9} direction="column" >
-				{channel_chat_interface}
+		<div
+			role="tabpanel"
+			hidden={value !== index}
+			id={`vertical-tabpanel-${index}`}
+			style={{border: "dashed", borderColor: "yellow"}}
+			{...other}
+		>
+			{value === index && (
+			<Grid container direction="row" spacing={0} >
+				<Grid container item xs={9} direction="column" height="calc(100vh - 160px)" >
+					{channel_chat_interface}
+				</Grid>
+				<Grid container item xs={3} direction="column" >
+					<div style={{height: 'calc(100vh - 100px)', overflow: 'auto', overflowBlock: 'auto'}}>
+						{channel_users}
+						<Menu
+							id="basic-menu"
+							anchorEl={anchorEl}
+							open={open}
+							onClose={handleClose}
+						>
+								<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
+								<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Unblock" : "Block"}</MenuItem>								{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
+								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
+								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
+						</Menu>
+					</div>
+				</Grid>
 			</Grid>
-			<Grid container item xs={3} direction="column" >
-				{channel_users}
-				<Menu
-					id="basic-menu"
-					anchorEl={anchorEl}
-					open={open}
-					onClose={handleClose}
-					MenuListProps={{
-					'aria-labelledby': 'basic-button',
-					}}
-					>
-						<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
-						<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Unblock" : "Block"}</MenuItem>
-						{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
-						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
-						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
-				</Menu>
-			</Grid>
-		</Grid>
-	  )}
-	</div>
+			)}
+		</div>
   );
 }
 
@@ -713,7 +719,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	constructor(props: any)
 	{
 		super(props);
-		this.state = {show: false, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
+		this.state = {show: true, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
 	}
 
 	recvMsgHandler(data: any)
@@ -970,10 +976,25 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	generateTabPanels() : JSX.Element[]
 	{
 		let panels = this.state.channels.map((channel, index) => {
-			return (<ChannelTabPanel key={index} value={this.state.current_channel_idx} index={index} channel={channel} sendMessage={this.sendMessage} current_user={channel.users.filter((u) => u.id === this.state.user_id)[0]}/>)
+			return (
+				<ChannelTabPanel
+					key={index}
+					value={this.state.current_channel_idx}
+					index={index}
+					channel={channel}
+					sendMessage={this.sendMessage}
+					current_user={channel.users.find((u) => u.id === this.state.user_id)!}
+				/>
+			);
 		});
 		// Special tab panel to create channel
-		panels.push(<NewChannelTabPanel key={panels.length} value={this.state.current_channel_idx} index={panels.length} />)
+		panels.push(
+			<NewChannelTabPanel
+				key={panels.length}
+				value={this.state.current_channel_idx}
+				index={panels.length}
+			/>
+		);
 		return (panels);
 	}
 
@@ -1030,32 +1051,48 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			const tab_panels = this.generateTabPanels()
 
 			return (
-				<div>
-					{this.state.current_channel_id !== -1 && <Menu
-					id="basic-menu"
-					anchorEl={this.state.anchorEl}
-					open={Boolean(this.state.anchorEl)}
-					onClose={(e) => (this.setState({anchorEl: null}))}
-					MenuListProps={{
-					'aria-labelledby': 'basic-button',
-					}}
-					>
-						<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Settings</MenuItem>
-						<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Leave</MenuItem>
-						{Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
-						<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Delete</MenuItem>}
-					</Menu>}
-					{this.state.displaySettingsDialog && <ChannelSettingsDialog functionCallback={this.channelSettingsDialogCallback} closeCallback={(e: any) => this.setState({displaySettingsDialog: false, anchorEl: null})} open={this.state.displaySettingsDialog} 
-					channel={this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0]} owner={Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER"))}/>}
-					<Tabs orientation="vertical" variant="scrollable" value={this.state.current_channel_idx} onChange={this.changeChannel} aria-label="Chat channels"
-						sx={{ borderRight: 1, borderColor: 'divider' }}
-					>
-						{tab_labels}
-					</Tabs>
-					{tab_panels}
-				</div>)
+				<div style={{width: '100%', height: 'calc(100vh - 100px)'}}>
+					{this.state.current_channel_id !== -1 &&
+						<Menu
+							id="basic-menu"
+							anchorEl={this.state.anchorEl}
+							open={Boolean(this.state.anchorEl)}
+							onClose={(e) => (this.setState({anchorEl: null}))}
+						>
+							<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Settings</MenuItem>
+							<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Leave</MenuItem>
+							{Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
+								<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Delete</MenuItem>}
+						</Menu>
+					}
+					{this.state.displaySettingsDialog &&
+						<ChannelSettingsDialog functionCallback={this.channelSettingsDialogCallback}
+							closeCallback={(e: any) => this.setState({displaySettingsDialog: false, anchorEl: null})}
+							open={this.state.displaySettingsDialog} 
+							channel={this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0]}
+							owner={Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER"))}
+						/>
+					}
+					<Grid container direction="row">
+						<Grid item xs={4}>
+							<Tabs orientation="vertical"
+								variant="scrollable"
+								value={this.state.current_channel_idx}
+								onChange={this.changeChannel}
+								sx={{ borderRight: 1, borderColor: 'divider', height: 'calc(100vh - 100px)' }}
+							>
+								{tab_labels}
+							</Tabs>
+						</Grid>
+						<Grid item xs={8}>
+							{tab_panels}
+						</Grid>
+					</Grid>
+				</div>
+			);
 		}
-		return <></>
+		else
+			return <></>
 	}
 
 	render()
@@ -1063,11 +1100,8 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		const tabs = this.generateChat();
 		
 		return (
-			<Box sx={{ flexGrow: 1, display: 'flex', height: 500}}>
-				{this.state.show && tabs}
-			  	<Fab color="primary" aria-label="chat" onClick={this.toggleDiv}>
-						<ChatIcon />
-			  	</Fab>	  
+			<Box>
+				{tabs}
 			</Box>
 		  );			
 	}
