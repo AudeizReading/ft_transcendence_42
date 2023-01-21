@@ -309,7 +309,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   const msgList = channel.messages.map((msg, i) => {
 		const timestamp = msg.time.toLocaleString("fr-FR", {year: '2-digit', month: "2-digit", day: "2-digit",
 				hour: '2-digit', minute: '2-digit'});
-		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === message.sender_name)[0].id)) ? "<blocked blocked blocked>" : message.content;
+		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === msg.sender_name)[0].id)) ? "<blocked blocked blocked>" : msg.content;
 		return (
 			<Typography key={i}>
 				<u>{timestamp} <strong>{`${msg.sender_name}:`}</strong></u> {msgContent}
