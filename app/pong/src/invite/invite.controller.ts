@@ -33,8 +33,6 @@ export class InviteController
 		private inviteService: InviteService,
 	) {}
 
-	// TODO: have good error handling, bruv
-	// TODO: More guards?
 	@Post('send')
 	@UseGuards(JwtAuthGuard)
 	async send(@Req() req, @Body() invite: InviteDTO)

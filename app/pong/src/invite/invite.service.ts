@@ -37,7 +37,7 @@ export class InviteService
 				mMaking: true,
 			}
 		});
-		if (!users) // NOTE: No idea if this is necessary.
+		if (users.length === 0)
 			return false;
 
 		const notInMM = users.every(user => !user.mMaking || user.mMaking.userId !== user.id);
@@ -56,8 +56,8 @@ export class InviteService
 			&& settings.ballSpeed >= this.CLAMPS.ballSpeed.min
 			&& settings.ballSpeed <= this.CLAMPS.ballSpeed.max
 			
-			&& (settings.pointsGap === undefined ||
-				(settings.pointsGap >= this.CLAMPS.pointsGap.min
+			&& (settings.pointsGap === undefined
+				|| (settings.pointsGap >= this.CLAMPS.pointsGap.min
 					&& settings.pointsGap <= this.CLAMPS.pointsGap.max))
 			
 			&& settings.racketSize >= this.CLAMPS.racketSize.min
@@ -65,7 +65,6 @@ export class InviteService
 			);
 	}
 
-	// TODO: Check for blocked user
 	async sendInvite(inviteData: InviteDTO)
 	{
 		const usersAvail = await this.areUsersAvail(inviteData);
@@ -76,66 +75,79 @@ export class InviteService
 			throw new BadRequestException("Invites's settings are invalid");
 		}
 
-		const newInvite = await this.prisma.invite.create({
-			data: {
-				fromID: inviteData.fromID,
-				toID: inviteData.toID,
-				settings: JSON.stringify(inviteData.settings),
-			},
-			include: {
-				from: true
-			}
-		});
-
-		// Put serialized JSON in the notif text. Frontend decodes it.
-		const notifMetadata = {
-			text: `${newInvite.from.name} vous invite à jouer à Pong !`,
-			invite: { ...inviteData },
-		};
-		await this.notifService.createNotif(inviteData.toID, {
-			text: JSON.stringify(notifMetadata),
-			url: `/${newInvite.fromID}`,
-			type: "GAMEINVITE",
-		});
-		delete newInvite.from; // Remove that 'from' field we included.
-		return newInvite as Invite;
+		try {
+			const newInvite = await this.prisma.invite.create({
+				data: {
+					fromID: inviteData.fromID,
+					toID: inviteData.toID,
+					settings: JSON.stringify(inviteData.settings),
+				},
+				include: {
+					from: true
+				}
+			});
+			// Put serialized JSON in the notif text. Frontend decodes it.
+			const notifMetadata = {
+				text: `${newInvite.from.name} vous invite à jouer à Pong !`,
+				invite: { ...inviteData },
+			};
+			await this.notifService.createNotif(inviteData.toID, {
+				text: JSON.stringify(notifMetadata),
+				url: `/${newInvite.fromID}`,
+				type: "GAMEINVITE",
+			});
+			delete newInvite.from; // Remove that 'from' field we included.
+			return newInvite as Invite;
+		}
+		catch (err) {
+			throw new BadRequestException();
+		}
 	}
 
 	async deleteInvite(invite: InviteDTO)
 	{
-		const deletedInvite = await this.prisma.invite.delete({
-			where: {
-				fromID_toID_settings: {
-					fromID: invite.fromID,
-					toID: invite.toID,
-					settings: JSON.stringify(invite.settings),
+		try {
+			const deletedInvite = await this.prisma.invite.delete({
+				where: {
+					fromID_toID_settings: {
+						fromID: invite.fromID,
+						toID: invite.toID,
+						settings: JSON.stringify(invite.settings),
+					}
 				}
-			}
-		});
-		return deletedInvite;
+			});
+			return deletedInvite;
+		}
+		catch (err) {
+			throw new BadRequestException();
+		}
 	}
 
 	async acceptInvite(inviteData: InviteDTO)
 	{
-		const canAccept = await this.areUsersAvail(inviteData);
-		if (!canAccept)
+		try {
+			const canAccept = await this.areUsersAvail(inviteData);
+			if (!canAccept)
+				throw new BadRequestException("Cannot accept invite");
+			await this.gameService.createGame(inviteData.fromID, inviteData.toID, inviteData);
+			await this.prisma.invite.deleteMany({
+				where: {
+					OR: [
+						{fromID: inviteData.fromID, toID: inviteData.toID},
+						{fromID: inviteData.toID, toID: inviteData.fromID},
+						]
+				}
+			});
+			const redirAction: ActionRedirContent = {
+				type: 'redir',
+				url: '/game/',
+			};
+			await this.notifService.createAction(inviteData.fromID, redirAction);
+			await this.notifService.createAction(inviteData.toID, redirAction);
+		}
+		catch (err) {
 			throw new BadRequestException("Cannot accept invite");
-		console.log("DATA: ", inviteData);
-		const newGame = await this.gameService.createGame(inviteData.fromID, inviteData.toID, inviteData);
-		const deleted = await this.prisma.invite.deleteMany({
-			where: {
-				OR: [
-					{fromID: inviteData.fromID, toID: inviteData.toID},
-					{fromID: inviteData.toID, toID: inviteData.fromID},
-					]
-			}
-		});
-		const redirAction: ActionRedirContent = {
-			type: 'redir',
-			url: '/game/',
-		};
-		await this.notifService.createAction(inviteData.fromID, redirAction);
-		await this.notifService.createAction(inviteData.toID, redirAction);
+		}
 	}
 
 	async deleteAllExpired()
