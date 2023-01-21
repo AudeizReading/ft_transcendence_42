@@ -1,8 +1,7 @@
 import React from 'react';
-import { Dialog, Button, DialogTitle, DialogContent, ListItem, ListItemIcon, ListItemText, List, Avatar, Divider, DialogActions } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, ListItem, ListItemIcon, ListItemText, List, Avatar, Divider } from '@mui/material';
 import { ProfileUserInterface } from '../page/Profile';
 import { EmojiEvents } from '@mui/icons-material';
-import WarningIcon from '@mui/icons-material/Warning';
 
 interface AchievementListDialogProps {
   open: boolean,

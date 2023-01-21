@@ -107,7 +107,7 @@ function App() {
         },
         (error) => {
           setLoaded(false)
-          console.info('fetch_userinfo', error)
+          // console.info('fetch_userinfo', error)
           setUser(defaultNotConnected())
         }
       )

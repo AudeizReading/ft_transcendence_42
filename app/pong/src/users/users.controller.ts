@@ -12,6 +12,7 @@ import {
   StreamableFile,
   ParseFilePipeBuilder,
   HttpStatus,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from '../users/users.service';
@@ -38,6 +39,10 @@ export class ParamFileInPsql {
 class ParamBestUsersLimit {
   @IsNumberString()
   limit: number;
+}
+
+class NewNameDTO {
+  newName: string;
 }
 
 @Controller()
@@ -176,22 +181,22 @@ export class UsersController {
     return new StreamableFile(file.content);
   }
 
-  // TODO: Change this to a POST request, I just don't know how yet
-  // and I don't have the time right now
-  @Get('user/change-name/:newname')
+  // Returns a pure string, containing new name, or original name if new one is illegal
+  @Post('user/change-name')
   @UseGuards(JwtAuthGuard)
-  async change_name(@Request() req, @Param() params: any)
+  async change_name(@Request() req, @Body() data: NewNameDTO)
   {
-    // TODO: Indicate it's an error with codes and shit
-    if (params.newname.length > 32 || params.newname.length < 4)
+    const newName = data.newName.trim();
+    if (newName.length < 4 || newName.length > 32)
       return req.user.name;
-
+    
     this.usersService.addAchivement({id: req.user.id},
       {primary: "SAY MY NAME", secondary: "Changez votre nom"});
-    return this.usersService.updateUser({
+    const updatedUser = await this.usersService.updateUser({ // No need to try/catch error, ID is safe because of Jwt
       where: {id: req.user.id},
-      data: {name: params.newname}
-    }).then((user) => user.name);
+      data: {name: newName},
+    });
+    return updatedUser.name;
   }
 
   @Get('user/best/:limit')

@@ -27,7 +27,6 @@ export interface ProfileUserInterface {
   achievements: string[], // Still serialized for now
 }
 
-// TODO: Get a "User not found" page instead of a blank thing
 function Profile(props: {
     fetch_userinfo: Function,
     user: User

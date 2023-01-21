@@ -73,7 +73,6 @@ export class UsersService {
     };
   }
 
-  // NOTE: If we ever do more than 2 player games, this will have to be redone
   async getPlayedGames(userID: number)
   {
     // Get all games user has played, and include the "players" table
@@ -204,8 +203,6 @@ export class UsersService {
     });
   }
 
-  // Don't get use status here, it shouldn't get called often
-  // TODO: Rate limit or we gonna blow things up
   async getBestPlayers(limit: number)
   {
     const getScore = (wins: number, games: number) => {

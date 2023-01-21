@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { TextField, useTheme } from '@mui/material';
 import { fetch_opt } from '../dep/fetch';
+import StatusSnackbar from './StatusSnackbar';
 
 interface EditableNameProps {
   editable: boolean,
@@ -14,6 +15,7 @@ export default function EditableName(props: EditableNameProps)
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(props.name);
   const [newName, setNewName] = useState(props.name);
+  const [error, setError] = useState(false);
   const theme = useTheme();
   
   const viewNameStyle = {
@@ -40,12 +42,25 @@ export default function EditableName(props: EditableNameProps)
       setEditing(false);
       return;
     }
-    const res = await fetch(`http://${window.location.hostname}:8190/user/change-name/${encodeURIComponent(newName)}`, fetch_opt());
+    const res = await fetch(`http://${window.location.hostname}:8190/user/change-name`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(fetch_opt().headers),
+      },
+      body: JSON.stringify({newName: newName})
+    });
+    if (!res.ok) { // Only triggers on failed HTTP requests
+      setError(true);
+      setNewName(name);
+      setEditing(false);
+      return;
+    }
+    // Backend double-checks name, returns original one if new one is illegal
     const updtName = await res.text();
     setNewName(updtName);
     setName(updtName);
     props.fetch_userinfo();
-    // TODO: error handling
     setEditing(false);
   }
 
@@ -85,5 +100,17 @@ export default function EditableName(props: EditableNameProps)
     setNewName(props.name);
   }, [props.name]);
 
-  return editing ? editingView : nameView;
+  return (
+    <React.Fragment>
+      <StatusSnackbar errorText="Impossible de changer le nom d'utilisateur"
+        status={error ? "error" : ""}
+        snackbarProps={{
+          anchorOrigin: {vertical: 'top', horizontal: 'center'},
+          autoHideDuration: 3000,
+          onClose: () => setError(false),
+        }}
+      />
+      {editing ? editingView : nameView}
+    </React.Fragment>
+  );
 }

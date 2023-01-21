@@ -70,8 +70,6 @@ export interface LadderProps {
   currentUserID: number,
 }
 
-// TODO: useState with call to backend, to avoid too many calls when re-rendering
-// A refresh button on top should be enough, no need to fetch data
 // NOTE: I tried using flex instead of hardcoded width in this one, let's see if it works out
 export default function Ladder(props: LadderProps)
 {
