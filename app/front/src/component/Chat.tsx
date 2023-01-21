@@ -303,13 +303,15 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		setAnchorEl(null);
 	};
 
-  const msgList = channel.messages.map((message, index) => (
-		// <Grid key={index} item>
-			<Typography key={index}>
-				<u>{message.time.toTimeString().split(' ')[0]} <strong>{`${message.sender_name}:`}</strong></u> {message.content}
+  const msgList = channel.messages.map((msg, i) => {
+		const timestamp = msg.time.toLocaleString("fr-FR", {year: '2-digit', month: "2-digit", day: "2-digit",
+				hour: '2-digit', minute: '2-digit'});
+		return (
+			<Typography key={i}>
+				<u>{timestamp} <strong>{`${msg.sender_name}:`}</strong></u> {msg.content}
 			</Typography>
-		// </Grid>
-	));
+		);
+	});
 
   //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
@@ -342,8 +344,8 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	};
 
   const channel_chat_interface = ( 
-	  <div style={{border: "solid", borderColor: "green", maxHeight: '100%', /* overflow: 'auto', wordWrap: 'break-word' */}}>
-			<div style={{border: "solid", borderColor: "cyan", maxHeight: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
+	  <div style={{border: "solid", borderColor: "green", height: '100%'}}>
+			<div style={{border: "solid", borderColor: "cyan", height: '100%', overflow: 'auto', wordWrap: 'break-word'}}>
 				{msgList}
 			</div>
 			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue", position: "relative", bottom: 0}}>
