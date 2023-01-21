@@ -82,7 +82,7 @@ export class ChatController {
 	@UseGuards(JwtAuthGuard)
 	async deleteChannel(@Request() req, @Param('id', ParseIntPipe) id: number)
 	{
-		return this.chatService.deleteChannel(id, req.user.id);
+		return this.chatService.deleteChannel(id, req.user.id, this.chatGateway);
 	}
 
 	/*

@@ -9,6 +9,8 @@ import { ChatGateway } from './chat.gateway';
 import { CronJob } from 'cron';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
+import * as bcrypt from 'bcrypt';
+
 interface Expirable {expiration: Date, user: number, channel: number, operation: string, chatGateway: ChatGateway}
 
 @Injectable()
@@ -99,12 +101,10 @@ export class ChatService {
 				OR: [
 					{
 						id: channel_id,
-						password: password,
 						visibility: ChannelType.PASSWORD_PROTECTED
 					},
 					{
 						id: channel_id,
-						password: password,
 						visibility: ChannelType.PUBLIC
 					},
 				],
@@ -118,7 +118,7 @@ export class ChatService {
 				}
 			}
 		})
-		if (!channel)
+		if (!channel || (channel.password && !(await bcrypt.compare(password, channel.password))))
 			throw new HttpException("Channel could not be joined", HttpStatus.I_AM_A_TEAPOT)
 		let cu : any;
 		try {
@@ -146,6 +146,16 @@ export class ChatService {
 		{
 			try
 			{
+				const channels = await this.prisma.chatChannel.findMany({
+					where: {
+						OR: [
+							{name: "DM: "+user_id+"-"+createDto.users[0]},
+							{name: "DM: "+createDto.users[0]+"-"+user_id}
+						]
+					}
+				})
+				if (channels.length)
+					throw new HttpException("This private message channel already exists", HttpStatus.I_AM_A_TEAPOT);
 				const chan =  await this.prisma.chatChannel.create({
 					data: {
 						name: "DM: "+user_id+"-"+createDto.users[0],
@@ -166,17 +176,18 @@ export class ChatService {
 				return (chan);
 			} catch (e)
 			{
-				throw new HttpException("This private message channel already exists, handmade requests again?", HttpStatus.I_AM_A_TEAPOT);
+				throw new HttpException("This private message channel already exists", HttpStatus.I_AM_A_TEAPOT);
 			}
 		}
 		if (!data.length)
 			throw new HttpException('Can not create a channel with yourself only', HttpStatus.I_AM_A_TEAPOT);
 		try {
+				const hashed_password = createDto.password ? await bcrypt.hash(createDto.password, 10) : null;
 				const chan = await this.prisma.chatChannel.create({
 					data: {
 						name: createDto.name,
 						visibility: createDto.visibility,
-						password: createDto.password,
+						password: hashed_password,
 						users: {
 							create: [
 								{userId: user_id, power: ChannelUserPower.OWNER},
@@ -267,6 +278,7 @@ export class ChatService {
 			})
 			gateway.onChannelRemove(user_id, channel_id);
 			/* If user who left was owner */
+			let new_owner = null;
 			if (user.power == ChannelUserPower.OWNER)
 			{
 				const user = await this.prisma.channelUser.update({
@@ -280,7 +292,7 @@ export class ChatService {
 				})
 	
 				// Find another user to give ownership to
-				const new_owner = await this.prisma.channelUser.findFirst({
+				new_owner = await this.prisma.channelUser.findFirst({
 					where: {
 						channelId: channel_id,
 						connected: true
@@ -288,6 +300,7 @@ export class ChatService {
 				});
 				if (new_owner) // There is another user
 				{
+					gateway.onChannelOwner(new_owner.userId, new_owner.channelId);
 					await this.prisma.channelUser.update({
 						where: {
 							userId_channelId: {userId: new_owner.userId, channelId: new_owner.channelId}
@@ -298,14 +311,25 @@ export class ChatService {
 					})
 
 				}
-				else // No other user -> delete channel
-				{
-					return await this.prisma.chatChannel.delete({
-						where: {
-							id: channel_id
-						}
-					})
-				}
+			}
+			if (!new_owner) // No other user -> delete channel
+			{
+				await this.prisma.chatMessage.deleteMany({
+					where: {
+						channelId: channel_id
+					}
+				})
+				await this.prisma.channelUser.deleteMany({
+					where: {
+						channelId: channel_id
+					}
+				})
+				await this.prisma.chatChannel.delete({
+					where: {
+						id: channel_id
+					}
+				})
+				await gateway.onChannelRemove(user_id, channel_id)
 			}
 		}
 		catch (e)
@@ -398,7 +422,7 @@ export class ChatService {
 							await this.prisma.chatChannel.update({where: {id: channel_id}, data: {password: null, visibility: ChannelType.PUBLIC}})
 						else
 						{
-							await this.prisma.chatChannel.update({where: {id: channel_id}, data: {password: updateDto.parameter, visibility: ChannelType.PASSWORD_PROTECTED}})
+							await this.prisma.chatChannel.update({where: {id: channel_id}, data: {password: await bcrypt.hash(updateDto.parameter, 10), visibility: ChannelType.PASSWORD_PROTECTED}})
 							await this.prisma.channelUser.deleteMany({where: {channelId: channel_id, power: ChannelUserPower.REGULAR}})
 						}
 						break;
@@ -429,7 +453,7 @@ export class ChatService {
 		} catch (e) { console.log(e); throw new HttpException("Error", HttpStatus.I_AM_A_TEAPOT); }
   }
 
-  async deleteChannel(channel_id: number, user_id: number) {
+  async deleteChannel(channel_id: number, user_id: number, gateway: ChatGateway) {
 		const user = await this.prisma.channelUser.findFirstOrThrow({
 			where: {
 				userId: user_id,
@@ -441,11 +465,27 @@ export class ChatService {
 
 		try
 		{
-			return await this.prisma.chatChannel.delete({
+			await this.prisma.chatMessage.deleteMany({
+				where: {
+					channelId: channel_id
+				}
+			})
+			const users = await this.prisma.channelUser.findMany({
+				where: {
+					channelId: channel_id
+				}
+			})		
+			await this.prisma.channelUser.deleteMany({
+				where: {
+					channelId: channel_id
+				}
+			})
+			await this.prisma.chatChannel.delete({
 				where: {
 					id: channel_id
 				}
 			})
+			users.forEach(async (u) => gateway.onChannelRemove(u.userId, u.channelId))
 		} catch (e) {
 			throw new HttpException("No such channel", HttpStatus.I_AM_A_TEAPOT)
 		}
@@ -543,10 +583,13 @@ export class ChatService {
 			  }
 		  }
 	  }));
+	  if (channel.users)
+	  {
 		channel.users.forEach(user => user.user.avatar = user.user.avatar.replace(
 			'://<<host>>',
 			'://' + process.env.FRONT_HOST,
 		));
+	  }
 		return channel;
 	}
 

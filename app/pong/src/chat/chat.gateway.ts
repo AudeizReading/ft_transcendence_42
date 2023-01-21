@@ -165,6 +165,10 @@ export class ChatGateway
 	{
 		await this.server.to("channel-"+channel_id).emit('channel_promote', {user: user_id, channel: channel_id});
 	}
+	async onChannelOwner(user_id: number, channel_id: number)
+	{
+		await this.server.to("channel-"+channel_id).emit('channel_owner', {user: user_id, channel: channel_id});
+	}
 	async onChannelDemote(user_id: number, channel_id: number)
 	{
 		await this.server.to("channel-"+channel_id).emit('channel_demote', {user: user_id, channel: channel_id});

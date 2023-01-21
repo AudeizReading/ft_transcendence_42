@@ -80,7 +80,7 @@ function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback:
 			label="Expiration"
 			value={expiration}
 			onChange={(e: any) => {
-				setExpiration(expiration);
+				setExpiration(e);
 			}}
 			renderInput={(params: any) => <TextField {...params} />}
           />
@@ -317,7 +317,6 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		);
 	});
 
-  //TODO: Blocking
   const channel_users = channel.users.map((user, idx) => {
 	  	if (!user.banned || current_user.power !== "REGULAR")
 		{
@@ -364,8 +363,9 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 							inputRef={inputRef}
 							id="message"
 							name="message"
-							label="Message"
+							label={Boolean(current_user.muted) ? "YOU'RE MUTED" : "Message"}
 							value={message}
+							disabled={Boolean(current_user.muted)}
 							onChange={(e) => setMessage(e.target.value)}
 							fullWidth
 							variant="standard"
@@ -770,7 +770,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 					notif: false, fetched: true, last_message: new Date()
 				}
 				const c = this.state.channels
-				this.setState({channels: [...c, chan]})
+				this.setState({channels: [...c.filter((e) => e.id !== data.channel), chan]})
 			}
 		}
 		// A user got added to a channel where i am
@@ -828,6 +828,11 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	{
 		console.log("On channel promote")
 		this.channel_user_replace(data.user, data.channel, {power: "ADMINISTRATOR"})
+	}
+	channelOwnerHandler(data: any)
+	{
+		console.log("On channel owner")
+		this.channel_user_replace(data.user, data.channel, {power: "OWNER"})
 	}
 	channelDemoteHandler(data: any)
 	{
@@ -890,6 +895,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		socket.on('channel_mute', (data: any) => this.channelMuteHandler(data));
 		socket.on('channel_unmute', (data: any) => this.channelUnmuteHandler(data));
 		socket.on('channel_promote', (data: any) => this.channelPromoteHandler(data));
+		socket.on('channel_owner', (data: any) => this.channelOwnerHandler(data));
 		socket.on('channel_demote', (data: any) => this.channelDemoteHandler(data));
 		socket.on('channel_ban', (data: any) => this.channelBanHandler(data));
 		socket.on('channel_unban', (data: any) => this.channelUnbanHandler(data));
@@ -955,6 +961,15 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	}
 	handleDeleteChannel = async (e: any) => {
 		e.preventDefault()
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+e.currentTarget.value, {
+			method: 'DELETE',
+			headers: {
+			'Content-Type': 'application/json',
+			...(fetch_opt().headers)
+			},
+		});
+		if (result.ok)
+			this.setState({anchorEl: null, current_channel_id: -1});
 
 	}
 
@@ -1034,7 +1049,6 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		this.setState({displaySettingsDialog: false, anchorEl: null});
 	}
 
-	//TODO: Fix date picker and fix on leave
 	generateChat() : JSX.Element
 	{
 		if (this.state.show)
@@ -1052,6 +1066,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			// Generate tab labels
 			const tab_labels = this.generateTabLabels()
 			const tab_panels = this.generateTabPanels()
+			const channel    = this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0]
 
 			return (
 				<div style={{width: '100%', height: 'calc(100vh - 100px)'}}>
@@ -1064,7 +1079,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 						>
 							<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Settings</MenuItem>
 							<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Leave</MenuItem>
-							{Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
+							{channel && Boolean(channel.users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
 								<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Delete</MenuItem>}
 						</Menu>
 					}
