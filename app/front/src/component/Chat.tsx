@@ -801,6 +801,8 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			console.log("we have to be removed from a channel")
 			const c = this.state.channels
 			this.setState({channels: c.filter((g) => g.id !== data.channel)})
+			if (this.state.current_channel_id === data.channel)
+				this.setState({current_channel_id: -1})
 		}
 		else
 		{
@@ -1032,6 +1034,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 		this.setState({displaySettingsDialog: false, anchorEl: null});
 	}
 
+	//TODO: Fix date picker and fix on leave
 	generateChat() : JSX.Element
 	{
 		if (this.state.show)
