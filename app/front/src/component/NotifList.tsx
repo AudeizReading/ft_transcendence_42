@@ -32,7 +32,7 @@ export default function NotifList(props: NotifListProps)
   const notifListJSX = props.notifs.arr.map( (notif, index) =>
     <ListItem
       key={index}
-      sx={{ p: 0, m: 0 }}
+      sx={{ p: 0, m: 0, wordBreak: 'break-word', wordWrap: 'break-word' }}
       divider={index < props.notifs.arr.length - 1}
       secondaryAction={getDeleteNotifButton(notif.id)}
     >
