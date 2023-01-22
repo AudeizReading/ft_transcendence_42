@@ -312,7 +312,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   const msgList = channel.messages.map((msg, i) => {
 		const timestamp = msg.time.toLocaleString("fr-FR", {year: '2-digit', month: "2-digit", day: "2-digit",
 				hour: '2-digit', minute: '2-digit'});
-		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === msg.sender_name)[0].id)) ? "<blocked blocked blocked>" : msg.content;
+		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === msg.sender_name)[0].id)) ? "<BLOCKED>" : msg.content;
 		return (
 			<Typography key={i}>
 				<u>{timestamp} <strong>{`${msg.sender_name}:`}</strong></u> {msgContent}
@@ -974,7 +974,7 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	handleLeaveChannel = async (e: any) => {
 		e.preventDefault()
 		console.log(e.currentTarget.value)
-		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/`+e.currentTarget.value+'/leave', {
+		const result = await fetch(`http://${window.location.hostname}:8190/chat/channel/${e.currentTarget.value}/leave`, {
 			method: 'POST',
 			headers: {
 			  'Content-Type': 'application/json',

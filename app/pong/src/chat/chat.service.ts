@@ -278,9 +278,10 @@ export class ChatService {
 			})
 			gateway.onChannelRemove(user_id, channel_id);
 			/* If user who left was owner */
-			let new_owner = null;
+			let new_owner: any = 1;
 			if (user.power == ChannelUserPower.OWNER)
 			{
+				new_owner = null;
 				const user = await this.prisma.channelUser.update({
 					where: {
 						userId_channelId: {userId: user_id, channelId: channel_id}
