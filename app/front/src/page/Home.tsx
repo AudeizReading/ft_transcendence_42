@@ -6,7 +6,6 @@ import Fade from '@mui/material/Fade';
 
 import { User } from '../interface/User';
 
-import ChatComponent from '../component/Chat';
 import Footer from './Footer';
 import Dashboard from '../component/Dashboard'
 

@@ -190,13 +190,18 @@ export class UsersController {
     if (newName.length < 4 || newName.length > 32)
       return req.user.name;
     
-    this.usersService.addAchivement({id: req.user.id},
-      {primary: "SAY MY NAME", secondary: "Changez votre nom"});
-    const updatedUser = await this.usersService.updateUser({ // No need to try/catch error, ID is safe because of Jwt
-      where: {id: req.user.id},
-      data: {name: newName},
-    });
-    return updatedUser.name;
+    try {
+      const updatedUser = await this.usersService.updateUser({
+        where: {id: req.user.id},
+        data: {name: newName},
+      });
+      this.usersService.addAchivement({id: req.user.id},
+        {primary: "SAY MY NAME", secondary: "Changez votre nom"});
+      return updatedUser.name;
+    }
+    catch (err) {
+      throw new BadRequestException();
+    }
   }
 
   @Get('user/best/:limit')

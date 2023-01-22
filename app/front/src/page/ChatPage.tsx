@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import ChatComponent from '../component/Chat';
-import { CircularProgress } from '@mui/material';
 
 interface ChatPageProps {
   userID: number,
