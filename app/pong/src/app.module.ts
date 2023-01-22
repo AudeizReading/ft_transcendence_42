@@ -11,6 +11,7 @@ import { UsersModule } from './users/users.module';
 import { NotifModule } from './notif/notif.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { InviteModule } from './invite/invite.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { InviteModule } from './invite/invite.module';
     GameModule,
     FriendModule,
     InviteModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

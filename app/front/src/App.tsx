@@ -30,6 +30,7 @@ import { BrowserRouter, Routes, Route, Link as RouterLink } from "react-router-d
 import { fetch_opt } from './dep/fetch'
 import { User } from './interface/User'
 import Ladder from './page/Ladder';
+import ChatPage from './page/ChatPage';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -72,7 +73,7 @@ function App() {
   const [user, setUser] = useState(defaultNotConnected());
 
   const fetch_userinfo = useCallback(() => {
-    // console.trace(); // Permet de vérifier quelles fonctions appellent fetch_userinfo
+    //console.trace(); // Permet de vérifier quelles fonctions appellent fetch_userinfo
     fetch('http://' + window.location.hostname + ':8190/user/me', fetch_opt())
       .then(res => res.json())
       .then(
@@ -250,6 +251,7 @@ function App() {
           <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} />} />
           <Route path="/ladder" element={<Ladder currentUserID={user.id} />} />
+          <Route path="/chat" element={<ChatPage userID={user.id} />} />
 
           <Route path="/auth" element={<Auth />} />
 

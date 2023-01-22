@@ -6,6 +6,7 @@ import Fade from '@mui/material/Fade';
 
 import { User } from '../interface/User';
 
+import ChatComponent from '../component/Chat';
 import Footer from './Footer';
 import Dashboard from '../component/Dashboard'
 
@@ -116,7 +117,6 @@ function Home(props: {
         <UnstableGrid xs={6} md={8} xsOffset={3} mdOffset={4} sx={{textAlign: 'center',}}>
           <DateTime component="h2" time={new Date("01/01/2023")} />
         </UnstableGrid>
-
         <UnstableGrid sx={{position: 'relative', width: '100%', mx: '2%', p: '1%'}}>
           <UnstableGrid xs={8} sm={5} xsOffset={2} smOffset={7} 
             sx={{
@@ -236,11 +236,12 @@ function Home(props: {
   ));
 
   return (
-    <Box component="main" sx={{ height: '100vh', overflow: 'auto' }}>
+    <Box component="main" /* className="pong-home-image-background" */ sx={{ height: '100vh', overflow: 'auto' }}>
       {isLogged === false ?
         <Fade in={true} timeout={400}>{gridNotLogged}</Fade>
         :
         <React.Fragment>
+
         <Box sx={{
           display: 'flex', 
           height: '100%', 

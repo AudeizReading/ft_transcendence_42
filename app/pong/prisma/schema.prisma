@@ -23,10 +23,14 @@ model User {
   achievements String[] @default([])
   lastFetch    DateTime @updatedAt
 
+  blocked Int[]
+
   notifs  Notif[]
   wins    Game[]
   games   PlayerGame[]
   mMaking MatchMaking?
+
+  channels ChannelUser[]
 
   friendsA Friend[] @relation("UserA")
   friendsB Friend[] @relation("UserB")
@@ -132,4 +136,65 @@ model Invite {
   createdAt DateTime @default(now())
 
   @@id([fromID, toID, settings])
+}
+
+enum ChannelUserPower {
+  REGULAR
+  ADMINISTRATOR
+  OWNER
+}
+
+enum ChannelType {
+  PUBLIC
+  PRIVATE
+  PRIVATE_MESSAGE
+  PASSWORD_PROTECTED
+}
+
+model ChannelUser {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  channel   ChatChannel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  messages ChatMessage[]
+
+  power ChannelUserPower
+
+  connected Boolean @default(true)
+
+  ban_expiration  DateTime?
+  mute_expiration DateTime?
+
+  @@unique([userId, channelId])
+}
+
+model ChatMessage {
+  id Int @id @default(autoincrement())
+
+  sender   ChannelUser @relation(fields: [senderId], references: [id])
+  senderId Int
+
+  channel   ChatChannel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  content String
+  sent_at DateTime @default(now())
+}
+
+model ChatChannel {
+  id Int @id @default(autoincrement())
+
+  name  String
+  users ChannelUser[]
+
+  messages ChatMessage[]
+
+  visibility ChannelType
+  password   String?
+
+  @@unique([name, visibility])
 }
