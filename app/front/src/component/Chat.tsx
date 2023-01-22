@@ -3,7 +3,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Fab, FormControlLabel, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
+import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, FormControlLabel, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
 import ChatIcon from '@mui/icons-material/ChatBubble';
 import AddIcon from '@mui/icons-material/Add';
 import { fetch_opt } from '../dep/fetch'
@@ -324,7 +324,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	  	if (!user.banned || current_user.power !== "REGULAR")
 		{
 			return (
-				<div key={idx} style={{padding: 3, border: "solid", borderColor: 'red', cursor: 'pointer', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
+				<div key={idx} style={{padding: 3, /* border: "solid", borderColor: 'red', */ cursor: 'pointer', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
 					<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
 					text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
 					<Grid item>
@@ -354,11 +354,11 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	};
 
   const channel_chat_interface = ( 
-	  <div style={{border: "solid", borderColor: "green", height: '100%'}}>
-			<div style={{border: "solid", borderColor: "cyan", height: '100%', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
+	  <div style={{/* border: "solid", borderColor: "green", */ height: '100%'}}>
+			<div style={{/* border: "solid", borderColor: "cyan", */ height: '100%', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
 				{msgList}
 			</div>
-			<form onSubmit={handleMessageFormSubmit} style={{border: "solid", borderColor: "blue", position: "relative", bottom: 0}}>
+			<form onSubmit={handleMessageFormSubmit} style={{/* border: "solid", borderColor: "blue", */ position: "relative", bottom: 0}}>
 				<Grid container direction="row" spacing={1} >
 					<Grid item xs={9}>
 						<TextField
@@ -408,12 +408,12 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 			role="tabpanel"
 			hidden={value !== index}
 			id={`vertical-tabpanel-${index}`}
-			style={{border: "dashed", borderColor: "yellow"}}
+			// style={{border: "dashed", borderColor: "yellow"}}
 			{...other}
 		>
 			<GameConfigDialog open={inviteOpen} setOpen={setInviteOpen} sendInvite={sendInvite}/>
 			{value === index && (
-			<Grid container direction="row" spacing={0} >
+			<Grid container direction="row" spacing={1} >
 				<Grid container item xs={9} direction="column" height="calc(100vh - 160px)" >
 					{channel_chat_interface}
 				</Grid>
