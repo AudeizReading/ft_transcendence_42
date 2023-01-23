@@ -16,7 +16,7 @@ $(NAME):
 	make up
 
 build: setup_env build_front build_back
-	#make clean_back # To be sure to not COPY node_module in docker image
+	make clean_back # To be sure to not COPY node_module in docker image
 	docker-compose -f app/docker-compose.yml --env-file=app/pong/.env build
 
 up: setup_env
@@ -62,7 +62,6 @@ clean: clean_front clean_back
 
 clean_front:
 	rm -rf ./app/front/node_modules
-
 
 clean_back:
 	rm -rf ./app/pong/node_modules
