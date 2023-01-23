@@ -330,7 +330,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 						<div id={String(user.id)}
 							onClick={user.id == current_user.id ? undefined : handleClickOnUser}
 						>
-							<Avatar alt={user.name} src={user.avatar} />
+							<Avatar alt={user.name} src={encodeURI(user.avatar)} />
 							<Typography sx={user.banned && {textDecoration: "line-through"}}>{user.name}</Typography>
 						</div>
 					</Grid>

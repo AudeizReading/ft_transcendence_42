@@ -147,7 +147,7 @@ function Profile(props: {
       >
         <Avatar
           alt={user.name}
-          src={user.avatar}
+          src={encodeURI(user.avatar)}
           sx={{ width: '100%', height: '100%', border: `5px solid ${getStatusColor(user.status)}` }}
         />
         {

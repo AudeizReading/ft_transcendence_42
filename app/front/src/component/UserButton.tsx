@@ -25,7 +25,7 @@ export default function UserButton(props: {
   if (!props.status || props.noBadge) {
     return (
       <ButtonBase component={RouterLink} to={`/user/${props.id}`} sx={props.sx}>
-        <Avatar alt={props.name} src={props.avatar}>{croppedName[0]}</Avatar>
+        <Avatar alt={props.name} src={encodeURI(props.avatar)}>{croppedName[0]}</Avatar>
         <Box sx={{pl: 1}}>
           {croppedName}
         </Box>
