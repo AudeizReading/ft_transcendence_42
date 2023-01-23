@@ -187,7 +187,7 @@ export class UsersController {
   async change_name(@Request() req, @Body() data: NewNameDTO)
   {
     const newName = data.newName.trim();
-    if (newName.length < 4 || newName.length > 32)
+    if (newName.length < 2 || newName.length > 32)
       return req.user.name;
     const hasNonAscii = [...newName].some((c) => (c.charCodeAt(0) > 126 || c.charCodeAt(0) < 32));
     if (hasNonAscii)
