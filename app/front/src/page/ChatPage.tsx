@@ -12,7 +12,6 @@ export default function ChatPage(props: ChatPageProps)
 
   useEffect(() => {
     setLoaded(props.userID !== 0);
-    console.log("useEffect ChatPage");
   }, [props.userID]);
 
   return (
