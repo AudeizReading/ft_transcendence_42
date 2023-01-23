@@ -23,7 +23,8 @@ up: setup_env
 	docker-compose -f app/docker-compose.yml --env-file=app/pong/.env up
 
 $(DIST_FRONT):
-	cd app/front; npm install; npm run build
+	cd app/front; npm install; npm run build;
+	cd app/front/dist; find . -type f -name "*.map" -delete
 
 $(DIST_BACK):
 	cd app/pong; npm install; npm run build
