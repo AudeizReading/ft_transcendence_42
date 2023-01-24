@@ -715,8 +715,6 @@ export class ChatService {
   @Cron('*/10 * * * * *')
   async runEvery10Seconds()
   {
-	console.log(this.expirables.length)
-
 	  for (let i = 0; i < this.expirables.length && this.expirables[i].expiration <= new Date(); i++)
 	  {
 		  const e = this.expirables[0]
