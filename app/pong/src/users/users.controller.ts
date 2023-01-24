@@ -139,7 +139,7 @@ export class UsersController {
     file: Express.Multer.File,
   )
   {
-    if (!file.mimetype.match(/^image\/(bmp|gif|jpeg|png|webp)$/))
+    if (!file.mimetype.match(/^image\/(bmp|gif|jpeg|jpg|png|webp)$/))
       return { error: 1 };
     const ext = file.mimetype.replace(/^image\//, '.');
     this.usersService.uploadImageInPsql({
