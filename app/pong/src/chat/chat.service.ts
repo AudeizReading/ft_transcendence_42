@@ -330,6 +330,7 @@ export class ChatService {
 						id: channel_id
 					}
 				})
+				this.removeExpirablesByChannelId(channel_id);
 				await gateway.onChannelRemove(user_id, channel_id)
 			}
 		}
@@ -450,8 +451,8 @@ export class ChatService {
 						}
 						break;
 				}
-			} catch (e) { console.log(e); throw new HttpException("Error performing this action", HttpStatus.I_AM_A_TEAPOT); }
-		} catch (e) { console.log(e); throw new HttpException("Error", HttpStatus.I_AM_A_TEAPOT); }
+			} catch (e) { throw "Error performing this action"; }
+		} catch (e) { throw "Error"; }
   }
 
   async deleteChannel(channel_id: number, user_id: number, gateway: ChatGateway) {
@@ -486,6 +487,7 @@ export class ChatService {
 					id: channel_id
 				}
 			})
+			this.removeExpirablesByChannelId(channel_id);
 			users.forEach(async (u) => gateway.onChannelRemove(u.userId, u.channelId))
 		} catch (e) {
 			throw new HttpException("No such channel", HttpStatus.I_AM_A_TEAPOT)
@@ -701,18 +703,28 @@ export class ChatService {
 	this.expirables.push(e)
   }
 
+  removeExpirablesByChannelId(id: number)
+  {
+	this.expirables = this.expirables.filter((expirable: Expirable) => expirable.channel !== id);
+  }
 
   sortExpirables() {
 	this.expirables.sort((a, b) => a.expiration.getTime() - b.expiration.getTime())
   }
 
   @Cron('*/10 * * * * *')
-  runEvery10Seconds() {
-	  while (this.expirables.length && this.expirables[0].expiration <= new Date())
+  async runEvery10Seconds()
+  {
+	console.log(this.expirables.length)
+
+	  for (let i = 0; i < this.expirables.length && this.expirables[i].expiration <= new Date(); i++)
 	  {
 		  const e = this.expirables[0]
-		  this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway);
-		  this.expirables.shift()
+		  try
+		  {
+		  	await this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway);
+		  	this.expirables.shift(); i--;
+		  } catch (e: any) {console.log("Nothing to do"); }
 	  }
   }
 

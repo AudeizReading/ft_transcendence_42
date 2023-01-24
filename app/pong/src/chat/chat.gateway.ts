@@ -5,10 +5,10 @@ import {
 	OnGatewayConnection,
 	OnGatewayDisconnect,
 	MessageBody,
-	ConnectedSocket,
+	ConnectedSocket
   } from '@nestjs/websockets';
   import { ChatService } from './chat.service';
-import { Injectable, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Catch, ExceptionFilter, HttpException, HttpStatus, Injectable, UseFilters, UseGuards, ValidationPipe } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
@@ -18,6 +18,7 @@ import { prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { User, ChatChannel, ChatMessage } from '@prisma/client';
 import { SendMessageDto } from './dto/send-message.dto';
+import { BaseExceptionFilter } from '@nestjs/core';
 
 type SocketUserAuth = Socket & {
 	user: User;
@@ -30,7 +31,6 @@ interface ChatClient {
 };
 
 
-@Injectable()
 @WebSocketGateway(8192, {
   namespace: 'chat',
   cors: {
@@ -38,6 +38,7 @@ interface ChatClient {
     maxAge: 600,
   },
 })
+
 export class ChatGateway
 	implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -87,14 +88,16 @@ export class ChatGateway
 		}
 		console.log(user.name, 'has joined the chats.');
 
-		const ids = await this.chatService.getChannelsIds(user.id)
-		const client: ChatClient = {
-			userId: user.id,
-			channelIds: ids,
-			socketId: socket.id,
-		};
-		socket.join(ids.map((id) => "channel-"+id));
-		this.clients.set(client.socketId, client);
+		try {
+			const ids = await this.chatService.getChannelsIds(user.id)
+			const client: ChatClient = {
+				userId: user.id,
+				channelIds: ids,
+				socketId: socket.id,
+			};
+			socket.join(ids.map((id) => "channel-"+id));
+			this.clients.set(client.socketId, client);
+		} catch (e: any) { console.log("Couldn't fetch channels for " + user.name + ", disconnecting user..."); socket.disconnect()}
 	}
 
 	@UseGuards(JwtAuthGuard)
