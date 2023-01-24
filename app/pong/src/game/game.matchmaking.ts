@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, Interval } from '@nestjs/schedule';
 import { PrismaService } from '../prisma.service';
 import { GameService } from './game.service';
-import { NotifService, ActionRedirContent } from '../notif/notif.service';
+import { NotifService } from '../notif/notif.service';
 import { MatchMaking, Prisma } from '@prisma/client';
 
 const MATCHMAKING_SECONDS = 25;
@@ -99,13 +99,7 @@ export class GameMatchMaking {
           couple[1].userId,
           'create a game.',
         );
-        const action: ActionRedirContent = {
-          type: 'redir',
-          url: '/game/',
-        };
-        await this.notifService.createAction(couple[0].userId, action);
-        await this.notifService.createAction(couple[1].userId, action);
-        this.gameService.createGame(couple[0].userId, couple[1].userId);
+        await this.gameService.createGame(couple[0].userId, couple[1].userId);
         await this.prisma.matchMaking.deleteMany({
           where: {
             userId: { in: [couple[0].userId, couple[1].userId] },

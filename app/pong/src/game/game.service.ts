@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { NotifService } from '../notif/notif.service';
+import { NotifService, ActionRedirContent } from '../notif/notif.service';
 import { User, Game, PlayerGame, MatchMaking, Prisma } from '@prisma/client';
 import { InviteDTO } from 'src/invite/invite.controller';
 
@@ -102,7 +102,7 @@ export class GameService {
 
   async createGame(
     userId1: number,
-    userId2: number | null,
+    userId2: number,
     gameOptions?: InviteDTO,
   ): Promise<{ game: Game; players: PlayerGame[] }> {
     const game = await this.prisma.game.create({
@@ -119,16 +119,20 @@ export class GameService {
         },
       }),
     );
-    if (userId2 !== null)
-      players.push(
-        await this.prisma.playerGame.create({
-          data: {
-            gameId: game.id,
-            userId: userId2,
-          },
-        }),
-      );
-    console.log();
+    players.push(
+      await this.prisma.playerGame.create({
+        data: {
+          gameId: game.id,
+          userId: userId2,
+        },
+      }),
+    );
+    const action: ActionRedirContent = {
+      type: 'redir',
+      url: '/game/',
+    };
+    await this.notifService.createAction(userId1, action);
+    await this.notifService.createAction(userId2, action);
     return {
       game,
       players,

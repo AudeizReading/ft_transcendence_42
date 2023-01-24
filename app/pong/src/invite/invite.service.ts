@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Inject, forwardRef } from "@nestjs/common";
 import { Invite, prisma } from "@prisma/client";
 import { GameService } from "src/game/game.service";
-import { ActionRedirContent, NotifService } from "src/notif/notif.service";
+import { NotifService } from "src/notif/notif.service";
 import { PrismaService } from "src/prisma.service";
 import { UsersService } from "src/users/users.service";
 import { GameSettingsInterface, InviteDTO } from "./invite.controller";
@@ -138,12 +138,6 @@ export class InviteService
 					]
 				}
 			});
-			const redirAction: ActionRedirContent = {
-				type: 'redir',
-				url: '/game/',
-			};
-			await this.notifService.createAction(inviteData.fromID, redirAction);
-			await this.notifService.createAction(inviteData.toID, redirAction);
 		}
 		catch (err) {
 			throw new BadRequestException("Cannot accept invite");
