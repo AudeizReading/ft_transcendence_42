@@ -63,7 +63,7 @@ export class GameMatchMaking {
           orderBy: { createdAt: 'asc' },
           where: where_didnotconfirm,
         });
-        this.notifService.createNotif(slot[0].userId, {
+        await this.notifService.createNotif(slot[0].userId, {
           text:
             "Vous n'avez pas confirmé à temps la partie trouvée !\n" +
             'Vous avez été quitté du MatchMaking !',
@@ -132,7 +132,7 @@ export class GameMatchMaking {
           orderBy: { createdAt: 'asc' },
           where: where_didnotfind,
         });
-        this.notifService.createMsg(slot[0].userId, {
+        await this.notifService.createMsg(slot[0].userId, {
           text: "Votre opposant n'a pas validé à temps la partie !",
           type: 'warning',
         });
