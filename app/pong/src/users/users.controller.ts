@@ -143,7 +143,7 @@ export class UsersController {
       return { error: 1 };
     const ext = file.mimetype.replace(/^image\//, '.');
     this.usersService.uploadImageInPsql({
-      name: req.user.login + ext,
+      name: req.user.id + ext,
       content: file.buffer,
     });
     const hash = +new Date();
@@ -154,7 +154,7 @@ export class UsersController {
       data: {
         avatar:
           'http://<<host>>:8190/user/avatar/' +
-          req.user.name +
+          req.user.id +
           ext +
           '?' +
           hash,
