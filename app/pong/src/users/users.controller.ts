@@ -154,7 +154,7 @@ export class UsersController {
       data: {
         avatar:
           'http://<<host>>:8190/user/avatar/' +
-          req.user.login +
+          req.user.name +
           ext +
           '?' +
           hash,
@@ -188,9 +188,6 @@ export class UsersController {
   {
     const newName = data.newName.trim();
     if (newName.length < 2 || newName.length > 32)
-      return req.user.name;
-    const hasNonAscii = [...newName].some((c) => (c.charCodeAt(0) > 126 || c.charCodeAt(0) < 32));
-    if (hasNonAscii)
       return req.user.name;
     
     try {
