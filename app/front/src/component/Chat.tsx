@@ -5,7 +5,9 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText, Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
+import { Avatar, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText,
+	DialogTitle, FormControlLabel, Grid, IconButton, InputLabel, ListItemAvatar, ListItemText,
+	Menu, MenuItem, Paper, Select, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { fetch_opt } from '../dep/fetch'
 import socketIOClient, { Socket } from "socket.io-client";
@@ -311,13 +313,18 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	};
 
   const msgList = channel.messages.map((msg, i) => {
-		const timestamp = msg.time.toLocaleString("fr-FR", {year: '2-digit', month: "2-digit", day: "2-digit",
-				hour: '2-digit', minute: '2-digit'});
+		const timestamp = ((time: Date) => {
+				if (time.getDate() === new Date().getDate() && +new Date() - time.getDate() <= 60 * 60 * 24 * 1000)
+					return time.toLocaleString("fr-FR", {hour: '2-digit', minute: '2-digit'})
+				else
+					return time.toLocaleString("fr-FR", {hour: '2-digit', minute: '2-digit'})
+			})(msg.time);
 		const msgContent = current_user.blocked.find((e) => e === (channel.users.filter((u) => u.name === msg.sender_name)[0].id)) ? "<BLOCKED>" : msg.content;
 		return (
-			<Typography key={i}>
-				<u>{timestamp} <strong>{`${msg.sender_name}:`}</strong></u> {msgContent}
-			</Typography>
+			<Box key={i} sx={{ m: '5px 0' }}>
+				<p style={{ margin:0 }}><b>{msg.sender_name}</b> <span>{timestamp}</span></p>
+				<p style={{ margin:0 }}>{msgContent}</p>
+			</Box>
 		);
 	});
 
@@ -325,27 +332,41 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	  	if (!user.banned || current_user.power !== "REGULAR")
 		{
 			return (
-				<div key={idx} style={{padding: 3, /* border: "solid", borderColor: 'red', */ cursor: 'pointer', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
+				<Box key={idx} sx={{
+					padding: { sm: '', md: '5px 30px' }, /* border: "solid", borderColor: 'red', */
+					cursor: 'pointer',
+					overflow: 'hidden',
+					'&, & *': {
+						wordWrap: 'nowrap',
+						wordBreak: 'keep-all',
+						textOverflow: 'ellipsis',
+					},
+					'&:hover': { background: '#ffc806' },
+					display: { sm: '', md: 'flex' }
+				}} id={String(user.id)}
+					onClick={user.id == current_user.id ? undefined : handleClickOnUser}>
 					<MuteBanTimeDialog functionCallback={prompt.callback} closeCallback={(e: any) => setDisplayTimeModal(false)} open={displayTimeModal} 
 					text={prompt.text} user_id={prompt.user_id} expo={new Date()}/>
-					<Grid item>
-						<div id={String(user.id)}
-							onClick={user.id == current_user.id ? undefined : handleClickOnUser}
-						>
-							<Avatar alt={user.name} src={user.avatar} />
-							<Typography sx={user.banned && {textDecoration: "line-through"}}>{user.name}</Typography>
-						</div>
-					</Grid>
-				</div>
+					<Avatar alt={user.name} src={user.avatar} sx={{ display: 'inline-block', verticalAlign: 'middle' }} />
+					<Typography sx={{
+						textDecoration: !!user.banned ? 'line-through' : 'inherit',
+						display: 'inline',
+						lineHeight: '40px',
+						verticalAlign: 'middle',
+						ml: '8px' }}>{user.name}</Typography>
+				</Box>
 			)
 		}
 		return (<></>)
   })
 
+  const [antispam, setAntispam] = React.useState(false);
   const send_message = async () => {
-	sendMessage(message, channel.id)
-	inputRef.current!.focus()
-	setMessage("")
+		sendMessage(message, channel.id);
+		inputRef.current!.focus();
+		setMessage("");
+		setAntispam(true);
+		setTimeout(() => setAntispam(false), 1000);
   }
 
 	// To be used with the channel_chat_interface right below.
@@ -354,35 +375,67 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		send_message();
 	};
 
+  const [scrollDeltaX, setScrollDeltaX] = React.useState(0);
+
+  React.useEffect(() => {
+    const container = document.getElementById('chat-container');
+    const getScrollX = () => (container) ? container.scrollHeight - (container.scrollTop + container.clientHeight) : -1
+    const handleScroll = () => {
+      if (!container)
+        return ;
+      setScrollDeltaX(getScrollX());
+    };
+
+    if (container && getScrollX() != scrollDeltaX && scrollDeltaX === 0) {
+      container.scrollTop = container.scrollHeight;
+    }
+
+    return () => {
+      container && container.removeEventListener('scroll', handleScroll);
+    };
+  }, [channel.messages]);
+
   const channel_chat_interface = ( 
-	  <div style={{/* border: "solid", borderColor: "green", */ height: '100%'}}>
-			<div style={{/* border: "solid", borderColor: "cyan", */ height: '100%', overflow: 'auto', wordWrap: 'break-word', wordBreak: 'break-word'}}>
+	  <React.Fragment>
+			<div id="chat-container" style={{/* border: "solid", borderColor: "cyan", */
+				padding: '5px 30px',
+				height: '100%',
+				overflow: 'auto',
+				wordWrap: 'break-word',
+				wordBreak: 'break-word'
+	  	}}>
 				{msgList}
 			</div>
-			<form onSubmit={handleMessageFormSubmit} style={{/* border: "solid", borderColor: "blue", */ position: "relative", bottom: 0}}>
-				<Grid container direction="row" spacing={1} >
-					<Grid item xs={9}>
+			<form onSubmit={handleMessageFormSubmit} style={{/* border: "solid", borderColor: "blue", */
+				margin: '5px 20px',
+				border: '1px solid #e0e0e0',
+				borderRadius: '5px',
+				padding: '5px 10px',
+				marginRight: '25px'
+			}}>
+				<Box style={{ display: 'flex' }}>
+					<Box style={{ width: '100%' }}>
 						<TextField
 							required
 							inputRef={inputRef}
 							id="message"
 							name="message"
-							label={Boolean(current_user.muted) ? "YOU'RE MUTED" : "Message"}
+							label={String(Boolean(current_user.muted) ? "YOU'RE MUTED" : "Envoyer un message sur " + channel.name)}
 							value={message}
-							disabled={Boolean(current_user.muted)}
+							disabled={Boolean(current_user.muted) || antispam}
 							onChange={(e) => setMessage(e.target.value)}
 							fullWidth
 							variant="standard"
 						/>
-					</Grid>
-					<Grid item xs>
-						<Button type="submit" fullWidth variant="contained" sx={{height: '100%'}} >
+					</Box>
+					<Box>
+						<Button disabled={Boolean(current_user.muted) || antispam} type="submit" fullWidth variant="outlined" sx={{height: '100%', maxWidth: '40px', ml: '10px' }}>
 							<SendIcon />
 						</Button>
-					</Grid>
-				</Grid>
+					</Box>
+				</Box>
 			</form>
-	  </div>
+	  </React.Fragment>
   )
 
 	async function sendInvite(settings: GameSettingsInterface) {
@@ -405,40 +458,45 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 	const [inviteOpen, setInviteOpen] = React.useState(false);
 
   return (
-		<div
+		<Box
 			role="tabpanel"
 			hidden={value !== index}
 			id={`vertical-tabpanel-${index}`}
 			// style={{border: "dashed", borderColor: "yellow"}}
+			sx={{display: 'flex'}}
 			{...other}
 		>
 			<GameConfigDialog open={inviteOpen} setOpen={setInviteOpen} sendInvite={sendInvite}/>
 			{value === index && (
-			<Grid container direction="row" spacing={1} >
-				<Grid container item xs={9} direction="column" height="calc(100vh - 160px)" >
+			<React.Fragment>
+				<Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 70px)' }}>
 					{channel_chat_interface}
-				</Grid>
-				<Grid container item xs={3} direction="column" >
-					<div style={{height: 'calc(100vh - 100px)', overflow: 'auto', overflowBlock: 'auto'}}>
-						{channel_users}
-						<Menu
-							id="basic-menu"
-							anchorEl={anchorEl}
-							open={open}
-							onClose={handleClose}
-						>
-								<MenuItem component={RouterLink} to={`/user/${user.id}`}>Profile</MenuItem>
-								<MenuItem onClick={() => setInviteOpen(true)}>Invite</MenuItem>
-								<MenuItem onClick={handlePrivateMessage} value={user.id}>DM</MenuItem>
-								<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Unblock" : "Block"}</MenuItem>								{current_user.power === "OWNER" && <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Demote" : "Promote"}</MenuItem>}
-								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) && <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Unmute" : "Mute"}</MenuItem>}
-								{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true) &&  <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Unban" : "Ban"}</MenuItem>}
-						</Menu>
-					</div>
-				</Grid>
-			</Grid>
+				</Box>
+				<Box sx={{ width: '30%', maxWidth: '200px', minWidth: '60px', height: 'calc(100vh - 70px)',
+					overflow: 'auto', overflowBlock: 'auto'
+				}}>
+					{channel_users}
+					<Menu
+						id="basic-menu"
+						anchorEl={anchorEl}
+						open={open}
+						onClose={handleClose}
+					>
+						<MenuItem component={RouterLink} to={`/user/${user.id}`}>Profil</MenuItem>
+						<MenuItem onClick={() => setInviteOpen(true)}>Inviter</MenuItem>
+						<MenuItem onClick={handlePrivateMessage} value={user.id}>MP</MenuItem>
+						<MenuItem onClick={handleBlock} value={user.id}>{current_user.blocked.find((e) => e === user.id) ? "Débloquer" : "Bloquer"}</MenuItem>
+						{current_user.power === "OWNER"
+							&& <MenuItem onClick={handlePromote} value={user.id}>{user.power === "ADMINISTRATOR" ? "Dépromouvoir" : "Promouvoir"}</MenuItem>}
+						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true)
+							&& <MenuItem onClick={handleMute} value={user.id}>{user.muted ? "Démuet" : "Muet"}</MenuItem>}
+						{current_user.power !== "REGULAR" && (current_user.power !== "OWNER" ? user.power === "REGULAR" : true)
+							&& <MenuItem onClick={handleBan} value={user.id}>{user.banned ? "Débannir" : "Bannir"}</MenuItem>}
+					</Menu>
+				</Box>
+			</React.Fragment>
 			)}
-		</div>
+		</Box>
   );
 }
 
@@ -551,7 +609,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 						variant="contained"
 						onClick={(e) => setSelectedMenu("CREATE")}
 						>
-						CREATE
+						CREER
 					</Button>
 				</Grid>
 				<Grid item xs={12}>
@@ -561,7 +619,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 						variant="contained"
 						onClick={(e) => setSelectedMenu("JOIN")}
 						>
-						JOIN
+						REJOINDRE
 					</Button>
 				</Grid>
 			</Grid>
@@ -575,7 +633,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 					<ArrowBackIosIcon />
 				</IconButton>
 				<Typography component="h1" variant="h4" align="center">
-					New Channel
+					Créer un nouveau salon
 				</Typography>
 				<React.Fragment>
 					<form onSubmit={handleCreate}>
@@ -588,22 +646,22 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								error={status === "error"}
 								value={inputs.name}
 								onChange={handleChange}
-								label={status !== "error" ? "Channel name" : "Already in use"}
+								label={status !== "error" ? "Nom du salon" : "Déjà utilisé"}
 								variant="standard"
 								inputRef={inputRef}
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<InputLabel id="visibility-label">Visibility</InputLabel>
+							<InputLabel id="visibility-label">Visilité</InputLabel>
 							<Select
 								labelId="visibility-label"
 								id="visibility-select"
 								value={visibility}
-								label="Visibility"
+								label="Visilité"
 								onChange={(e) => setVisibility(e.target.value)}
 							>
-								<MenuItem value={"PUBLIC"}>PUBLIC</MenuItem>
-								<MenuItem value={"PRIVATE"}>PRIVATE</MenuItem>
+								<MenuItem value={"PUBLIC"}>Publique</MenuItem>
+								<MenuItem value={"PRIVATE"}>Privée</MenuItem>
 							</Select>
 						</Grid>
 						{visibility === "PUBLIC" && 
@@ -613,14 +671,14 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								name="password"
 								value={inputs.password}
 								onChange={handleChange}
-								label="Password (empty: none)"
+								label="Mot de passe (vide = aucun)"
 								variant="standard"
 								type="password"
 							/>
 						</Grid>
 						}
 						<Grid item xs={12}>
-							<InputLabel id="users-label">Users</InputLabel>
+							<InputLabel id="users-label">Utilisateurs</InputLabel>
 							<Select
 								multiple
 								required
@@ -628,7 +686,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								labelId="users-label"
 								id="users-select"
 								value={selectedUsers}
-								label="Visibility"
+								label="Utilisateurs"
 								onChange={(e) => setSelectedUsers(e.target.value as number[])}
 							>
 								{addableUsers.map((user, i) => (
@@ -648,7 +706,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								fullWidth
 								variant="contained"
 								>
-								CREATE
+								CREER
 							</Button>
 						</Grid>
 					</Grid>
@@ -664,20 +722,20 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 			<ArrowBackIosIcon />
 		</IconButton>
 		<Typography component="h1" variant="h4" align="center">
-			Join Channel
+			Rejoindre un salon
 		</Typography>
 		<form onSubmit={handleJoin}>
 		<React.Fragment>
 			<Grid container spacing={3}>
 				<Grid item xs={12}>
-					<InputLabel id="channels-label">Channel</InputLabel>
+					<InputLabel id="channels-label">Salon</InputLabel>
 					<Select
 						required
 						fullWidth
 						labelId="channels-label"
 						id="channels-select"
 						value={selectedChannel}
-						label="Visibility"
+						label="Salon"
 						onChange={(e) => setSelectedChannel(e.target.value as number)}
 					>
 						{joinableChannels.map((channel) => {
@@ -698,7 +756,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 						variant="standard"
 						type="password"
 						error={status === "error"}
-						label={status !== "error" ? "Password" : "Wrong password"}
+						label={status !== "error" ? "Mot de passe" : "Mode de passe invalide"}
 						inputRef={passwordRef}
 
 					/>
@@ -710,7 +768,7 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 						fullWidth
 						variant="contained"
 						>
-						JOIN
+						REJOINDRE
 					</Button>
 				</Grid>
 			</Grid>
@@ -740,12 +798,32 @@ function a11yProps(index: number) {
   };
 }
 
-class ChatComponent extends React.Component<{user_id: number}, {show: boolean, channels: ChatChannel[], current_channel_idx: number, current_channel_id: number, user_id: number, anchorEl: null | HTMLElement, displaySettingsDialog: boolean}> {
-	
+class ChatComponent extends React.Component<{
+	user_id: number
+}, {
+	show: boolean,
+	channels: ChatChannel[],
+	current_channel_idx: number,
+	current_channel_id: number,
+	user_id: number,
+	anchorEl: null | HTMLElement,
+	displaySettingsDialog: boolean,
+	chatSocket: any
+}> {	
 	constructor(props: any)
 	{
 		super(props);
-		this.state = {show: true, channels: [], current_channel_idx: 0, current_channel_id: -1, user_id: props.user_id, anchorEl: null, displaySettingsDialog: false};
+		this.state = {
+			show: true,
+			channels: [],
+			current_channel_idx: 0,
+			current_channel_id: -1,
+			user_id: props.user_id,
+			anchorEl: null,
+			displaySettingsDialog: false,
+			chatSocket: React.createRef()
+		};
+		this.state.chatSocket.current = null;
 	}
 
 	recvMsgHandler(data: any)
@@ -910,23 +988,42 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 	async componentDidMount()
 	{
 		let socket: Socket;
-		if ((window as any).chatSocket)
-			(window as any).chatSocket.disconnect();
-		socket = socketIOClient('ws://' + window.location.hostname + ':8192/chat', {extraHeaders: fetch_opt().headers});
-		(window as any).chatSocket = socket;
+		if (!this.state.chatSocket.current) {
+			if ((window as any).chatSocket)
+				(window as any).chatSocket.disconnect();
+      console.log('connexion!');
+			socket = socketIOClient('ws://' + window.location.hostname + ':8192/chat', {extraHeaders: fetch_opt().headers});
+			this.state.chatSocket.current = socket;
+			(window as any).chatSocket = socket;
 
-		socket.on('recv_msg', (data: any) => this.recvMsgHandler(data));
-		socket.on('channel_add', (data: any) => this.channelAddHandler(data));
-		socket.on('channel_remove', (data: any) => this.channelRemoveHandler(data));
-		socket.on('channel_mute', (data: any) => this.channelMuteHandler(data));
-		socket.on('channel_unmute', (data: any) => this.channelUnmuteHandler(data));
-		socket.on('channel_promote', (data: any) => this.channelPromoteHandler(data));
-		socket.on('channel_owner', (data: any) => this.channelOwnerHandler(data));
-		socket.on('channel_demote', (data: any) => this.channelDemoteHandler(data));
-		socket.on('channel_ban', (data: any) => this.channelBanHandler(data));
-		socket.on('channel_unban', (data: any) => this.channelUnbanHandler(data));
-		socket.on('user_block', (data: any) => this.userBlockHandler(data));
-		socket.on('user_unblock', (data: any) => this.userUnblockHandler(data));
+			socket.on('recv_msg', (data: any) => this.recvMsgHandler(data));
+			socket.on('channel_add', (data: any) => this.channelAddHandler(data));
+			socket.on('channel_remove', (data: any) => this.channelRemoveHandler(data));
+			socket.on('channel_mute', (data: any) => this.channelMuteHandler(data));
+			socket.on('channel_unmute', (data: any) => this.channelUnmuteHandler(data));
+			socket.on('channel_promote', (data: any) => this.channelPromoteHandler(data));
+			socket.on('channel_owner', (data: any) => this.channelOwnerHandler(data));
+			socket.on('channel_demote', (data: any) => this.channelDemoteHandler(data));
+			socket.on('channel_ban', (data: any) => this.channelBanHandler(data));
+			socket.on('channel_unban', (data: any) => this.channelUnbanHandler(data));
+			socket.on('user_block', (data: any) => this.userBlockHandler(data));
+			socket.on('user_unblock', (data: any) => this.userUnblockHandler(data));
+
+      socket.on('disconnect', (reason: string, desc) => {
+        console.log('disconnected!', reason, desc);
+        this.state.chatSocket.current = null;
+        (window as any).chatSocket = null;
+        setTimeout(() => {
+          if (!this.state.chatSocket.current && !(window as any).chatSocket) {
+            socket.connect();
+            this.state.chatSocket.current = socket;
+            (window as any).chatSocket = socket;
+          }
+        }, 1000);
+      });
+		} else {
+			socket = this.state.chatSocket.current;
+		}
 
 		const data = await fetch('http://' + window.location.hostname + ':8190/chat', fetch_opt())
 		if (data.ok)
@@ -1007,11 +1104,19 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			if (channel.visibility === "PRIVATE_MESSAGE")
 				name = "PM: " + channel.users[0].name + " - " + channel.users[1].name;
 			const label = name + " (" + channel.users.length + ")"
-			return (<Tab key={index} data-channel-id={String(channel.id)} onContextMenu={channel.visibility !== "PRIVATE_MESSAGE" ? this.channelContextMenu : undefined} label={label} {...a11yProps(index)} />);			
+			return (<Tab
+				sx={{'&:hover': { background: '#ffc806' }}}
+				key={index}
+				data-channel-id={String(channel.id)}
+				onContextMenu={channel.visibility !== "PRIVATE_MESSAGE" ? this.channelContextMenu : (e: any) => e.preventDefault()}
+				label={label} {...a11yProps(index)} />);			
 			//return (<Tab label={label} {...a11yProps(index)} />);
 		});
 		// Special tab to create channel
-		labels.push(<Tab key={labels.length} icon={<AddIcon />} {...a11yProps(labels.length)} />)
+		labels.push(<Tab
+			sx={{'&:hover': { background: '#ffc806' }}}
+			key={labels.length}
+			icon={<AddIcon />} {...a11yProps(labels.length)} />)
 
 		return (labels);
 	}
@@ -1095,18 +1200,23 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 			const channel    = this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0]
 
 			return (
-				<div style={{width: '100%', height: 'calc(100vh - 100px)'}}>
+				<div style={{width: '100%', height: 'calc(100vh - 70px)'}}>
 					{this.state.current_channel_id !== -1 &&
 						<Menu
 							id="basic-menu"
+							anchorOrigin={{
+					      vertical: 'bottom',
+					      horizontal: 'center',
+					    }}
 							anchorEl={this.state.anchorEl}
 							open={Boolean(this.state.anchorEl)}
 							onClose={(e) => (this.setState({anchorEl: null}))}
+							onContextMenu={(e: any) => { e.preventDefault(); this.setState({anchorEl: null}) }}
 						>
-							<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Settings</MenuItem>
-							<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Leave</MenuItem>
+							<MenuItem onClick={this.handleSettingsDialog} value={this.state.current_channel_id}>Options</MenuItem>
+							<MenuItem onClick={this.handleLeaveChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Quitter</MenuItem>
 							{channel && Boolean(channel.users.find((u) => u.id === this.state.user_id && u.power === "OWNER")) &&
-								<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Delete</MenuItem>}
+								<MenuItem onClick={this.handleDeleteChannel} value={this.state.current_channel_id} sx={{color: "red"}}>Supprimer</MenuItem>}
 						</Menu>
 					}
 					{this.state.displaySettingsDialog &&
@@ -1117,21 +1227,21 @@ class ChatComponent extends React.Component<{user_id: number}, {show: boolean, c
 							owner={Boolean(this.state.channels.filter((c) => c.id == this.state.current_channel_id)[0].users.find((u) => u.id === this.state.user_id && u.power === "OWNER"))}
 						/>
 					}
-					<Grid container direction="row">
-						<Grid item xs={4}>
+					<Box sx={{ display: 'flex' }}>
+						<Box sx={{ width: '30%', maxWidth: '240px' }}>
 							<Tabs orientation="vertical"
 								variant="scrollable"
 								value={this.state.current_channel_idx}
 								onChange={this.changeChannel}
-								sx={{ borderRight: 1, borderColor: 'divider', height: 'calc(100vh - 100px)' }}
+								sx={{ borderRight: 1, borderColor: 'divider', height: 'calc(100vh - 70px)' }}
 							>
 								{tab_labels}
 							</Tabs>
-						</Grid>
-						<Grid item xs={8}>
+						</Box>
+						<Box sx={{width: '100%'}}>
 							{tab_panels}
-						</Grid>
-					</Grid>
+						</Box>
+					</Box>
 				</div>
 			);
 		}
