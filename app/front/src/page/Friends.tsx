@@ -30,8 +30,11 @@ import { VisibilityOff } from '@mui/icons-material';
 
 // Component to render the "My Friends" page.
 // Gets the array of friends of this user
-export default function Friends(props: { fetch_userinfo: Function, user: User })
-{
+export default function Friends(props: {
+    fetch_userinfo: Function,
+    user: User,
+    loaded: boolean
+  }) {
   const gridColums: GridColDef[] = [
     {
       field: "name",
@@ -82,9 +85,9 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!props.user.connected)
+    if (props.loaded && !props.user.connected)
       navigate('/');
-  }, [props.user, navigate]);
+  }, [props.user, navigate, props.loaded]);
 
   return (
     <Box component="main" sx={{ p: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', }} >

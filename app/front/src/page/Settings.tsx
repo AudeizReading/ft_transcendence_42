@@ -12,7 +12,8 @@ import { User } from '../interface/User'
 
 function Settings(props: {
     fetch_userinfo: Function,
-    user: User
+    user: User,
+    loaded: boolean
   }) {
 
   const [doubleFA, setDoubleFA] = useState(props.user.doubleFA);
@@ -30,9 +31,9 @@ function Settings(props: {
     if ((!!props.user.doubleFA) !== (!!doubleFA)) {
       setKey2FA(props.user.doubleFA);
     }
-    if (!props.user.connected)
+    if (props.loaded && !props.user.connected)
       navigate('/');
-  }, [props.user, doubleFA, navigate]);
+  }, [props.user, doubleFA, navigate, props.loaded]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

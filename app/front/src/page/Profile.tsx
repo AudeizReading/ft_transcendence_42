@@ -29,7 +29,8 @@ export interface ProfileUserInterface {
 
 function Profile(props: {
     fetch_userinfo: Function,
-    user: User
+    user: User,
+    loaded: boolean
   }) {
   const { userid } = useParams();
 
@@ -68,9 +69,9 @@ function Profile(props: {
   useEffect(() => {
     fetch_user(Number(userid));
 
-    if (!props.user.connected)
+    if (props.loaded && !props.user.connected)
       navigate('/');
-  }, [fetch_user, userid, navigate, props.user]);
+  }, [fetch_user, userid, navigate, props.user, props.loaded]);
 
   const handleCapture = ({ target }: any) => {
     var data = new FormData()

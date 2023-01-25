@@ -7,25 +7,26 @@ import { User } from '../interface/User'
 
 interface ChatPageProps {
   userID: number,
-  user: User
+  user: User,
+  loaded: boolean
 }
 
 export default function ChatPage(props: ChatPageProps)
 {
-  const [loaded, setLoaded] = useState(false);
+  const [connected, setConnected] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoaded(props.userID !== 0);
+    setConnected(props.userID !== 0);
 
-    if (!props.user.connected)
+    if (props.loaded && !props.user.connected)
       navigate('/');
-  }, [props.userID, navigate, props.user]);
+  }, [props.userID, navigate, props.user, props.loaded]);
 
   return (
     <Box component="main" sx={{p: 1, height: '100vh', overflow: 'auto', background: 'white', color: 'black'}}>
-      { loaded ?
+      { connected ?
         <ChatComponent user_id={props.userID} />
         : null
       }

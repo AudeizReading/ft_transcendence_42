@@ -15,7 +15,7 @@ function Game(props: {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!props.user.connected)
+    if (props.user.id !== 0 && !props.user.connected)
       navigate('/');
     if (!gameid) {
       if (props.user.is_playing) {

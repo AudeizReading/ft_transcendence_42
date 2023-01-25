@@ -247,11 +247,11 @@ function App() {
           <Route path="/game/:gameid" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/game/" element={<Game user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/score" element={<Score />} />
-          <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} />} />
-          <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} />} />
+          <Route path="/myfriends" element={<Friends fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
+          <Route path="/user/:userid" element={<Profile fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
+          <Route path="/settings" element={<Settings fetch_userinfo={fetch_userinfo} user={user} loaded={loaded && !alreadyOpen} />} />
           <Route path="/ladder" element={<Ladder currentUserID={user.id} />} />
-          <Route path="/chat" element={<ChatPage userID={user.id} user={user} />} />
+          <Route path="/chat" element={<ChatPage userID={user.id} user={user} loaded={loaded && !alreadyOpen} />} />
 
           <Route path="/auth" element={<Auth />} />
 
