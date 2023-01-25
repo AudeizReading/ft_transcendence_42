@@ -10,7 +10,6 @@ import { DataGrid, GridColDef, GridValueGetterParams, GridRenderCellParams } fro
 import Button from '@mui/material/Button';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 
-import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import CheckIcon from '@mui/icons-material/Check';
@@ -314,12 +313,7 @@ function FriendActionButtons(props: {
             </IconButton>
         </Tooltip>
       }
-      
-      <Tooltip title="Envoyer un message" arrow disableInteractive>
-        <IconButton color="primary">
-          <MessageIcon/>
-        </IconButton>
-      </Tooltip>
+
       <Tooltip title="Supprimer l'ami" arrow disableInteractive>
         <IconButton color="error" onClick={() => callFriendController("remove")}>
           <DeleteForeverIcon/>

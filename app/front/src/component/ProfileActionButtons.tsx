@@ -116,9 +116,6 @@ export default function ProfileActionButtons(props: ProfileActionButtonsProps)
         </Button>
       }
 
-      <Button variant="contained" color="primary" sx={{mx: 1, mb: 1}} startIcon={<MessageIcon/>} >
-        Envoyer un message
-      </Button>
       <Button variant="contained" color="error" sx={{mx: 1, mb: 1}} startIcon={<DeleteForeverIcon/>}
         onClick={() => callFriendController(props.profileUser.id, "remove")}
       >
