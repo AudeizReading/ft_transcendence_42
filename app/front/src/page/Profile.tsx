@@ -67,7 +67,10 @@ function Profile(props: {
   // Updates whenever profile changes, or every X seconds with the rest of the logged user's info
   useEffect(() => {
     fetch_user(Number(userid));
-  }, [fetch_user, userid, props.user]);
+
+    if (!props.user.connected)
+      navigate('/');
+  }, [fetch_user, userid, navigate, props.user]);
 
   const handleCapture = ({ target }: any) => {
     var data = new FormData()
@@ -113,8 +116,6 @@ function Profile(props: {
 
   return (
     <Box component="main" sx={{ height: '100vh', overflow: 'auto', background: "white", textAlign: 'center', p: 1, display: "flex", flexDirection: "column" }}>
-    {user.id && <React.Fragment>
-
       <StatusSnackbar status={uploadStatus} errorText="Impossible d'accepter l'image" successText="Avatar uploadé !"
         snackbarProps={{
           autoHideDuration: 3000,
@@ -234,7 +235,6 @@ function Profile(props: {
       >
         <MatchHistory userID={user.id} deps={[user.wins, user.losses]} />
       </Box>
-    </React.Fragment>}
     </Box>
   );
 }

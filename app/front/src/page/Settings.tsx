@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router-dom';
 
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -14,7 +15,6 @@ function Settings(props: {
     user: User
   }) {
 
-
   const [doubleFA, setDoubleFA] = useState(props.user.doubleFA);
   const [key2FA, setKey2FA] = useState(props.user.doubleFA);
   const [error, setError] = useState(false);
@@ -22,13 +22,17 @@ function Settings(props: {
 
   const refDoubleFA = React.createRef();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setDoubleFA(props.user.doubleFA);
     setActivated(!props.user.doubleFA);
     if ((!!props.user.doubleFA) !== (!!doubleFA)) {
       setKey2FA(props.user.doubleFA);
     }
-  }, [props.user, doubleFA]);
+    if (!props.user.connected)
+      navigate('/');
+  }, [props.user, doubleFA, navigate]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

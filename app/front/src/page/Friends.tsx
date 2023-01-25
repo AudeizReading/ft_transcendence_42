@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
@@ -79,6 +79,13 @@ export default function Friends(props: { fetch_userinfo: Function, user: User })
   const gridRows = props.user.friends.filter((friend) =>
       friend.name.toLowerCase().includes(search.toLowerCase())
   ).filter(friend => hideOffline && friend.status === "offline" ? false : true);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!props.user.connected)
+      navigate('/');
+  }, [props.user, navigate]);
 
   return (
     <Box component="main" sx={{ p: 1, display: "flex", flexDirection: "column", height: '100vh', overflow: 'auto', background: 'white', }} >
