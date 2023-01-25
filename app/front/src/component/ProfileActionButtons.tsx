@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { Box, Button } from '@mui/material';
-import MessageIcon from '@mui/icons-material/Message';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VideogameAssetIcon from '@mui/icons-material/VideogameAsset';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
