@@ -74,12 +74,12 @@ function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback:
 	};
 
 	return (
-		<LocalizationProvider dateAdapter={AdapterDayjs}>
-		<Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Mute/ban</DialogTitle>
+	<LocalizationProvider dateAdapter={AdapterDayjs}>
+	<Dialog open={open} onClose={handleClose} onClick={(event: any) => event && event.stopPropagation()}>
+        <DialogTitle>Muet/Banni</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please select when it will expire
+            Selectionner la date d'expiration.
           </DialogContentText>
 		  <DateTimePicker
 			label="Expiration"
@@ -1122,9 +1122,6 @@ class ChatComponent extends React.Component<{
 	}
 
 	channelSettingsDialogCallback = async (usePassword: boolean, password: string | null, user: number, channel: ChatChannel) => {
-		console.log(password)
-		console.log(user)
-
 		// password was added, removed or modified
 		if ((usePassword && channel.visibility == "PUBLIC") || (!usePassword && channel.visibility == "PRIVATE")|| (password != null && password !== ""))
 		{

@@ -15,9 +15,13 @@ interface Expirable {expiration: Date, user: number, channel: number, operation:
 
 @Injectable()
 export class ChatService {
+	private expirables: Expirable[] = [];
+	private running: boolean = false;
+
   constructor(private prisma: PrismaService,
 			private schedulerRegistry: SchedulerRegistry)
-  {}
+  {
+  }
 
   	async getJoinableChannels(user_id: number) {
 		return this.prisma.chatChannel.findMany({
@@ -334,11 +338,7 @@ export class ChatService {
 				await gateway.onChannelRemove(user_id, channel_id)
 			}
 		}
-		catch (e)
-		{
-			console.log(e)
-			throw new HttpException("Channel could not be left", HttpStatus.I_AM_A_TEAPOT)
-		}
+		catch (e) { throw new HttpException("Channel could not be left", HttpStatus.I_AM_A_TEAPOT); }
   }
 
   async updateChannel(channel_id: number, updateDto: UpdateChannelDto, user_id: number, gateway: ChatGateway) {
@@ -386,7 +386,7 @@ export class ChatService {
 						await gateway.onChannelAdd(updateDto.parameter, channel_id)
 						break;
 					case UpdateChannelOperator.REMOVE_USER:
-						if (user.id != updateDto.parameter)
+						if (user_id != updateDto.parameter)
 						{
 							if (user.power != ChannelUserPower.OWNER)
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {connected: false}})
@@ -396,7 +396,7 @@ export class ChatService {
 						}
 						break;
 					case UpdateChannelOperator.BAN_USER:
-						if (user.id != updateDto.parameter)
+						if (user_id != updateDto.parameter)
 						{
 							if (user.power != ChannelUserPower.OWNER)
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {ban_expiration: updateDto.parameter_2}})
@@ -408,7 +408,7 @@ export class ChatService {
 						}
 						break;
 					case UpdateChannelOperator.MUTE_USER:
-						if (user.id != updateDto.parameter)
+						if (user_id != updateDto.parameter)
 						{
 							if (user.power !== ChannelUserPower.OWNER)
 								await this.prisma.channelUser.updateMany({where: {channelId: channel_id, userId: updateDto.parameter, power: ChannelUserPower.REGULAR}, data: {mute_expiration: updateDto.parameter_2}})
@@ -437,7 +437,7 @@ export class ChatService {
 						await gateway.onChannelDemote(updateDto.parameter, channel_id)
 						break;
 					case UpdateChannelOperator.REVOKE_BAN:
-						if (user_id === -1 || updateDto.parameter != user.id)
+						if (user_id === -1 || updateDto.parameter != user_id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {power: ChannelUserPower.REGULAR, ban_expiration: null}})
 							if (user_id !== -1)
@@ -446,7 +446,7 @@ export class ChatService {
 						}
 						break;
 					case UpdateChannelOperator.REVOKE_MUTE:
-						if (user_id === -1 || updateDto.parameter != user.id)
+						if (user_id === -1 || updateDto.parameter != user_id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {mute_expiration: null}})
 							if (user_id !== -1)
@@ -699,9 +699,6 @@ export class ChatService {
 		chatGateway.onUserUnblock(unblocker, blocked);
 	}
 
-
-  private expirables: Expirable[] = []
-
   addExpirable(e: Expirable)
   {
 	this.expirables.push(e)
@@ -721,34 +718,21 @@ export class ChatService {
 	this.expirables.sort((a, b) => a.expiration.getTime() - b.expiration.getTime())
   }
 
+  @Cron('*/10 * * * * *')
   runEvery10Seconds()
   {
-	  console.log(this);
-	  console.log("cron tab called")
-	  console.log(this.expirables)
-	  for (let i = 0; i < this.expirables.length && this.expirables[i].expiration <= new Date(); i++)
-	  {
-			console.log("iter");
-			const e = this.expirables[0]
-			this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway)
-			.then(() => {
-				this.expirables.shift(); i--;
-			}).catch((e: any) => {
-				console.log("Nothing to do"); 
-			});
-	  }
+	if (this.running)
+		return ;
+	this.running = true;
+
+	const expirables_work_copy = this.expirables.filter((e) => e.expiration <= new Date())
+	expirables_work_copy.forEach((e) => {
+		this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway)
+		.then(() => this.expirables.filter((ex) => e.user != ex.user && e.operation != ex.operation))
+		.catch((error) => {
+			console.log("Nothing to do")
+		})
+	});
+	this.running = false;
   }
-
-  enableExpirables()
-  {
-	const job = new CronJob(CronExpression.EVERY_10_SECONDS, () => this.runEvery10Seconds());
-	
-	this.schedulerRegistry.addCronJob("unbans/unmutes", job);
-	job.start();
-  }
-
-
-
-
 }
-  

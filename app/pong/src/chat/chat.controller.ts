@@ -14,16 +14,15 @@ export class ChatController {
 				private chatGateway: ChatGateway)
 	{
 		// Setup unbans/unmutes
-		try {
-			const setupExpirables = async () => {
+		/*const setupExpirables = async () => {
+			try {
 				(await chatService.getAllExpirable()).forEach((e) => {
 					chatService.addExpirable({...e, chatGateway})
 				})
 				chatService.sortExpirables()
-				chatService.enableExpirables()
-			}
-			setupExpirables()
-		} catch (e: any) { console.log("Please restart since there was an error fetching banned people on backend startup."); }
+			} catch (e) {console.log("Error fetching expirables please manually restart.")}
+		}
+		setupExpirables();*/
 	}
 
 	/*
