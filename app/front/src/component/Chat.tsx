@@ -333,14 +333,12 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 		{
 			return (
 				<Box key={idx} sx={{
-					padding: { sm: '', md: '5px 30px' }, /* border: "solid", borderColor: 'red', */
+					padding: { xs: '5px 0', md: '5px 30px' }, /* border: "solid", borderColor: 'red', */
 					cursor: 'pointer',
 					overflow: 'hidden',
-					'&, & *': {
-						wordWrap: 'nowrap',
-						wordBreak: 'keep-all',
-						textOverflow: 'ellipsis',
-					},
+					wordWrap: 'nowrap',
+					wordBreak: 'keep-all',
+					textOverflow: 'ellipsis',
 					'&:hover': { background: '#ffc806' },
 					display: { sm: '', md: 'flex' }
 				}} id={String(user.id)}
@@ -473,7 +471,7 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 					{channel_chat_interface}
 				</Box>
 				<Box sx={{ width: '30%', maxWidth: '200px', minWidth: '60px', height: 'calc(100vh - 70px)',
-					overflow: 'auto', overflowBlock: 'auto'
+					overflow: 'auto', overflowBlock: 'auto', borderLeft: '1px solid #e0e0e0'
 				}}>
 					{channel_users}
 					<Menu
@@ -601,25 +599,28 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 	
 	menu = (
 		<Paper sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
+			<h1>CGU d'utilisation</h1>
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam lacus ante, gravida eget feugiat at, fringilla ut diam. Nunc commodo vestibulum nisl sit amet imperdiet. Duis pellentesque tristique orci, a posuere velit tincidunt quis. Aenean eleifend, erat non laoreet molestie, ligula urna dapibus est, ac efficitur mi ante eu orci. Vivamus sed venenatis lorem. Nulla facilisi. Vestibulum aliquet nec tortor et scelerisque.</p>
+			<p>Cras consectetur at magna non scelerisque. Maecenas et semper velit, vel eleifend dolor. Ut a justo eu purus lacinia commodo. Sed vehicula rhoncus arcu, convallis tempor dui convallis in. Proin ornare ligula sed libero porttitor, eget porttitor magna malesuada. Nam blandit odio ut sem fermentum aliquam. Morbi ac lectus ut mauris placerat rutrum id sed enim. Aenean tempus dignissim velit, eu tristique dolor commodo non. Quisque diam nisl, lobortis sed pretium a, sodales eget lacus. Ut tellus nisl, laoreet facilisis nunc sit amet, varius pulvinar neque.</p>
 			<Grid container spacing={3}>
-				<Grid item xs={12}>
+				<Grid item xs={6}>
 					<Button
 						type="submit"
 						fullWidth
 						variant="contained"
 						onClick={(e) => setSelectedMenu("CREATE")}
 						>
-						CREER
+						Créer
 					</Button>
 				</Grid>
-				<Grid item xs={12}>
+				<Grid item xs={6}>
 					<Button
 						type="submit"
 						fullWidth
 						variant="contained"
 						onClick={(e) => setSelectedMenu("JOIN")}
 						>
-						REJOINDRE
+						Rejoindre
 					</Button>
 				</Grid>
 			</Grid>
@@ -627,20 +628,14 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 	)
 	if (selectedMenu === "CREATE")
 	{
-		menu = (
-			<Paper sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-				<IconButton color="primary" aria-label="return" onClick={(e) => setSelectedMenu("NONE")}>
-					<ArrowBackIosIcon />
-				</IconButton>
-				<Typography component="h1" variant="h4" align="center">
-					Créer un nouveau salon
-				</Typography>
-				<React.Fragment>
-					<form onSubmit={handleCreate}>
-					<Grid container spacing={3}>
-						<Grid item xs={12}>
+		menu = (<Dialog fullWidth open={true} onClose={(e: any) => setSelectedMenu("NONE")}>
+			<DialogTitle>Créer un nouveau salon</DialogTitle>
+				<form onSubmit={handleCreate}>
+					<DialogContent>
+						<div>
 							<TextField
 								required
+								fullWidth
 								id="name"
 								name="name"
 								error={status === "error"}
@@ -650,10 +645,11 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								variant="standard"
 								inputRef={inputRef}
 							/>
-						</Grid>
-						<Grid item xs={12}>
+						</div>
+						<div>
 							<InputLabel id="visibility-label">Visilité</InputLabel>
 							<Select
+								fullWidth
 								labelId="visibility-label"
 								id="visibility-select"
 								value={visibility}
@@ -663,21 +659,22 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								<MenuItem value={"PUBLIC"}>Publique</MenuItem>
 								<MenuItem value={"PRIVATE"}>Privée</MenuItem>
 							</Select>
-						</Grid>
+						</div>
 						{visibility === "PUBLIC" && 
-						<Grid item xs={12}>
-							<TextField
-								id="password"
-								name="password"
-								value={inputs.password}
-								onChange={handleChange}
-								label="Mot de passe (vide = aucun)"
-								variant="standard"
-								type="password"
-							/>
-						</Grid>
+							<div>
+								<TextField
+									fullWidth
+									id="password"
+									name="password"
+									value={inputs.password}
+									onChange={handleChange}
+									label="Mot de passe (vide = aucun)"
+									variant="standard"
+									type="password"
+								/>
+							</div>
 						}
-						<Grid item xs={12}>
+						<div>
 							<InputLabel id="users-label">Utilisateurs</InputLabel>
 							<Select
 								multiple
@@ -690,44 +687,33 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 								onChange={(e) => setSelectedUsers(e.target.value as number[])}
 							>
 								{addableUsers.map((user, i) => (
-										<MenuItem key={i} value={user.id}>
-											<ListItemAvatar>
-												<Avatar alt={user.name} src={user.avatar} />
-											</ListItemAvatar>
-											<ListItemText>{user.name}</ListItemText>
+										<MenuItem key={i} value={user.id} sx={{display: 'inline-block'}}>
+											<Avatar alt={user.name} src={user.avatar} sx={{ display: 'inline-block', verticalAlign: 'middle' }} />
+											<Typography sx={{
+												display: 'inline',
+												lineHeight: '40px',
+												verticalAlign: 'middle',
+												ml: '8px'
+											}}>{user.name}</Typography>
 										</MenuItem>
 									))
 								}
 							</Select>
-						</Grid>
-						<Grid item xs={12}>
-							<Button
-								type="submit"
-								fullWidth
-								variant="contained"
-								>
-								CREER
-							</Button>
-						</Grid>
-					</Grid>
-					</form>
-				</React.Fragment>
-			</Paper>
-		)
+						</div>
+				</DialogContent>
+				<DialogActions>
+				  <Button onClick={() => setSelectedMenu("NONE")}>Annuler</Button>
+				  <Button type="submit">Créer</Button>
+				</DialogActions>
+			</form>
+		</Dialog>)
 	}
 	else if (selectedMenu === "JOIN")
 	{
-		menu = (<Paper sx={{ my: { xs: 3, md: 6 }, p: { xs: 2, md: 3 } }}>
-		<IconButton color="primary" aria-label="return" onClick={(e) => setSelectedMenu("NONE")}>
-			<ArrowBackIosIcon />
-		</IconButton>
-		<Typography component="h1" variant="h4" align="center">
-			Rejoindre un salon
-		</Typography>
-		<form onSubmit={handleJoin}>
-		<React.Fragment>
-			<Grid container spacing={3}>
-				<Grid item xs={12}>
+		menu = (<Dialog fullWidth open={true} onClose={(e: any) => setSelectedMenu("NONE")}>
+			<DialogTitle>Rejoindre un salon</DialogTitle>
+			<form onSubmit={handleJoin}>
+				<DialogContent>
 					<InputLabel id="channels-label">Salon</InputLabel>
 					<Select
 						required
@@ -745,37 +731,27 @@ function NewChannelTabPanel(props: NewChannelTabPanelProps) {
 							})
 						}
 					</Select>
-				</Grid>
-				{selectedChannel !== -1 && joinableChannels.filter((c) => c.id === selectedChannel)[0].visibility === "PASSWORD_PROTECTED" && 
-				<Grid item xs={12}>
-					<TextField
-						id="password"
-						name="password"
-						value={inputs.password}
-						onChange={handleChange}
-						variant="standard"
-						type="password"
-						error={status === "error"}
-						label={status !== "error" ? "Mot de passe" : "Mode de passe invalide"}
-						inputRef={passwordRef}
-
-					/>
-				</Grid>
-				}
-				<Grid item xs={12}>
-					<Button
-						type="submit"
-						fullWidth
-						variant="contained"
-						>
-						REJOINDRE
-					</Button>
-				</Grid>
-			</Grid>
-		</React.Fragment>
-		</form>
-	</Paper>)
-
+					{selectedChannel !== -1 && joinableChannels.filter((c) => c.id === selectedChannel)[0].visibility === "PASSWORD_PROTECTED" && 
+						<TextField
+							id="password"
+							name="password"
+							fullWidth
+							value={inputs.password}
+							onChange={handleChange}
+							variant="standard"
+							type="password"
+							error={status === "error"}
+							label={status !== "error" ? "Mot de passe" : "Mode de passe invalide"}
+							inputRef={passwordRef}
+						/>
+					}
+				</DialogContent>
+				<DialogActions>
+				  <Button onClick={() => setSelectedMenu("NONE")}>Annuler</Button>
+				  <Button type="submit">Rejoindre</Button>
+				</DialogActions>
+			</form>
+		</Dialog>)
 	}
 
 	return (
