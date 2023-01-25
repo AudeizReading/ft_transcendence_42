@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { User } from '../interface/User'
 import CanvasGame from '../component/CanvasGame';
@@ -12,7 +12,11 @@ function Game(props: {
   const [ message, setMessage ] = useState('Chargement…')
   const [ gameid, setGameId ] = useState(useParams().gameid)
 
+  const navigate = useNavigate();
+
   useEffect(() => {
+    if (!props.user.connected)
+      navigate('/');
     if (!gameid) {
       if (props.user.is_playing) {
         setGameId('mygame');
@@ -20,11 +24,11 @@ function Game(props: {
         setMessage("Vous n'avez pas de partie en cours."); // TODO: Improve css
       }
     }
-  }, [props, gameid, message]);
+  }, [props, gameid, message, navigate]);
 
   return (
     <Box component="main" sx={{ py: 1, height: '100vh', overflow: 'auto', background: 'white', color: 'black' }}>
-      {props.loaded && (gameid
+      {props.user.connected && props.loaded && (gameid
         ? <CanvasGame userId={props.user.id} gameId={gameid} playable border="3px solid black" />
         : <Box component="p" sx={{ maxWidth: 400, mx: 'auto' }}>{message || 'loading…'}</Box>
       )}
