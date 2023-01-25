@@ -7,7 +7,7 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto, UpdateChannelOperator } from './dto/update-channel.dto';
 import { ChatGateway } from './chat.gateway';
 import { CronJob } from 'cron';
-import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
 
 import * as bcrypt from 'bcrypt';
 
@@ -440,6 +440,8 @@ export class ChatService {
 						if (user_id === -1 || updateDto.parameter != user.id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {power: ChannelUserPower.REGULAR, ban_expiration: null}})
+							if (user_id !== -1)
+								await this.removeExpirablesByUserIdOperation(updateDto.parameter, "REVOKE_BAN");
 							await gateway.onChannelUnban(updateDto.parameter, channel_id)
 						}
 						break;
@@ -447,6 +449,8 @@ export class ChatService {
 						if (user_id === -1 || updateDto.parameter != user.id)
 						{
 							await this.prisma.channelUser.update({where: {userId_channelId: {userId: updateDto.parameter, channelId: channel_id}}, data: {mute_expiration: null}})
+							if (user_id !== -1)
+								await this.removeExpirablesByUserIdOperation(updateDto.parameter, "REVOKE_MUTE");
 							await gateway.onChannelUnmute(updateDto.parameter, channel_id)
 						}
 						break;
@@ -705,26 +709,45 @@ export class ChatService {
 
   removeExpirablesByChannelId(id: number)
   {
-	this.expirables = this.expirables.filter((expirable: Expirable) => expirable.channel !== id);
+	this.expirables = [...this.expirables.filter((expirable: Expirable) => expirable.channel !== id)]
+  }
+
+  removeExpirablesByUserIdOperation(id: number, operation: string)
+  {
+	this.expirables = [...this.expirables.filter((expirable: Expirable) => expirable.user !== id && expirable.operation !== operation)];
   }
 
   sortExpirables() {
 	this.expirables.sort((a, b) => a.expiration.getTime() - b.expiration.getTime())
   }
 
-  @Cron('*/10 * * * * *')
-  async runEvery10Seconds()
+  runEvery10Seconds()
   {
+	  console.log(this);
+	  console.log("cron tab called")
+	  console.log(this.expirables)
 	  for (let i = 0; i < this.expirables.length && this.expirables[i].expiration <= new Date(); i++)
 	  {
-		  const e = this.expirables[0]
-		  try
-		  {
-		  	await this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway);
-		  	this.expirables.shift(); i--;
-		  } catch (e: any) {console.log("Nothing to do"); }
+			console.log("iter");
+			const e = this.expirables[0]
+			this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway)
+			.then(() => {
+				this.expirables.shift(); i--;
+			}).catch((e: any) => {
+				console.log("Nothing to do"); 
+			});
 	  }
   }
+
+  enableExpirables()
+  {
+	const job = new CronJob(CronExpression.EVERY_10_SECONDS, () => this.runEvery10Seconds());
+	
+	this.schedulerRegistry.addCronJob("unbans/unmutes", job);
+	job.start();
+  }
+
+
 
 
 }

@@ -60,7 +60,6 @@ interface ChannelTabPanelProps {
 
 interface AddableUser {id: number;name: string;avatar: string;}
 
-//TODO: FIX BUG LE TEMPS NE CHANGE PAS
 function MuteBanTimeDialog(props: {children?: React.ReactNode, functionCallback: any, closeCallback: any, open: boolean, text: string, user_id: number, expo: Date}) {
 	const { children, functionCallback, closeCallback, open, text, user_id, expo, ...other} = props;
 	

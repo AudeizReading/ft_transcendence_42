@@ -20,6 +20,7 @@ export class ChatController {
 					chatService.addExpirable({...e, chatGateway})
 				})
 				chatService.sortExpirables()
+				chatService.enableExpirables()
 			}
 			setupExpirables()
 		} catch (e: any) { console.log("Please restart since there was an error fetching banned people on backend startup."); }
