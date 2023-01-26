@@ -1131,7 +1131,7 @@ class ChatComponent extends React.Component<{
 
 	channelSettingsDialogCallback = async (usePassword: boolean, password: string | null, user: number, channel: ChatChannel) => {
 		// password was added, removed or modified
-		if ((usePassword && channel.visibility == "PUBLIC") || (!usePassword && channel.visibility == "PRIVATE")|| (password != null && password !== ""))
+		if ((usePassword && channel.visibility == "PUBLIC") || (!usePassword && channel.visibility == "PASSWORD_PROTECTED")|| (password != null && password !== ""))
 		{
 			console.log("Modifying password")
 			await fetch(`http://${window.location.hostname}:8190/chat/channel/`+channel.id, {

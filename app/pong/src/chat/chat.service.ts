@@ -455,8 +455,8 @@ export class ChatService {
 						}
 						break;
 				}
-			} catch (e) { throw "Error performing this action"; }
-		} catch (e) { throw "Error"; }
+			} catch (e) { throw new HttpException("error " + updateDto.operation, HttpStatus.I_AM_A_TEAPOT); }
+		} catch (e) { throw new HttpException("error " + updateDto.operation, HttpStatus.I_AM_A_TEAPOT); }
   }
 
   async deleteChannel(channel_id: number, user_id: number, gateway: ChatGateway) {
@@ -725,6 +725,7 @@ export class ChatService {
 		return ;
 	this.running = true;
 
+	console.log(new Date())
 	const expirables_work_copy = this.expirables.filter((e) => e.expiration <= new Date())
 	expirables_work_copy.forEach((e) => {
 		this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway)
