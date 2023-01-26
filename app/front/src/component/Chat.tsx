@@ -358,18 +358,25 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
   })
 
   const [antispam, setAntispam] = React.useState(false);
+  const [stopSpamming, setStopSpamming] = React.useState(false);
   const send_message = async () => {
 		sendMessage(message, channel.id);
 		inputRef.current!.focus();
 		setMessage("");
 		setAntispam(true);
-		setTimeout(() => setAntispam(false), 1000);
+		setTimeout(() => {
+			setAntispam(false);
+			setStopSpamming(false);
+		}, 1000);
   }
 
 	// To be used with the channel_chat_interface right below.
 	const handleMessageFormSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		send_message();
+		if (!antispam)
+			send_message();
+		else
+			setStopSpamming(true);
 	};
 
   const [scrollDeltaX, setScrollDeltaX] = React.useState(0);
@@ -417,16 +424,17 @@ function ChannelTabPanel(props: ChannelTabPanelProps) {
 							inputRef={inputRef}
 							id="message"
 							name="message"
-							label={String(Boolean(current_user.muted) ? "YOU'RE MUTED" : "Envoyer un message sur " + channel.name)}
+							label={String(Boolean(current_user.muted) ? "YOU'RE MUTED" : stopSpamming ? "Veuillez patienter 1s" : "Envoyer un message sur " + channel.name)}
 							value={message}
-							disabled={Boolean(current_user.muted) || antispam}
+							disabled={Boolean(current_user.muted)}
 							onChange={(e) => setMessage(e.target.value)}
 							fullWidth
 							variant="standard"
+							error={stopSpamming}
 						/>
 					</Box>
 					<Box>
-						<Button disabled={Boolean(current_user.muted) || antispam} type="submit" fullWidth variant="outlined" sx={{height: '100%', maxWidth: '40px', ml: '10px' }}>
+						<Button disabled={Boolean(current_user.muted)} type="submit" fullWidth variant="outlined" sx={{height: '100%', maxWidth: '40px', ml: '10px' }}>
 							<SendIcon />
 						</Button>
 					</Box>
