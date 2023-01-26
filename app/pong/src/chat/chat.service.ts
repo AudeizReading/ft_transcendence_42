@@ -724,12 +724,10 @@ export class ChatService {
 	if (this.running)
 		return ;
 	this.running = true;
-
-	console.log(new Date())
 	const expirables_work_copy = this.expirables.filter((e) => e.expiration <= new Date())
 	expirables_work_copy.forEach((e) => {
 		this.updateChannel(e.channel, {operation: e.operation as UpdateChannelOperator, parameter: e.user, parameter_2: undefined}, -1, e.chatGateway)
-		.then(() => this.expirables.filter((ex) => e.user != ex.user && e.operation != ex.operation))
+		.then(() => this.expirables = this.expirables.filter((ex) => e.user != ex.user && e.operation != ex.operation))
 		.catch((error) => {
 			console.log("Nothing to do")
 		})
