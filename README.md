@@ -1,4 +1,18 @@
+README
+======
+
+
+
 # project42_transcendence
+
+Group project to be done between 3 and 5 students, we were 4.
+
+Developpement of a website, entirely mounted in Typescript, allowing to play the famous Pong game.
+
+*I was in charge of the front-end part of the Home page, which welcomes any visitor to the website.*
+
+![Home preview](./preview_home.png)
+
 
 ## Installation:
 
